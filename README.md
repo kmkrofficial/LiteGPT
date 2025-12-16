@@ -52,14 +52,51 @@ We provide interactive scripts to test the models:
   ```
   *Interactively chats with the instruction-tuned model. Supports commands like `/temp`, `/tokens`.*
 
+### 4. Publish to Hugging Face
+To export your trained model to the Hugging Face Hub:
+
+```bash
+python export_to_hub.py --checkpoint out-instruct/ckpt.pt --repo_name <your-username>/<your-model-name>
+```
+*Note: Make sure you remain logged in via `huggingface-cli login` or provide a token.*
+
+### 5. Use from Hugging Face
+We host two versions of the model:
+- **Instruct Model**: `koganrath/LiteGPT-Instruct` (Fine-tuned on Alpaca)
+- **Base Model**: `koganrath/LiteGPT-Base` (Pre-trained on FineWeb)
+
+We provide a standalone inference setup in the `hugging_face_inference/` directory.
+
+To use it:
+```bash
+cd hugging_face_inference
+pip install -r requirements.txt
+
+# Run Instruct Model
+python inference_instruct.py
+
+# Run Base Model
+python inference_base.py
+```
+
+Or in Python:
+```python
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+model = GPT2LMHeadModel.from_pretrained("koganrath/LiteGPT")
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+```
+
 ## Directory Structure
 
 - `data/`: Data preparation scripts and raw data.
 - `config/`: Configuration files for training and fine-tuning.
 - `out-fineweb/`: Checkpoints and logs for the base model.
 - `out-instruct/`: Checkpoints for the instruction-tuned model.
+- `hugging_face_inference/`: Standalone scripts for using the hosted model.
 - `check_model.py`: Inference script for the base model.
 - `check_instruct.py`: Inference script for the instruct model.
+- `export_to_hub.py`: Script to export checkpoints to Hugging Face.
 
 ## Acknowledgements
 

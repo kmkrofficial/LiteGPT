@@ -16,3 +16,5 @@ wandb/
 out-*/
 assets/
 data/*/*.json
+export_to_hub.py
+hugging_face_export/
