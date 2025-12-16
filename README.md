@@ -1,4 +1,4 @@
-# Small Language Model (SLM) Project
+# LiteGPT Project
 
 This repository contains the code and resources for training a Small Language Model (SLM) from scratch, based on Andrej Karpathy's [nanoGPT](https://github.com/karpathy/nanoGPT). 
 
