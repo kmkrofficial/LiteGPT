@@ -1,0 +1,149 @@
+{
+  "stage": "screen",
+  "workload": {
+    "config": "litegpt-v2-28l",
+    "micro_batch": 4,
+    "seq_len": 2048,
+    "backend": "sdpa",
+    "compile": true,
+    "dtype": "bfloat16"
+  },
+  "thresholds": {
+    "temp_target_c": 85.0,
+    "thermal_margin_c": 3.0,
+    "abort_temp_c": 90.0,
+    "max_cv": 0.03,
+    "min_last_over_first": 0.97,
+    "invalid_cv": 0.08,
+    "loss_spike_rel": 0.1,
+    "lock_tolerance_mhz": 30.0,
+    "tie_rel": 0.01
+  },
+  "source": null,
+  "notes": "validation screen; non-elevated session; current Lenovo mode; owner-stated max cooling + AC",
+  "points": [
+    {
+      "spec": "observe",
+      "label": "observe (current setting)",
+      "control": "observe",
+      "value": null,
+      "status": "ok",
+      "applied": {},
+      "notes": [],
+      "start_temp_c": 42,
+      "workload": {
+        "status": "ok",
+        "warmup_s": 5.58,
+        "final_loss": 1.2296365525799047e-07,
+        "peak_alloc_gib": 10.14,
+        "vram_pressure": false,
+        "steps_measured": 1148,
+        "tok_per_s": 31328.5,
+        "sustained": {
+          "seconds": 300,
+          "window_seconds": 30.0,
+          "window_tok_per_s": [
+            32531.4,
+            32087.1,
+            31859.3,
+            31647.5,
+            30947.2,
+            31380.2,
+            30759.0,
+            30637.2,
+            30612.9
+          ],
+          "window_loss": [
+            3.759096622467041,
+            0.00581017741933465,
+            0.0005679222522303462,
+            4.2467541788937524e-05,
+            3.4664044505916536e-06,
+            7.007472504483303e-07,
+            2.9597134698633454e-07,
+            1.8718125716077338e-07,
+            1.440202765934373e-07
+          ],
+          "window_end_t": [
+            1791305045.8930798,
+            1791305076.0193083,
+            1791305106.1038864,
+            1791305136.1308684,
+            1791305166.3079443,
+            1791305196.3296952,
+            1791305226.4251113,
+            1791305256.6401608,
+            1791305286.879211
+          ],
+          "first_window": 32531.4,
+          "last_window": 30612.9,
+          "last_over_first": 0.941,
+          "mean_tok_per_s": 31384.6
+        }
+      },
+      "metrics": {
+        "windows_total": 9,
+        "windows_measured": 7,
+        "settle_windows": 2,
+        "measured_seconds": 210.9,
+        "tok_per_s": 31120.5,
+        "tok_per_s_min": 30612.9,
+        "tok_per_s_max": 31859.3,
+        "cv": 0.0151,
+        "last_over_first": 0.9609,
+        "power_w_mean": 154.53,
+        "power_w_peak": 170.17,
+        "temp_c_mean": 75.8,
+        "temp_c_max": 80,
+        "sm_clock_mhz_mean": 2059.7,
+        "sm_clock_mhz_min": 1905,
+        "sm_clock_mhz_max": 2280,
+        "util_pct_mean": 99.2,
+        "vram_used_mib_max": 12995.5,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 1.0,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 152.276,
+        "power_limit_w_max": 155.0,
+        "telemetry_samples": 210,
+        "tok_per_s_per_w": 201.39,
+        "losses_finite": true,
+        "loss_max_rel_rise": 0.0
+      },
+      "telemetry_file": "telemetry/observe.jsonl",
+      "valid": true,
+      "invalid_reasons": [],
+      "eligible": false,
+      "ineligible_reasons": [
+        "throughput decayed (last/first 0.9609)"
+      ]
+    },
+    {
+      "spec": "lgc:1950",
+      "label": "clock cap 1950 MHz",
+      "control": "lgc",
+      "value": 1950.0,
+      "status": "skipped",
+      "applied": {},
+      "notes": [
+        "clock caps need an elevated Windows session (start WSL from an Administrator terminal)"
+      ],
+      "valid": false,
+      "invalid_reasons": [
+        "status=skipped",
+        "non-finite or missing loss",
+        "no measurement"
+      ],
+      "eligible": false,
+      "ineligible_reasons": [
+        "status=skipped",
+        "non-finite or missing loss",
+        "no measurement"
+      ]
+    }
+  ],
+  "recommended": null,
+  "pareto_front": [
+    "observe"
+  ]
+}

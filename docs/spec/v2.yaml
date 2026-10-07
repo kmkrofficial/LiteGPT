@@ -1,0 +1,165 @@
+# NOTE: YAML 1.1 (PyYAML) only parses floats with a signed exponent, so write 9.0e+9, never 9.0e9 (the latter loads as a string).
+# LiteGPT V2 — machine-readable specification.
+# Single source of truth for approved V2 decisions. Every run records `spec_version` and the sha256 of this
+# file in its run.json; reports flag runs whose config deviates from this spec.
+# Changing any field requires a new ADR in docs/decisions/ and a bumped spec_version.
+# Fields marked `frozen_before: M3` must not change once the initial pretraining run (M3) has started.
+
+spec_version: "2.0.0-spec.5"   # spec.2: toolchain update (ADR-006); spec.3: flash-attn adopted for attention_backend=auto (ADR-006 evidence, EXP-M0-FLASH); spec.4: repository restructure, path pointers only, no value changes (ADR-007); spec.5: torch.compile adopted for production training on WSL2 (ADR-006 evidence, EXP-M0-COMPILE)
+approved: 2026-10-06
+decision_records: docs/decisions/
+status: approved
+
+model:
+  name: litegpt-v2
+  n_layer: 28                    # D1 (24L fallback only by explicit user decision, see ADR-001)
+  n_embd: 768
+  n_head: 12
+  n_kv_head: 4                   # GQA 3:1
+  head_dim: 64
+  ffn: swiglu
+  ffn_hidden: 2048
+  norm: rmsnorm
+  norm_eps: 1.0e-6
+  qk_norm: true                  # per-head RMSNorm over head_dim, applied before RoPE (Qwen3-compatible layout)
+  positional: rope
+  rope_theta: 10000              # pretraining; raised for 4096 extension (see training.context_extension)
+  vocab_size: 32768
+  tie_embeddings: true
+  bias: false
+  dropout_pretrain: 0.0
+  init: {std: 0.02, residual_scaled: [o_proj, w2], residual_scale: "1/sqrt(2*n_layer)"}
+  params_total_expected: 201.4e+6
+  params_non_embedding_expected: 176.2e+6
+  attention_backend: auto        # auto | flash | sdpa — D2; sdpa is mandatory and always tested
+
+environment:                     # D2 as amended by ADR-006 (supersedes the 3.11 / torch 2.9 toolchain of spec.1)
+  python: "3.12"
+  package_manager: {tool: uv, version: "0.12.23", manifest: pyproject.toml, lockfile: uv.lock, python_install: "uv python install 3.12"}
+  policy: "latest stable release compatible with the stack; no pre-releases; no downgrades of python/torch to obtain flash-attn"
+  pins:                          # verified on PyPI / download.pytorch.org on 2026-10-06
+    torch: "2.14.1+cu130"        # builds published for 2.14.1: cu126, cu130 (no cu128); driver 610.88 supports CUDA 13.3
+    transformers: "5.18.0"
+    tokenizers: "0.23.2"
+    safetensors: "0.8.0"
+    numpy: "2.5.3"               # requires python >= 3.12
+    datasets: "5.1.0"            # latest stable; requires huggingface-hub >=1.31,<3 (same constraint as transformers 5.18)
+    trl: "1.14.1"
+    peft: "0.21.2"
+    accelerate: "1.15.0"
+    lm-eval: "0.4.13"
+    matplotlib: "3.11.2"
+  torch_index: {name: pytorch-cu130, url: "https://download.pytorch.org/whl/cu130", explicit: true}
+  dependency_groups:
+    core: [torch, tokenizers, safetensors, numpy]                 # what `pip install litegpt` needs for inference
+    train: [datasets, matplotlib]                                 # own training loop; no trainer frameworks in core
+    eval: [lm-eval, transformers, datasets]
+    hf: [transformers]                                            # export + parity tests
+    hf-reference: [trl, peft, accelerate]                         # optional: reference/cross-check experiments only
+  attention:
+    mandatory: sdpa
+    optional: {package: flash-attn, version: "2.8.3+cu130torch2.14", status: adopted-for-auto,
+               source: "community prebuilt wheel mjun0812/flash-attention-prebuild-wheels v0.10.2 (win_amd64, cp312, cu130, torch2.14), sha256 pinned in uv.lock; install: uv sync --locked --group flash",
+               note: "the spec.2 target 2.8.3.post1 is sdist-only and cannot be built on this machine. Adopted per the pre-registered rule (parity pass AND >= +5% tok/s, EXP-M0-FLASH). 'auto' uses flash only for CUDA bf16/fp16 without a KV cache; SDPA remains mandatory and is the fallback"}
+  compile: {status: adopted-wsl2, preferred_env: wsl2, fallback: eager,
+            note: "adopted per the pre-registered rule (EXP-M0-COMPILE): +23.9% tok/s, lower peak VRAM, equivalent outputs. Needs a C compiler (build-essential) in WSL2. Windows has no Triton: eager there. Production training: WSL2 + compile + SDPA"}
+  environments:
+    production_training: wsl2-ubuntu
+    development: windows-native
+  run_record_fields: [python, uv_version, uv_lock_sha256, resolved_package_versions, torch_version, torch_cuda_version,
+                      cudnn_version, nvidia_driver_version, gpu_name, gpu_vram, os, os_version, wsl_distro_and_kernel,
+                      flash_attn_version_or_none, triton_version_or_none, compile_enabled, attention_backend, git_commit, git_dirty]
+
+tokenizer:
+  type: byte-level-bpe
+  library: huggingface-tokenizers
+  vocab_size: 32768
+  pretokenizer: qwen2-style-regex   # single-digit splitting
+  train_sample: "3-5 GB drawn from data.mixture.stable (initial weights)"
+  frozen_before: M2-step7         # frozen before proxy-ladder tokenizer step and before 15.5B sharding
+  special_tokens: ["<|bos|>", "<|endoftext|>", "<|im_start|>", "<|im_end|>", "<|pad|>"]
+  reserved_tokens: 32             # <|think|>, <|tool_call|>, <|tool_result|>, ... (future features, no resize)
+
+chat_template:
+  version: litegpt-chat-v1
+  style: chatml
+  turn_end_and_chat_stop: "<|im_end|>"
+  document_separator: "<|endoftext|>"
+  roles_enabled: [system, user, assistant]
+  roles_reserved: [tool]
+
+data:
+  storage: {format: uint16-shards, manifest_per_source: true}
+  prepared_tokens: 15.5e+9         # full 15B extension budget + validation, prepared upfront to avoid a stall at the gate
+  raw_sources: streamed           # never stored in full on disk
+  disk_budget_gb: "50-70"
+  mixture:
+    stable:      {fineweb_edu: 0.62, cosmopedia_v2: 0.10, code: 0.12, math: 0.12, wikipedia: 0.04}
+    decay:       {fineweb_edu: 0.40, cosmopedia_v2: 0.12, code: 0.16, math: 0.20, wikipedia: 0.07, instruction_style: 0.05}
+    tuning: "single ablation only (with vs without code+math share); defaults follow published small-model recipes"
+  code_source: "must ship text inline (smollm-corpus python-edu ships blob ids only -> not acceptable); verified in M1"
+  validation:
+    val_core: {source: "held-out slice of data.mixture.stable", min_tokens: 20.0e+6, frozen_at: M1, record_sha256: true}
+    val_domains: [web, code, math, wiki, chat]
+  decontamination: {method: 13-gram-overlap, applies_to: [sft, reasoning, dpo], pretraining: spot-check}
+
+synthetic_data_policy:            # D3, ADR-003
+  public_synthetic_datasets: allowed   # even if originally generated by larger models
+  run_external_teacher_models: forbidden_in_v2
+  self_generated: {allowed: true, generator: "litegpt-v2 checkpoints only", requires_verifier: true}
+  provenance_required: [source, revision, original_generator, license, terms_of_use, verifier]
+  teacher_data_experiment: deferred
+
+training:
+  pretraining:
+    optimizer: adamw
+    betas: [0.9, 0.95]
+    weight_decay: 0.1
+    tokens_per_step: 0.5e+6
+    seq_len: 2048
+    schedule: wsd
+    budget_initial_tokens: 10.0e+9   # D1
+    budget_max_tokens: 15.0e+9
+    target_wall_clock_days: 7
+    required_sustained_tok_per_s: 16500   # 10B / 7 days
+    stable_phase_end_tokens: 9.0e+9      # gate is evaluated here (stable LR -> comparable points)
+    decay_tokens: 1.0e+9
+    context_extension: {seq_len: 4096, rope_theta: 100000, tokens: "last 0.3-0.5e9 of decay phase"}
+    eval_interval_tokens: 0.25e+9
+    checkpoint: {atomic: true, every_minutes: 30, keep_last: 3, milestones: [stable_end, decay_end], sigint_save: true}
+  extension_gate:                   # ADR-001 — PRE-REGISTERED, frozen_before: M3
+    frozen_before: M3
+    metric: val_bpb
+    eval_set: data.validation.val_core
+    bpb_window_a: [6.5e+9, 6.75e+9, 7.0e+9]    # mean of these stable-phase evals = BPB_7
+    bpb_window_b: [8.5e+9, 8.75e+9, 9.0e+9]    # mean of these stable-phase evals = BPB_9
+    statistic: "delta = BPB_7 - BPB_9"
+    threshold_bpb: 0.010
+    decision:
+      delta_ge_threshold: "extend: continue stable phase to 14.0e9, then 1.0e9 decay (total 15.0e9)"
+      delta_lt_threshold: "stop: decay from 9.0e9 to 10.0e9 (total 10.0e9)"
+    invalidation: "divergence/rollback or config/data change inside either window -> decision = stop (no extension)"
+    overrides: "only via a new ADR recorded as a protocol deviation; reports display the deviation"
+    automation: "decision computed by script from metrics records and written as a gate record"
+  sft: {data_core: smoltalk, loss: assistant_only, packing: per_conversation_cu_seqlens, epochs: "2-3"}
+  reasoning: {max_tokens: 1024, self_generated_verified: true, self_correction_share: "0.05-0.10", sft_replay: 0.30}
+  preference: {method: dpo, reference: precomputed_logprobs, beta: 0.1}
+
+evaluation:
+  suite_version_file: litegpt/eval/SUITE_VERSION
+  perplexity_metric: bits_per_byte
+  baselines_before_v2_training: [v1_base, v1_instruct, competitors]
+  v1_models: [koganrath/LiteGPT-Base, koganrath/LiteGPT-Instruct]
+  competitors_same_class: [SmolLM2-135M, SmolLM2-360M, gemma-3-270m, pythia-160m, pythia-410m, gpt2, gpt2-medium, MobileLLM-125M, MobileLLM-350M]
+  competitors_reference: [Qwen2.5-0.5B, Qwen3-0.6B]
+  code_execution_env: wsl2-sandbox
+  stage_gate_thresholds: "registered in docs/spec/registry.yaml before each stage starts"
+
+quantization:
+  after: bf16_validated
+  release_gate_max_relative_drop: 0.02
+
+licensing:                        # D4, ADR-004
+  code: MIT                       # with nanoGPT (Andrej Karpathy) copyright notice retained
+  model: pending-dataset-audit    # release-blocking gate at M5
+  audit_file: docs/data_licenses.md

@@ -3,18 +3,39 @@
 .ipynb_checkpoints/
 .vscode
 __pycache__/
-*.bin
-*.pkl
-*.pt
-*.pyc
-input.txt
+.pytest_cache/
+*.egg-info/
 env/
 venv/
 .venv/
+*.pyc
 logs.txt
 wandb/
-out-*/
+input.txt
 assets/
-data/*/*.json
+
+# model / data artifacts (never committed anywhere)
+*.bin
+*.pkl
+*.pt
+*.safetensors
+*.tmp
+
+# --- runs/: all generated experiment output lives here ---
+# Committed: run.json, bench/eval/gate result files, metrics.jsonl, figures, generated reports (provenance + report inputs).
+# Ignored: bulky or regenerable artifacts.
+runs/**/telemetry.jsonl
+runs/**/telemetry/
+runs/**/checkpoints/
+runs/**/shards/
+runs/**/raw/
+
+# --- scratch/: temporary experiments and prototypes, not tracked (only its README) ---
+scratch/*
+!scratch/README.md
+
+# --- scripts/legacy_v1/ (V1 baseline code): its local outputs and fetched data ---
+out-*/
+scripts/legacy_v1/data/*/*.json
 export_to_hub.py
 hugging_face_export/

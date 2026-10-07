@@ -1,111 +1,91 @@
-# LiteGPT Project
+# LiteGPT
 
-This repository contains the code and resources for training a Small Language Model (SLM) from scratch, based on Andrej Karpathy's [nanoGPT](https://github.com/karpathy/nanoGPT). 
+A small language model (SLM) trained from scratch, derived from Andrej Karpathy's [nanoGPT](https://github.com/karpathy/nanoGPT).
 
-The goal of this project is to build a GPT-2 (124M parameter) equivalent model trained on high-quality educational data and subsequently fine-tuned for instruction following.
+- **V1**: GPT-2 Small (124M), trained on FineWeb-Edu and fine-tuned on Alpaca. Preserved in [`scripts/legacy_v1/`](scripts/legacy_v1) as the baseline.
+- **V2** (in development): an independently implemented modern architecture, trained on a single RTX 4090 Laptop (16 GB).
 
-## Project Overview
+## LiteGPT V2 (in development)
 
-- **Architecture**: GPT-2 Small (12 layers, 12 heads, 768 embedding dim)
-- **Dataset**: [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu) (Sample 10B tokens)
-- **Fine-Tuning**: Alpaca Dataset (Instruction Tuning)
-- **Framework**: PyTorch (nanoGPT)
+RoPE, RMSNorm + QK-norm, SwiGLU, grouped-query attention, a 32k tokenizer, 28 layers x 768, 2048 context, ~201M parameters,
+with a reproducible pipeline and an evaluation / benchmarking layer.
 
-## Setup
+- Specification: [`docs/spec/v2.yaml`](docs/spec/v2.yaml); decisions: [`docs/decisions/`](docs/decisions/README.md).
+- Repository layout: [`docs/repository_structure.md`](docs/repository_structure.md).
+- Environment (Python 3.12 + uv, locked): [`docs/reproduce.md`](docs/reproduce.md).
 
-1. **Install Dependencies**
+```bash
+uv sync --locked                                   # create .venv from uv.lock
+uv run pytest                                      # V2 test suite (CPU, SDPA path)
+uv run python -m benchmarks.train_mem single       # training throughput / VRAM benchmark (needs a GPU)
+uv run python -m scripts.build_report              # regenerate runs/report-latest/REPORT.md from runs/
+```
+
+Status: M0 (foundations) in progress. No V2 model has been trained yet.
+
+## Repository layout
+
+```
+litegpt/        canonical production source          tests/       canonical tests
+benchmarks/     reusable benchmark tooling           scripts/     reusable utilities (+ scripts/legacy_v1/, the V1 baseline)
+scratch/        temporary experiments (git-ignored)  runs/        all generated experiment outputs and reports
+docs/           documentation, ADRs, spec/
+```
+
+## V1 baseline
+
+The V1 scripts live in `scripts/legacy_v1/` and are run from inside that directory (their relative paths are unchanged).
+
+1. **Install V1 dependencies** (separate from the V2 environment):
    ```bash
+   cd scripts/legacy_v1
    pip install -r requirements.txt
    ```
+2. **Prepare data.** The datasets (FineWeb-Edu, Alpaca) are not included. Download and tokenize them with the `prepare.py`
+   scripts in `scripts/legacy_v1/data/<dataset>/`.
+3. **Train / fine-tune:**
+   ```bash
+   python train.py config/train_fineweb.py        # base model
+   python train.py config/finetune_alpaca.py      # instruction fine-tuning
+   ```
+4. **Chat with the models:**
+   ```bash
+   python check_model.py       # base model (FineWeb-Edu)
+   python check_instruct.py    # instruction-tuned model; supports /temp, /tokens
+   ```
 
-2. **Prepare Data**
-   The training data is processed using the scripts in the `data/` directory.
-   
-   > **Note**: The actual datasets (FineWeb-Edu and Alpaca) are not included in this repository to keep it light. You can download and prepare them using the provided `prepare.py` scripts in the respective `data/` subdirectories.
+Checkpoints are written to `out-fineweb/` and `out-instruct/` inside `scripts/legacy_v1/` (git-ignored).
 
-## Usage
+### V1 on Hugging Face
 
-### 1. Training
-To train the base model:
-```bash
-python train.py config/train_fineweb.py
-```
-
-### 2. Instruction Fine-Tuning
-To fine-tune the model on instructions:
-```bash
-python train.py config/finetune_alpaca.py
-```
-
-### 3. Inference / Chat
-We provide interactive scripts to test the models:
-
-- **Check Base Model**:
-  ```bash
-  python check_model.py
-  ```
-  *Interactively prompts the base model (trained on FineWeb-Edu).*
-
-- **Check Instruction Model**:
-  ```bash
-  python check_instruct.py
-  ```
-  *Interactively chats with the instruction-tuned model. Supports commands like `/temp`, `/tokens`.*
-
-### 4. Publish to Hugging Face
-To export your trained model to the Hugging Face Hub:
+The published V1 models are `koganrath/LiteGPT-Instruct` (fine-tuned on Alpaca) and `koganrath/LiteGPT-Base` (pre-trained on
+FineWeb). The V1 export script (`export_to_hub.py`) is not part of this repository (it is git-ignored); V2 will ship a tested
+export (`litegpt/export/to_hf.py`) with a logit-parity check.
 
 ```bash
-python export_to_hub.py --checkpoint out-instruct/ckpt.pt --repo_name <your-username>/<your-model-name>
-```
-*Note: Make sure you remain logged in via `huggingface-cli login` or provide a token.*
-
-### 5. Use from Hugging Face
-We host two versions of the model:
-- **Instruct Model**: `koganrath/LiteGPT-Instruct` (Fine-tuned on Alpaca)
-- **Base Model**: `koganrath/LiteGPT-Base` (Pre-trained on FineWeb)
-
-We provide a standalone inference setup in the `hugging_face_inference/` directory.
-
-To use it:
-```bash
-cd hugging_face_inference
+cd scripts/legacy_v1/hugging_face_inference
 pip install -r requirements.txt
-
-# Run Instruct Model
-python inference_instruct.py
-
-# Run Base Model
-python inference_base.py
+python inference_instruct.py     # instruct model
+python inference_base.py         # base model
 ```
 
-Or in Python:
 ```python
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-model = GPT2LMHeadModel.from_pretrained("koganrath/LiteGPT")
+model = GPT2LMHeadModel.from_pretrained("koganrath/LiteGPT-Instruct")
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 ```
 
-## Directory Structure
+V1 was tested on Windows with Python 3.11.9; the full package list is in `scripts/legacy_v1/test_env_requirements.txt`.
 
-- `data/`: Data preparation scripts and raw data.
-- `config/`: Configuration files for training and fine-tuning.
-- `out-fineweb/`: Checkpoints and logs for the base model.
-- `out-instruct/`: Checkpoints for the instruction-tuned model.
-- `hugging_face_inference/`: Standalone scripts for using the hosted model.
-- `check_model.py`: Inference script for the base model.
-- `check_instruct.py`: Inference script for the instruct model.
-- `export_to_hub.py`: Script to export checkpoints to Hugging Face.
+## Licence and attribution
+
+Code is MIT licensed (see [`LICENSE`](LICENSE)). LiteGPT is derived from [nanoGPT](https://github.com/karpathy/nanoGPT)
+(Copyright (c) 2022 Andrej Karpathy, MIT), whose copyright notice is retained. The licence of the V2 model weights is not
+final: it will be chosen only after every training dataset's licence has been audited ([ADR-004](docs/decisions/ADR-004-licensing.md)).
 
 ## Acknowledgements
 
 - [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy
 - [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu) Dataset
 - [Alpaca](https://github.com/tatsu-lab/stanford_alpaca) Dataset
-
-## Testing Environment
-
-The code has been tested on **Windows** with **Python 3.11.9**.
-
-For a complete list of installed packages in the testing environment (including specific versions), see `test_env_requirements.txt`.

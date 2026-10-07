@@ -1,0 +1,115 @@
+# Experiment registry: one entry per experiment. The report is built from this index plus run records.
+# Pre-registered thresholds live here (and in docs/spec/v2.yaml) BEFORE the corresponding runs start.
+registry_version: 1
+spec_version: "2.0.0-spec.5"
+experiments:
+  - id: EXP-M0-ENV
+    milestone: M0
+    hypothesis: "Python 3.12 + torch 2.14.1+cu130 from a single uv.lock reproduces on Windows and WSL2 and runs SDPA/bf16 on the RTX 4090 Laptop."
+    config: pyproject.toml
+    parent: null
+    status: windows-done-wsl-pending
+    runs: []
+    thresholds: {}
+    conclusion: "Windows: uv lock (118 packages, no conflicts), uv sync --locked OK, CUDA 13.0, SDPA+GQA and bf16 verified (ADR-006 evidence). WSL2 is not installed on this machine: WSL2 reproduction pending owner decision."
+  - id: EXP-M0-THROUGHPUT
+    milestone: M0
+    hypothesis: "28L V2 sustains >= 16,500 tok/s training on the RTX 4090 Laptop at a micro-batch that fits 16 GB (ADR-001)."
+    config: benchmarks/train_mem.py (preset m0)
+    parent: EXP-M0-ENV
+    status: done-requirement-met-with-flash
+    runs:
+      - 20261006T122603Z-bench-train_mem-m0-101c3f8   # first sweep (superseded matrix; records the OOM boundary)
+      - 20261006T122954Z-bench-train_mem-m0-101c3f8
+      - 20261006T130256Z-bench-sustained-28l-mb3-30min-101c3f8        # SDPA, 30 min
+      - 20261006T134753Z-bench-sustained-28l-mb3-flash-30min-101c3f8   # flash, 30 min
+    thresholds: {required_tok_per_s: 16500, vram_cap_rule: "free VRAM at start minus 1 GiB"}
+    conclusion: "Short runs reach 22.3k tok/s (28L, mb3x2048, 11.17 GiB) but the 30-min sustained mean is 15,553 tok/s (98% thermally throttled, 89 C): below 16,500. 10B tokens ~ 7.4 days. 4x2048 and 2x4096 OOM on Windows; 1x4096 fits (17.7k tok/s). With flash-attn (EXP-M0-FLASH) the 30-min sustained mean is 17,553 tok/s (stable, last/first 1.008, power-capped not thermally throttled, max 77 C): requirement MET; 10B tokens ~ 6.6 days, 15B ~ 9.9 days. Single run per backend; GPU was already warm at the start of the flash run. FINAL (production environment WSL2 + torch.compile + SDPA, mb4x2048): 30-min sustained mean 22,592 tok/s (stable, last/first 0.977, max 76 C): 10B tokens ~ 5.1 days, 15B ~ 7.7 days (EXP-M0-COMPILE)."
+  - id: EXP-M0-FLASH
+    milestone: M0
+    hypothesis: "A flash-attn build matches SDPA numerically and is measurably faster on the RTX 4090 Laptop (ADR-006). Otherwise SDPA stays the default."
+    config: litegpt/model.py (attention_backend=flash)
+    parent: EXP-M0-ENV
+    status: adopted
+    runs:
+      - 20261006T131103Z-bench-ab-sdpa-vs-flash-101c3f8
+      - 20261006T134753Z-bench-sustained-28l-mb3-flash-30min-101c3f8
+    wheel: {source: "https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.10.2/flash_attn-2.8.3+cu130torch2.14-cp312-cp312-win_amd64.whl",
+            version: "2.8.3", note: "community prebuilt wheel (not the spec's 2.8.3.post1 sdist, which cannot be built here); sha256 pinned in uv.lock"}
+    thresholds:   # PRE-REGISTERED 2026-10-06 before any flash measurement
+      parity: "flash vs sdpa logits within atol/rtol 5e-2 in bf16 (tests/test_model.py::test_flash_matches_sdpa_on_gpu) AND packed-sequence (cu_seqlens) parity"
+      speed: "adopt as default only if tok/s >= +5% vs sdpa at identical config (28L mb3x2048, alternating A/B runs); VRAM must not increase"
+    conclusion: "ADOPTED for attention_backend=auto (spec 2.0.0-spec.3). Parity passed (plain + packed). A/B (4 alternating rounds, 28L mb3x2048): SDPA 15,375 vs flash 17,250 tok/s mean = +12.2% (>= +5% rule), identical peak VRAM 11.17 GiB. Sustained 30-min flash: 17,553 tok/s."
+  - id: EXP-M0-COMPILE
+    milestone: M0
+    hypothesis: "torch.compile improves training throughput on WSL2 (Triton 3.8.0 is present there; absent on Windows)."
+    config: benchmarks/train_mem.py ab --compile-b (28L, micro-batch 3x2048, SDPA, WSL2)
+    parent: EXP-M0-ENV
+    status: adopted
+    runs:
+      - 20261006T122954Z-bench-train_mem-m0-101c3f8   # Windows: TritonMissing
+      - 20261006T143350Z-bench-ab-sdpa-vs-sdpa-compile-101c3f8   # A/B eager vs compile
+      - 20261006T151400Z-bench-compile-equivalence-litegpt-v2-28l-101c3f8   # 28L equivalence
+      - 20261006T143939Z-bench-compile-28l-mb4-2048-101c3f8
+      - 20261006T144041Z-bench-compile-28l-mb5-2048-101c3f8
+      - 20261006T144123Z-bench-compile-28l-mb6-2048-101c3f8
+      - 20261006T144221Z-bench-compile-28l-mb2-4096-101c3f8
+      - 20261006T151250Z-bench-sustained-28l-mb4-compile-wsl-30min-101c3f8   # sustained 30 min
+    thresholds:   # PRE-REGISTERED 2026-10-06 before any WSL2 compile measurement
+      correctness: "compiled vs eager logits within bf16 tolerance (atol/rtol 5e-2) on the tiny model and on 28L (tests/test_model.py::test_compiled_matches_eager_on_gpu)"
+      speed: "adopt for production training only if tok/s >= +5% vs eager at identical config (alternating A/B rounds, same WSL2 environment) AND peak VRAM within the free-VRAM cap"
+      cost: "compile warmup is recorded; it is accepted if <= 10 minutes (paid once per run/resume)"
+    conclusion: "ADOPTED for production training on WSL2 (spec 2.0.0-spec.5). Correctness: 28L compiled vs eager with identical weights: loss diff 0.0004, logits rel L2 0.88%, grad-norm rel diff 0.003%, all finite (plus tiny-model pytest). Speed (4 alternating rounds, 28L mb3x2048 SDPA): eager 18,561 vs compiled 22,997 tok/s = +23.9%; peak VRAM 11.17 -> 8.28 GiB; warmup 4 s -> 13 s. Larger batches (compiled): mb4 23,695 tok/s 10.14 GiB (best), mb5 23,441 tok/s 12.04 GiB, mb6 OOM, 2x4096 20,792 tok/s 10.14 GiB. Sustained 30 min, mb4x2048: 22,592 tok/s mean (first 22,850 / last 22,327), max 76 C. Windows: torch.compile fails (TritonMissing); WSL2 needs gcc (build-essential). Not tested: flash-attn + compile on Linux (no Linux flash wheel installed)."
+  - id: EXP-M0-FLASH-LINUX
+    milestone: M0
+    hypothesis: "flash-attn (Linux wheel) + torch.compile on WSL2 is correct and faster than the adopted SDPA + torch.compile setup."
+    config: litegpt/model.py attention_backend=flash + torch.compile, 28L mb4x2048, WSL2
+    parent: EXP-M0-COMPILE
+    status: correctness-passed-speed-inconclusive
+    runs:
+      - 20261006T155451Z-bench-compile-equivalence-litegpt-v2-28l-flash-101c3f8
+      - 20261006T162546Z-bench-sustained-28l-mb4-flash-compile-wsl-30min-101c3f8
+    wheel: {source: "https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.10.0/flash_attn-2.8.3+cu130torch2.14-cp312-cp312-linux_x86_64.whl",
+            version: "2.8.3", note: "community prebuilt Linux wheel; the only linux_x86_64 build for cu130/torch2.14/cp312 in that project; sha256 pinned in uv.lock"}
+    thresholds:   # PRE-REGISTERED 2026-10-06 before any WSL2 flash measurement
+      correctness: "flash parity tests pass on WSL2 (plain + packed), compiled flash matches eager SDPA, and benchmarks.compile_check --backend flash passes"
+      speed: "adopt flash for WSL2 production training only if the 30-min sustained flash+compile mean (28L mb4x2048) is >= +5% over the recorded SDPA+compile sustained mean (22,592 tok/s, run 20261006T151250Z) with peak VRAM within the cap"
+      caveat: "owner chose not to re-run SDPA, so this is a cross-run comparison (different times / thermal state), weaker than a same-session alternating A/B"
+    conclusion: "CORRECTNESS PASSED: 68/68 tests on WSL2 with flash + compile active (incl. compiled flash vs eager SDPA, plain + packed); 28L compiled-flash equivalence: loss diff 0.0002, logits rel L2 0.88%, grad-norm rel diff 0.0009%. SPEED INCONCLUSIVE (pre-registered comparison invalid): the sustained flash+compile run (28L mb4x2048) averaged 29,944 tok/s (+32.5% vs the recorded SDPA+compile 22,592), but the GPU's enforced power limit changed from 95 W (SDPA+compile run: mean draw 95 W, 1,427 MHz) to 155 W (this run: mean draw 151 W, 1,989 MHz; throughput ramped 23.7k -> ~30k over the first 4 minutes, then held ~30k with 0% thermal throttling, max 84 C). The gain cannot be attributed to flash vs the power change. Not adopted as the WSL2 default on this evidence; attributing it needs flash vs SDPA at the same power limit (same-session A/B), which the owner declined for now. Harness fixed: telemetry now records the enforced power limit."
+  - id: EXP-M0-POWER
+    milestone: M0
+    hypothesis: "There is a GPU operating point (power mode / factory-curve clock cap) with higher sustained tok/s, or equal tok/s at clearly lower thermal load, than the current 155 W setting, without thermal throttling."
+    config: benchmarks/power_sweep.py (28L, mb4x2048, bf16, torch.compile, SDPA, WSL2; same fixed workload for every point)
+    parent: EXP-M0-COMPILE
+    status: done-current-setting-retained
+    runs:
+      - 20261006T164224Z-bench-power-sweep-screen-101c3f8   # staged screen, non-elevated validation
+      - 20261006T165630Z-bench-power-sweep-screen-101c3f8   # staged screen, elevated, interrupted (no results)
+      - 20261006T170001Z-bench-power-sweep-auto-101c3f8   # auto smoke test
+      - 20261006T171445Z-bench-power-sweep-auto-101c3f8   # auto, defective loss signal (not used for selection)
+      - 20261006T173836Z-bench-power-sweep-auto-101c3f8   # auto smoke test after the fix
+      - 20261006T174824Z-bench-power-sweep-auto-101c3f8   # FINAL: auto, elevated, corrected
+    tooling_limits: "No voltage readout and no voltage-curve control on this GPU/driver without admin + extra tooling; the sweep uses observe / manual (Lenovo power modes) / lgc (nvidia-smi factory-curve clock caps, elevated session only). No voltage offsets, no power-limit raises, CPU untouched."
+    stages: {screen: "~5 min per point (30 s windows, first 2 discarded)", compare: "~10 min for the best 3 + current setting", soak: "60-120 min for the recommended point",
+             auto: "PREFERRED (added 2026-10-06 before any sweep result was used; rules unchanged): one continuous workload process; 4 min pre-heat (discarded), current setting 4 min (1 min settle + 3 min measured), caps at natural clock -100/-200/-300 MHz 4 min each, then 60 min soak of the selected point. Rationale: the validation screen showed a ~5 min thermal transient that dominates short cold-start points"}
+    thresholds:   # PRE-REGISTERED 2026-10-06 before any sweep measurement (mirrors benchmarks/power_sweep.THRESHOLDS)
+      invalid: "status != ok (CUDA error / crash / apply failure / thermal abort), non-finite loss, loss rising > 10% above its running minimum, tok/s CV > 0.08, temperature >= 90 C, any HW slowdown, or (lgc) observed clock > cap + 30 MHz"
+      candidate: "valid AND 0% thermal throttling AND max temperature <= 85 C target - 3 C margin (82 C) AND tok/s CV <= 0.03 AND last/first window >= 0.97"
+      selection: "highest sustained tok/s among candidates; within 1% of the best, prefer the lowest mean GPU power"
+      soak_pass: "the recommended point still meets the candidate rule over a 60-120 min soak"
+      adoption: "never automatic; the owner decides after seeing the evidence"
+    protocol_corrections:   # recorded BEFORE the corrected re-run; the thresholds above are unchanged
+      - date: 2026-10-06
+        run: 20261006T171445Z-bench-power-sweep-auto-101c3f8
+        defect: "The benchmark trained on ONE repeated random batch, so the model memorised it and the loss fell to ~1e-7 within ~1.5 min. The pre-registered 'loss > 10% above running minimum' check then fired on rounding-level wobble (e.g. 5.2e-8 -> 8.2e-8), marking pre-heat and all clock-cap segments invalid. Not a hardware or numerical-stability problem: throughput, power, clock and temperature were measured correctly."
+        correction: "Workload feeds fresh random tokens every micro-step (train_mem --fresh-batches): unlearnable, so the loss stays near ln(32768) ~ 10.4 and the unchanged 10% rule becomes a meaningful health check. Same kernels, same compute per step. Cap steps changed to natural clock -50/-100/-200 MHz to bracket the 82 C boundary (the current setting missed it by 1 C). The defective run is kept for provenance and is not used for selection."
+    conclusion: "Final run (28L mb4x2048, SDPA + compile, WSL2, 155 W limit): current setting 31,388 tok/s / 154.7 W / peak 83 C (not a candidate: peak > 82 C); cap 1980 MHz 30,774 (-2.0%) / 149 W / 83 C (not a candidate); cap 1935 MHz 30,204 (-3.8%) / 142.5 W / 82 C (candidate, SELECTED); cap 1830 MHz 28,923 (-7.9%) / 133 W / 80 C (candidate). 0% thermal throttling everywhere. 60-min soak at 1935 MHz: 29,650 tok/s, 141.8 W, mean 81.2 C / peak 82 C, 0% throttling, healthy loss, but FAILED the decay rule (last/first window 0.968 < 0.97): a one-time ~2% step after 10 min, then flat; GPU temperature, power, clock, memory clock and utilisation steady (cause not measurable: VRAM temperature unavailable / host activity). DECISION (owner, 2026-10-07): keep the current 155 W setting with no clock cap; 1935 MHz is the validated fallback. Full analysis: docs/m0_benchmark_findings.md section 5."
+  - id: EXP-G1-EXTENSION-GATE
+    milestone: M3
+    hypothesis: "Continuing the stable phase from 9B to 14B tokens is worth ~3.5 GPU-days only if val_bpb is still improving."
+    config: docs/spec/v2.yaml#training.extension_gate
+    parent: null
+    status: pre-registered
+    runs: []
+    thresholds: {metric: val_bpb, windows_tokens_b: [[6.5, 6.75, 7.0], [8.5, 8.75, 9.0]], delta_ge_bpb_extend: 0.010}
+    conclusion: null
