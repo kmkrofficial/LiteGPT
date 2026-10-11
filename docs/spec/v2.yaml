@@ -107,9 +107,10 @@ data:
     tuning: "single ablation only (with vs without code+math share); defaults follow published small-model recipes"
   code_source: "codeparrot/github-code-clean, permissive per-file licences only, files 0-222, filters in litegpt/datafilters.py (smollm-corpus python-edu and stack-edu rejected: blob ids only)"
   validation:
-    val_core: {source: "held-out slice of data.mixture.stable", min_tokens: 20.0e+6, frozen_at: M1, record_sha256: true, sha256: pending}
+    val_core: {source: "held-out slice of data.mixture.stable", min_tokens: 20.0e+6, frozen_at: M1, record_sha256: true, sha256: "e1244de24bed0b6a91663ae6833db0f15276ff1fbd3b9888a5b244442b55f83c"}   # FROZEN 2026-10-12 (token content, 20,971,520 tokens)
     val_domains: [web, synthetic, code, math, chat]
-    data_order_sha256: pending     # sha256 of stable.idx + decay.idx, set at M1 step 6
+    data_order_sha256: "0e01795c45d2291d7270fa294a0c6bdd4b15539ee9aca2d74342437f65c7421c"   # FROZEN 2026-10-12: stable + decay index hashes
+    frozen_from_run: 20261011T173054Z-data-prepare-1f005bc
   decontamination: {method: 13-gram-overlap, applies_to: [pretraining_filter, sft, reasoning, dpo], pretraining: filter}
 
 synthetic_data_policy:            # D3, ADR-003
