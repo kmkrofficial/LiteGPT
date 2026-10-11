@@ -1,6 +1,6 @@
 # Data licence and provenance register
 
-Status: **M1 step 1 audit complete; mixture not yet finalised.** Feeds the D4 release gate: the model licence is decided at M5 only
+Status: **final for M1 (2026-10-12): the prepared data matches this register.** Feeds the D4 release gate: the model licence is decided at M5 only
 after this register is complete. Facts come from the Hub dataset cards/API and from reading the data itself at the exact
 revisions below. Evidence records (in `runs/`): `20261007T025701Z-data-verify-sources` (availability, gating),
 `20261007T124946Z-data-audit-code`, `20261007T125037Z-data-audit-pretrain`, `20261007T125330Z-data-audit-smoltalk`.
@@ -117,6 +117,27 @@ notice files can be handled there.
 - Secrets before the rule (private keys, AWS/GCP/GitHub/Slack token formats) in 12 files: Python 16 documents, JavaScript 96,
   TypeScript 20, Shell 2; dropped. E-mail addresses redacted to `<EMAIL>`.
 - Evidence records: `20261011T140430Z-data-preflight-code` (final), `20261011T135845Z-data-preflight-code` (first pass).
+
+## What was actually prepared (M1, 2026-10-12)
+
+Data run `runs/20261011T173054Z-data-prepare-1f005bc` (manifest and aggregated stats committed; shards on the WSL disk with a
+hash-verified copy on D:). Configuration: `docs/spec/data_sources.yaml` (exact revisions, file lists, filters).
+
+| Source | Files used | Prepared tokens (stable / decay / val) | Licence basis |
+|---|---|---|---|
+| FineWeb-Edu dedup | 16 of 234 | 13,004M / 501M / 27.4M | ODC-By 1.0 + Common Crawl terms |
+| Cosmopedia v2 | 8 of 104 | 1,948M / 218M / 6.5M | ODC-By 1.0; generator Mixtral-8x7B-Instruct (Apache-2.0) |
+| FineMath 3plus | 8 of 128 | 2,090M / 284M / 6.7M | ODC-By 1.0 + Common Crawl terms |
+| github-code-clean (Python, JS, TS, SQL, Shell) | 262 of 880 | 2,189M / 422M / 26.2M | per-file permissive repository licences only (MIT, Apache-2.0, BSD-2/3, ISC, CC0, Unlicense) |
+| SmolTalk smol-summarize / rewrite / constraints | all | 0 / 61M / 3.7M | Apache-2.0 (card); generator Qwen2.5-72B-Instruct (Qwen licence) |
+
+Removed before tokenizing: copyleft-headed files in permissive-labelled repositories (24,941 documents), files with private keys
+or credential patterns (3,018), vendored / minified / mirror files, and every document sharing a 13-gram with the 18 pinned
+evaluation sets. E-mail addresses were redacted in 181,283 code documents. Exact numbers per rule and source are in section 3c
+of the generated report.
+
+Note on IFEval: 47% of smol-constraints conversations contain IFEval's instruction templates verbatim; they were removed
+(EXP-M1-DECONTAM), so the base model has not seen those templates in pretraining.
 
 ## Evaluation datasets (decontamination reference)
 

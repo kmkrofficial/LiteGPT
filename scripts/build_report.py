@@ -349,7 +349,7 @@ def data_section(A, out: Path) -> list:
     A("")
     A(md_table(["check", "result"], [
         ["validation keys outside the val hash range", sum(v["violations"] for v in keys.values())],
-        ["stable index: max deviation from weights at 1M-token prefixes", f"{100 * pp.get('max_abs_deviation', 0):.3f} pp"],
+        ["stable index: max deviation from weights at 1M-token prefixes", f"{100 * pp.get('max_abs_deviation', 0):.3f} pp (first prefix, where one block is {100 / max(pp.get('step_blocks', 1), 1):.3f}%; at most 1 block at every prefix, EXP-M1-DATA)"],
         ["loader resume equals uninterrupted run (stable index)", mix.get("resume_check_stable")],
         ["shortfalls", ", ".join(mix.get("shortfalls") or []) or "none"],
     ]))

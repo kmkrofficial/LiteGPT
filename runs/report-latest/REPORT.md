@@ -6,8 +6,8 @@
 
 | item | value |
 |---|---|
-| spec version | `2.0.0-spec.5` |
-| spec sha256 | `43e32fea9c1861a5…` |
+| spec version | `2.0.0-spec.6` |
+| spec sha256 | `3a7786f09e0e21d3…` |
 | code licence / model licence | MIT / pending-dataset-audit |
 | python / torch (pinned) | 3.12 / 2.14.1+cu130 |
 | attention | sdpa mandatory; flash-attn 2.8.3+cu130torch2.14 optional (adopted-for-auto) |
@@ -317,6 +317,101 @@ Recommended (pre-registered rule): **lgc:1935**; Pareto front: observe, lgc:1935
 
 ![power sweep](figures/power_sweep_4.svg)
 
+## 3c. Data and tokenizer (M1)
+
+Data run `20261011T173054Z-data-prepare-1f005bc`; sources file sha256 `a4c122bf0979bfab…`.
+
+### Tokens prepared vs plan (millions of tokens)
+
+| source | stable need | stable have | decay need | decay have | val have | min margin |
+|---|---|---|---|---|---|---|
+| code_javascript | 245 | 327 | 24 | 203 | 17.7 | 1.33x |
+| code_python | 1,102 | 1,335 | 109 | 160 | 5.1 | 1.21x |
+| code_shell | 88 | 109 | 9 | 11 | 0.9 | 1.24x |
+| code_sql | 70 | 74 | 7 | 11 | 0.3 | 1.05x |
+| code_typescript | 245 | 344 | 24 | 37 | 2.2 | 1.40x |
+| cosmopedia_v2 | 1,458 | 1,948 | 130 | 218 | 6.5 | 1.34x |
+| fineweb_edu | 9,042 | 13,004 | 432 | 501 | 27.4 | 1.16x |
+| instruction_style | 0 | 0 | 50 | 61 | 3.7 | 1.21x |
+| math | 1,750 | 2,090 | 216 | 284 | 6.7 | 1.19x |
+
+![mixture](figures/data_mixture.svg)
+
+### Tokenizer (frozen) compression, bytes per token (higher is better)
+
+| domain | LiteGPT 32k | GPT-2 50k | SmolLM2 49k | vs GPT-2 |
+|---|---|---|---|---|
+| web | 4.457 | 4.616 | 4.527 | 0.97x |
+| synthetic | 5.227 | 5.149 | 5.239 | 1.02x |
+| math | 3.491 | 3.579 | 3.329 | 0.98x |
+| code_javascript | 2.643 | 1.897 | 2.474 | 1.39x |
+| code_python | 3.786 | 2.188 | 3.517 | 1.73x |
+| code_typescript | 3.891 | 2.429 | 3.620 | 1.60x |
+| code_shell | 2.819 | 2.361 | 2.627 | 1.19x |
+| code_sql | 3.001 | 2.561 | 2.596 | 1.17x |
+
+Tokenizer sha256 `2f208b58085074d9…`; trained on 5.00 GB (1,053,405 documents).
+
+### Code filters (documents dropped per rule)
+
+| language | autogen | copyleft | exportdump | keep_fraction | longline | mirror | path | pyparse | secret | size | sqldump |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| code_javascript | 18,504 | 14,052 | 0 | 1,687,118 | 32 | 61,575 | 234,409 | 0 | 2,062 | 32,372 | 0 |
+| code_python | 28,551 | 8,862 | 0 | 209,948 | 2 | 0 | 15,612 | 162,157 | 511 | 8,282 | 0 |
+| code_shell | 911 | 1,611 | 0 | 41,979 | 0 | 0 | 7,405 | 0 | 79 | 234 | 0 |
+| code_sql | 652 | 265 | 3,505 | 0 | 5 | 0 | 765 | 0 | 4 | 941 | 5,942 |
+| code_typescript | 2,068 | 151 | 0 | 88,035 | 0 | 335 | 70,620 | 0 | 362 | 31,140 | 0 |
+
+E-mail addresses redacted in 181,283 documents. `keep_fraction` drops only bound disk use.
+
+### Decontamination (documents dropped, 13-gram overlap with the 18 pinned benchmarks)
+
+| source | bytes dropped | ifeval | mmlu | triviaqa | humaneval | mbpp | hellaswag | truthfulqa | arc_easy |
+|---|---|---|---|---|---|---|---|---|---|
+| code_javascript | 0.13% | 0 | 4 | 6 | 129 | 52 | 0 | 1 | 0 |
+| code_python | 0.05% | 0 | 6 | 4 | 128 | 144 | 0 | 0 | 0 |
+| code_shell | 0.01% | 0 | 0 | 1 | 1 | 0 | 0 | 0 | 0 |
+| code_sql | 0.01% | 0 | 1 | 0 | 1 | 0 | 0 | 0 | 0 |
+| code_typescript | 0.05% | 0 | 0 | 0 | 16 | 7 | 0 | 0 | 0 |
+| cosmopedia_v2 | 0.03% | 0 | 347 | 121 | 30 | 86 | 36 | 23 | 2 |
+| fineweb_edu | 0.22% | 197 | 6,632 | 1,453 | 80 | 29 | 466 | 432 | 149 |
+| instruction_style | 6.11% | 17,194 | 6 | 0 | 0 | 1 | 0 | 2 | 0 |
+| math | 0.27% | 2 | 390 | 61 | 269 | 320 | 24 | 13 | 37 |
+
+### Checks (EXP-M1-DATA)
+
+| source | train docs | within-source dup | cross-source dup | val docs | val also in training |
+|---|---|---|---|---|---|
+| code_javascript | 467,830 | 0.00% | 0.00% | 11,984 | 0 |
+| code_python | 918,126 | 0.00% | 0.00% | 3,834 | 0 |
+| code_shell | 192,657 | 0.00% | 0.00% | 1,504 | 0 |
+| code_sql | 79,022 | 0.00% | 0.00% | 343 | 0 |
+| code_typescript | 300,393 | 0.00% | 0.00% | 1,358 | 0 |
+| cosmopedia_v2 | 3,000,605 | 1.07% | 0.00% | 9,039 | 0 |
+| fineweb_edu | 12,967,573 | 0.00% | 0.00% | 25,851 | 0 |
+| instruction_style | 142,647 | 0.07% | 0.00% | 8,821 | 5 |
+| math | 1,332,646 | 0.00% | 0.00% | 3,958 | 0 |
+
+| check | result |
+|---|---|
+| validation keys outside the val hash range | 0 |
+| stable index: max deviation from weights at 1M-token prefixes | 0.115 pp (first prefix, where one block is 0.205%; at most 1 block at every prefix, EXP-M1-DATA) |
+| loader resume equals uninterrupted run (stable index) | True |
+| shortfalls | none |
+
+### Frozen hashes
+
+| item | sha256 |
+|---|---|
+| tokenizer | `2f208b58085074d9520d737332f8da9fb8c8a8718479978bbe8afb5b4ea015d6` |
+| val_core (token content) | `e1244de24bed0b6a91663ae6833db0f15276ff1fbd3b9888a5b244442b55f83c` |
+| data order (stable + decay indexes) | `0e01795c45d2291d7270fa294a0c6bdd4b15539ee9aca2d74342437f65c7421c` |
+| val_text/chat.jsonl (1,049 docs, 2.0 MB) | `4e72316d5a47b57f4d03d080c5aaa053f51a17471eaa258dab3f9d727f373c76` |
+| val_text/code.jsonl (448 docs, 2.0 MB) | `f00ac7dde2299f02b286815796a9a358395162b36fe072ad498bd45ee61002a1` |
+| val_text/math.jsonl (422 docs, 2.0 MB) | `d9a4faa7cb138fbd978cee9a3d3db42b764400084828b4fe4db11902b7e46cfa` |
+| val_text/synthetic.jsonl (540 docs, 2.0 MB) | `ca20fb1b388d8bb310b689e0093862e929f35229e4db78e6b0f00f54e0e40026` |
+| val_text/web.jsonl (423 docs, 2.0 MB) | `bebad4065f4b953954844d9230916639a5f288a13982a13eb1d7349c439cff52` |
+
 ## 4. Data provenance of this report
 
 | file | sha256 (12) |
@@ -359,6 +454,10 @@ Recommended (pre-registered rule): **lgc:1935**; Pareto front: observe, lgc:1935
 | `runs/20261006T173836Z-bench-power-sweep-auto-101c3f8/bench/power_sweep.json` | 61d47ed3359c |
 | `runs/20261006T174824Z-bench-power-sweep-auto-101c3f8/run.json` | af846d45b02f |
 | `runs/20261006T174824Z-bench-power-sweep-auto-101c3f8/bench/power_sweep.json` | 7d7939139149 |
+| `runs/20261011T173054Z-data-prepare-1f005bc/run.json` | 42064242a3f7 |
+| `runs/20261011T173054Z-data-prepare-1f005bc/mix_manifest.json` | 7032846cc792 |
+| `runs/20261011T173054Z-data-prepare-1f005bc/data_stats.json` | bef6c3c17cea |
+| `runs/20261011T143457Z-data-tokenizer-train-076712e/tokenizer_report.json` | a1c6be80004e |
 
 ## 5. Reproduce
 
