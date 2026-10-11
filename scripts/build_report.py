@@ -243,6 +243,127 @@ def chart_sweep(sweep: dict, title: str, fname: str, out: Path) -> str | None:
     return f"figures/{fname}"
 
 
+# ---------------------------------------------------------------- data (M1) ----------------------------------------
+def load_data_run() -> dict | None:
+    """Latest data-prepare run that has a mix manifest, plus the frozen tokenizer's training report."""
+    cands = sorted(p for p in RUNS_DIR.glob("*-data-prepare-*") if (p / "mix_manifest.json").exists())
+    if not cands:
+        return None
+    run_dir = cands[-1]
+    run = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
+    if validate_run_record(run):
+        return None
+    d = {"run_dir": run_dir, "run": run, "files": [run_dir / "run.json", run_dir / "mix_manifest.json"],
+         "mix": json.loads((run_dir / "mix_manifest.json").read_text(encoding="utf-8"))}
+    st = run_dir / "data_stats.json"
+    d["stats"] = json.loads(st.read_text(encoding="utf-8")) if st.exists() else None
+    if d["stats"] is not None:
+        d["files"].append(st)
+    spec = load_spec()
+    tok_run = spec["tokenizer"].get("frozen_from_run")
+    rep = RUNS_DIR / str(tok_run) / "tokenizer_report.json" if tok_run else None
+    d["tok"] = json.loads(rep.read_text(encoding="utf-8")) if rep and rep.exists() else None
+    if d["tok"] is not None:
+        d["files"].append(rep)
+    import yaml
+    d["sources"] = yaml.safe_load((REPO_ROOT / "docs" / "spec" / "data_sources.yaml").read_text(encoding="utf-8"))
+    return d
+
+
+def chart_mixture(mixture: dict, out: Path) -> str:
+    names = sorted(set(mixture["stable"]) | set(mixture["decay"]), key=lambda n: -mixture["stable"].get(n, 0))
+    y = list(range(len(names)))
+    fig, ax = plt.subplots(figsize=(7.5, 0.42 * len(names) + 1.2))
+    h = 0.38
+    ax.barh([v - h / 2 for v in y], [100 * mixture["stable"].get(n, 0) for n in names], height=h, color=BLUE, label="stable (to 9B / 14B)")
+    ax.barh([v + h / 2 for v in y], [100 * mixture["decay"].get(n, 0) for n in names], height=h, color=ORANGE, label="decay (last 1B)")
+    ax.set_yticks(y, names)
+    ax.invert_yaxis()
+    ax.set_xlabel("share of training tokens (%)")
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.legend(frameon=False, loc="lower right")
+    ax.set_title("Pretraining mixture (spec 2.0.0-spec.6)", loc="left", fontsize=11)
+    fig.tight_layout()
+    save_svg(fig, out / "data_mixture.svg")
+    return "figures/data_mixture.svg"
+
+
+def data_section(A, out: Path) -> list:
+    d = load_data_run()
+    A("## 3c. Data and tokenizer (M1)\n")
+    if d is None:
+        A("_No mixed data run yet (M1 step 6)._\n")
+        return []
+    mix, stats, src_cfg = d["mix"], d["stats"], d["sources"]
+    m = src_cfg["mixture"]
+    st_tok, dc_tok = m["stable_tokens"], m["decay_tokens"]
+    tokens = (stats or {}).get("tokens", {})
+    A(f"Data run `{d['run']['run_id']}`; sources file sha256 `{d['run']['config'].get('sources_sha256', '')[:16]}…`.\n")
+    A("### Tokens prepared vs plan (millions of tokens)\n")
+    rows = []
+    for sub in sorted(set(m["stable"]) | set(m["decay"])):
+        need_s, need_d = m["stable"].get(sub, 0) * st_tok / 1e6, m["decay"].get(sub, 0) * dc_tok / 1e6
+        have_s, have_d, have_v = (tokens.get(f"{sub}/{p}", 0) / 1e6 for p in ("stable", "decay", "val"))
+        ratios = [h / n for h, n in ((have_s, need_s), (have_d, need_d)) if n]
+        rows.append([sub, f"{need_s:,.0f}", f"{have_s:,.0f}", f"{need_d:,.0f}", f"{have_d:,.0f}", f"{have_v:,.1f}",
+                     f"{min(ratios):.2f}x" if ratios else "-"])
+    A(md_table(["source", "stable need", "stable have", "decay need", "decay have", "val have", "min margin"], rows))
+    A("")
+    A(f"![mixture]({chart_mixture({'stable': m['stable'], 'decay': m['decay']}, out / 'figures')})\n")
+    if d["tok"]:
+        A("### Tokenizer (frozen) compression, bytes per token (higher is better)\n")
+        comp = d["tok"]["compression"]
+        A(md_table(["domain", "LiteGPT 32k", "GPT-2 50k", "SmolLM2 49k", "vs GPT-2"],
+                   [[k, f"{v['litegpt_bytes_per_token']:.3f}", f"{v.get('gpt2_bytes_per_token', 0):.3f}",
+                     f"{v.get('smollm2_bytes_per_token', 0):.3f}",
+                     f"{v['litegpt_bytes_per_token'] / v['gpt2_bytes_per_token']:.2f}x" if v.get("gpt2_bytes_per_token") else "-"]
+                    for k, v in comp.items()]))
+        A(f"\nTokenizer sha256 `{d['tok']['sha256'][:16]}…`; trained on {d['tok']['train']['bytes'] / 1e9:.2f} GB "
+          f"({d['tok']['train']['docs']:,} documents).\n")
+    if stats:
+        A("### Code filters (documents dropped per rule)\n")
+        drops = stats["dropped"]
+        rules = sorted({k.split(":")[1] for k in drops if k.startswith("code_")})
+        langs = sorted({k.split(":")[0] for k in drops if k.startswith("code_")})
+        A(md_table(["language"] + rules, [[l] + [f"{drops.get(f'{l}:{r}', 0):,}" for r in rules] for l in langs]))
+        A(f"\nE-mail addresses redacted in {stats['emails_redacted_docs']:,} documents. `keep_fraction` drops only bound disk use.\n")
+        A("### Decontamination (documents dropped, 13-gram overlap with the 18 pinned benchmarks)\n")
+        dec = stats["decontam"]
+        subs = sorted({k.split(":")[0] for k in dec})
+        benches = sorted({k.split(":")[1] for k in dec}, key=lambda b: -sum(v for k, v in dec.items() if k.endswith(":" + b)))
+        rows = []
+        for s in subs:
+            kept = sum(v for k, v in stats["bytes"].items() if k.startswith(s + "/") and not k.endswith("decontam_dropped"))
+            dropped = stats["bytes"].get(f"{s}/decontam_dropped", 0)
+            rows.append([s, f"{100 * dropped / max(kept + dropped, 1):.2f}%"] + [f"{dec.get(f'{s}:{b}', 0):,}" for b in benches[:8]])
+        A(md_table(["source", "bytes dropped"] + benches[:8], rows))
+        A("")
+    A("### Checks (EXP-M1-DATA)\n")
+    dup = mix.get("duplicates", {})
+    A(md_table(["source", "train docs", "within-source dup", "cross-source dup", "val docs", "val also in training"],
+               [[s, f"{r['train_docs']:,}", f"{100 * r['within_rate']:.2f}%", f"{100 * r['cross_rate']:.2f}%", f"{r['val_docs']:,}",
+                 r["val_docs_also_in_training"]] for s, r in sorted(dup.items())]))
+    keys = mix.get("val_key_check", {})
+    pp = mix.get("prefix_proportions_stable", {})
+    A("")
+    A(md_table(["check", "result"], [
+        ["validation keys outside the val hash range", sum(v["violations"] for v in keys.values())],
+        ["stable index: max deviation from weights at 1M-token prefixes", f"{100 * pp.get('max_abs_deviation', 0):.3f} pp"],
+        ["loader resume equals uninterrupted run (stable index)", mix.get("resume_check_stable")],
+        ["shortfalls", ", ".join(mix.get("shortfalls") or []) or "none"],
+    ]))
+    A("\n### Frozen hashes\n")
+    spec = load_spec()
+    A(md_table(["item", "sha256"], [
+        ["tokenizer", f"`{spec['tokenizer']['sha256']}`"],
+        ["val_core (token content)", f"`{mix['val_core']['sha256']}`"],
+        ["data order (stable + decay indexes)", f"`{mix['data_order_sha256']}`"],
+    ] + [[f"val_text/{k}.jsonl ({v['docs']:,} docs, {v['bytes'] / 1e6:.1f} MB)", f"`{v['sha256']}`"] for k, v in sorted(mix.get("val_text", {}).items())]))
+    A("")
+    return d["files"]
+
+
 def env_label(run: dict) -> str:
     e = run["environment"]
     return f"WSL2 ({e['wsl_distro_and_kernel']})" if e.get("wsl_distro_and_kernel") else f"{e['os']} native"
@@ -391,9 +512,10 @@ def build(out: Path) -> None:
         if fig:
             A(f"![power sweep]({fig})\n")
 
+    data_files = data_section(A, out)
     A("## 4. Data provenance of this report\n")
     files = ([f for r in runs for f in r["files"]] + [f for r in eqs for f in r["files"]]
-             + [f for r in sweeps for f in r["files"]])
+             + [f for r in sweeps for f in r["files"]] + data_files)
     A(md_table(["file", "sha256 (12)"], [[f"`runs/{f.relative_to(RUNS_DIR).as_posix()}`", sha_short(f)] for f in files])
       if files else "_No input run records._")
     A("\n## 5. Reproduce\n")

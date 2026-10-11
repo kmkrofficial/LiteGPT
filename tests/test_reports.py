@@ -131,3 +131,37 @@ def test_report_power_sweep_section_and_plots(sandbox, tmp_path):
     assert "GPU operating-point sweep" in text and "Recommended (pre-registered rule): **lgc:1950**" in text
     assert "30,000" in text and "cooling pad" in text and (out / "figures" / "power_sweep_0.svg").exists()
     assert f"`runs/{rec.path.name}/bench/power_sweep.json`" in text
+
+
+def _fake_data_run(runs_dir: Path) -> Path:
+    rec = records.create_run("data", "prepare", root=runs_dir, config={"sources_sha256": "ab" * 32})
+    subs = ["fineweb_edu", "cosmopedia_v2", "math", "code_python", "code_javascript", "code_typescript", "code_sql", "code_shell",
+            "instruction_style"]
+    tokens = {f"{s}/{p}": 10**10 for s in subs for p in ("stable", "decay", "val")}
+    rec.write_json("data_stats.json", {
+        "files": 3, "docs_read": {"math": 10}, "docs_kept": {}, "tokens": tokens,
+        "bytes": {"math/stable": 900, "math/decontam_dropped": 100}, "dropped": {"code_python:pyparse": 7, "code_sql:sqldump": 2},
+        "decontam": {"math:humaneval": 3, "fineweb_edu:mmlu": 5}, "emails_redacted_docs": 4})
+    rec.write_json("mix_manifest.json", {
+        "val_core": {"sha256": "c" * 64, "tokens": 20971520, "blocks": 10240}, "data_order_sha256": "d" * 64, "shortfalls": [],
+        "duplicates": {"math": {"train_docs": 100, "within_rate": 0.001, "cross_rate": 0.0, "val_docs": 5, "val_docs_also_in_training": 0}},
+        "val_key_check": {"math": {"val_docs": 5, "violations": 0}}, "prefix_proportions_stable": {"max_abs_deviation": 0.0004},
+        "resume_check_stable": True, "val_text": {"web": {"docs": 3, "bytes": 2_000_100, "sha256": "e" * 64}}})
+    return rec.path
+
+
+def test_data_section_renders_from_records(sandbox, tmp_path):
+    _fake_data_run(sandbox)
+    out = tmp_path / "out"
+    rb.build(out)
+    text = (out / "REPORT.md").read_text(encoding="utf-8")
+    assert "## 3c. Data and tokenizer (M1)" in text and "Tokens prepared vs plan" in text
+    assert "c" * 64 in text and "d" * 64 in text and "pyparse" in text and "10.00%" in text
+    assert (out / "figures" / "data_mixture.svg").exists()
+    assert "mix_manifest.json" in text                       # listed as an input with its sha256
+
+
+def test_data_section_without_data_run(sandbox, tmp_path):
+    out = tmp_path / "out"
+    rb.build(out)
+    assert "No mixed data run yet" in (out / "REPORT.md").read_text(encoding="utf-8")

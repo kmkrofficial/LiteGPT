@@ -22,5 +22,21 @@ Guarantees, each covered by `tests/test_inference.py`:
 - Prompts longer than the context are rejected.
 - Streaming never emits a partial UTF-8 character or a partial stop string.
 
+## Example (runs in the test suite)
+
+```python
+# doc-test
+import torch
+from litegpt.config import get_config
+from litegpt.inference import Engine, GenerationConfig
+from litegpt.model import LiteGPT
+
+torch.manual_seed(0)
+model = LiteGPT(get_config("litegpt-tiny", attention_backend="sdpa")).float()
+engine = Engine(model)
+results = engine.generate_ids([[5, 6, 7], [9, 10]], GenerationConfig(max_new_tokens=8, stop_token_ids=()))
+assert [len(r.ids) for r in results] == [8, 8] and results[0].finish_reason == "length"
+```
+
 Not yet: continuous batching, paged KV cache, speculative decoding, context management (dropping old turns), which come with
 the API in M4 or later.

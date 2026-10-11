@@ -236,6 +236,17 @@ def cmd_mix(args) -> int:
     st_src, _, st_names, _ = D.load_index(shards_dir / "indexes" / "stable.npz")
     man["prefix_proportions_stable"] = C.prefix_proportions(st_src, st_names, mix["stable"], step_blocks=int(1e6 // D.BLOCK_TOKENS))
     man["resume_check_stable"] = C.resume_check(shards_dir, shards_dir / "indexes" / "stable.npz")
+    # per-file stats (inside shards/, which never leaves the WSL disk) aggregated into a small record file
+    agg = {"files": 0, "docs_read": {}, "docs_kept": {}, "tokens": {}, "bytes": {}, "dropped": {}, "decontam": {}, "emails_redacted_docs": 0}
+    for f in sorted((shards_dir / "_stats").glob("*.json")):
+        st = json.loads(f.read_text(encoding="utf-8"))
+        agg["files"] += 1
+        agg["docs_read"][st["source"]] = agg["docs_read"].get(st["source"], 0) + st["docs_read"]
+        agg["emails_redacted_docs"] += st.get("emails_redacted_docs", 0)
+        for key in ("docs_kept", "tokens", "bytes", "dropped", "decontam"):
+            for k, v in st.get(key, {}).items():
+                agg[key][k] = agg[key].get(k, 0) + v
+    rec.write_json("data_stats.json", agg)
     leak = {(sub, k) for sub, r in man["duplicates"].items() for k in r["val_leak_keys"]}
     man["val_text"] = C.build_val_text(shards_dir, sources["partitioning"]["salt"], langs, exclude_keys=leak)
     man["val_text_excluded_leaks"] = len(leak)
