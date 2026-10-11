@@ -1,4 +1,6 @@
-"""Data preparation entry point (M1). Subcommands are added step by step; see PLAN_M1.md.
+"""Data preparation entry point (M1). See PLAN_M1.md and ADR-008.
+
+prepare: resumable pipeline over the fixed input-file lists of docs/spec/data_sources.yaml. mix: indexes + frozen hashes.
 
 verify: read-only check of every candidate source at its current revision. Records revision SHA, gating, licence from the
 dataset card, the file list and sizes per config, and whether a sample row carries non-empty inline text. Nothing is
@@ -101,12 +103,136 @@ def cmd_verify(args) -> int:
     return 0
 
 
+def source_jobs(sources: dict, only: list | None = None, limit: int | None = None) -> list:
+    """[(source, file_tag, repo, filename, revision, split, gpt2_proxy)] for the fixed input lists in data_sources.yaml."""
+    from huggingface_hub import HfApi
+    jobs = []
+    for name, cfg in sources["sources"].items():
+        if cfg.get("domain") == "m4_sft_only" or (only and name not in only):
+            continue
+        rev = cfg["revision"]
+        n_before = len(jobs)
+        if name == "instruction_style":
+            names = [s.rfilename for s in HfApi().dataset_info(cfg["repo"], revision=rev).siblings]
+            for sub in cfg["subsets"]:
+                for fn in sorted(f for f in names if f.startswith(f"data/{sub}/") and f.endswith(".parquet")):
+                    split = "test" if "/test-" in fn else "train"
+                    jobs.append((name, f"{sub}-{split}-{Path(fn).stem}", cfg["repo"], fn, rev, split, False))
+        else:
+            pat = cfg["files"]["pattern"]
+            idxs = cfg["files"].get("indices") or list(range(cfg["files"]["range"][0], cfg["files"]["range"][1] + 1))
+            for rank, i in enumerate(idxs):
+                jobs.append((name, f"{i:05d}", cfg["repo"], pat.format(i=i), rev, "train", name == "fineweb_edu" and rank < 2))
+        if limit:
+            jobs[n_before + limit:] = []
+    return jobs
+
+
+def _prepare_one(job):
+    import os
+    import shutil
+    import tempfile
+    os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+    from huggingface_hub import hf_hub_download
+    from tokenizers import Tokenizer
+    from litegpt import dataprep as P
+    from litegpt.decontam import NgramIndex
+    from litegpt.tokenizer import LiteTokenizer
+    name, tag, repo, fn, rev, split, gpt2, out_dir, tok_path, ngram_path, cfg, salt = job
+    if P.file_done(out_dir, name, tag):
+        return {"source": name, "file": tag, "skipped": True}
+    tok = LiteTokenizer.load(tok_path)
+    ngrams = NgramIndex.load(ngram_path) if ngram_path else None
+    gpt2_tok = Tokenizer.from_pretrained("openai-community/gpt2") if gpt2 else None
+    tmp = tempfile.mkdtemp(prefix="_dl_", dir=str(Path(out_dir)))
+    try:
+        local = hf_hub_download(repo, fn, repo_type="dataset", revision=rev, local_dir=tmp)
+        return P.process_file(name, cfg, local, out_dir, tag, tok, salt, ngrams, split=split, gpt2_tok=gpt2_tok)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def cmd_prepare(args) -> int:
+    from concurrent.futures import ProcessPoolExecutor, as_completed
+    from litegpt import dataprep as P
+    from litegpt.records import RunRecord, create_run
+    sources = P.load_sources()
+    jobs_meta = source_jobs(sources, args.sources.split(",") if args.sources else None, args.limit_files)
+    if args.resume:
+        run_dir = Path(args.resume).resolve()
+        rec = RunRecord(run_dir, json.loads((run_dir / "run.json").read_text(encoding="utf-8")))
+    else:
+        rec = create_run("data", "prepare", config={"sources_sha256": P.sources_sha256(), "tokenizer": str(args.tokenizer),
+                         "ngrams": str(args.ngrams), "n_jobs": len(jobs_meta), "workers": args.workers})
+    out = rec.path / "shards"
+    out.mkdir(exist_ok=True)
+    salt = sources["partitioning"]["salt"]
+    jobs = [(n, t, r, f, v, s, g, str(out), str(args.tokenizer), str(args.ngrams) if args.ngrams else None, sources["sources"][n], salt)
+            for (n, t, r, f, v, s, g) in jobs_meta]
+    print(f"{len(jobs)} files; run {rec.run_id}", flush=True)
+    done = 0
+    with ProcessPoolExecutor(max_workers=args.workers) as ex:
+        futs = {ex.submit(_prepare_one, j): j for j in jobs}
+        for fut in as_completed(futs):
+            j = futs[fut]
+            try:
+                st = fut.result()
+            except Exception as e:
+                rec.log("error", source=j[0], file=j[1], error=f"{type(e).__name__}: {str(e)[:300]}")
+                print(f"ERROR {j[0]} {j[1]}: {type(e).__name__}: {str(e)[:200]}", flush=True)
+                continue
+            done += 1
+            rec.log("progress", source=j[0], file=j[1], skipped=bool(st.get("skipped")), tokens=st.get("tokens"), docs_read=st.get("docs_read"))
+            print(f"[{done}/{len(jobs)}] {j[0]} {j[1]} {'skipped' if st.get('skipped') else sum((st.get('tokens') or {}).values())} tokens", flush=True)
+    print("record:", rec.run_id)
+    return 0
+
+
+def cmd_mix(args) -> int:
+    import hashlib
+    import numpy as np
+    from litegpt import data as D, dataprep as P
+    from litegpt.records import RunRecord
+    run_dir = Path(args.run).resolve()
+    rec = RunRecord(run_dir, json.loads((run_dir / "run.json").read_text(encoding="utf-8")))
+    sources = P.load_sources()
+    mix = sources["mixture"]
+    langs = {k: v["weight"] for k, v in sources["sources"]["code"]["languages"].items()}
+    man = P.build_mix(run_dir / "shards", {"stable": mix["stable"], "decay": mix["decay"]}, seed=mix["index"]["seed"],
+                      stable_tokens=mix["stable_tokens"], decay_tokens=mix["decay_tokens"],
+                      val_core_blocks=sources["validation"]["val_core"]["blocks"], domain_blocks=sources["validation"]["domains"]["blocks_each"],
+                      code_langs=langs)
+    # val_core sha256 = hash of the actual token content of its blocks, in index order
+    src, blk, names, _ = D.load_index(run_dir / "shards" / "indexes" / "val_core.npz")
+    shards = P.collect_shards(run_dir / "shards")
+    h = hashlib.sha256()
+    total = 0
+    for s, b in zip(src, blk):
+        arr = shards[f"{names[int(s)]}/val"].read(int(b) * D.BLOCK_TOKENS, D.BLOCK_TOKENS + 1)
+        h.update(arr.tobytes())
+        total += D.BLOCK_TOKENS
+    man["val_core"] = {"sha256": h.hexdigest(), "tokens": total, "blocks": int(len(src))}
+    rec.write_json("mix_manifest.json", man)
+    print(json.dumps({k: man[k] for k in ("data_order_sha256", "val_core", "shortfalls")}, indent=1))
+    print("record:", rec.run_id)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("verify", help="read-only source verification (step 1)")
+    pp = sub.add_parser("prepare", help="download -> filter -> decontaminate -> partition -> tokenize -> shards (resumable)")
+    pp.add_argument("--tokenizer", required=True, help="frozen tokenizer json")
+    pp.add_argument("--ngrams", default=None, help="13-gram index (scripts/decontaminate.py build); omit only for dry runs")
+    pp.add_argument("--workers", type=int, default=12)
+    pp.add_argument("--sources", default=None, help="comma-separated subset of sources")
+    pp.add_argument("--limit-files", type=int, default=None, help="process only the first N files of each source (dry run)")
+    pp.add_argument("--resume", default=None, help="existing data run directory to continue")
+    pm = sub.add_parser("mix", help="build stable/decay/validation/proxy indexes and freeze hashes")
+    pm.add_argument("--run", required=True, help="data run directory holding shards/")
     args = ap.parse_args()
-    return {"verify": cmd_verify}[args.cmd](args)
+    return {"verify": cmd_verify, "prepare": cmd_prepare, "mix": cmd_mix}[args.cmd](args)
 
 
 if __name__ == "__main__":

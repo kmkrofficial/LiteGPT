@@ -207,6 +207,10 @@ experiments:
              "digits are always single tokens", "4 spaces, a tab and a newline-plus-indent are encoded without byte fallback explosion (<= 2 tokens each)"]
       sanity: "overall bytes/token on the stable mixture >= 0.90 x GPT-2's; per-domain and per-language ratios are informational; failure triggers an investigation, nothing is adopted automatically"
       training: "3-5 GB from training partitions only, largest size whose projected peak RAM <= 20 GiB (WSL has 23 GiB)"
+    clarifications:   # recorded 2026-10-11 BEFORE the tokenizer was trained
+      - "Round trip: the tokenizer applies NFC normalisation (as Qwen2 does), so the criterion is decode(encode(text)) == NFC(text) on 100% of validation documents; the fraction of documents altered by NFC is reported."
+      - "Bytes-per-token comparisons use the same validation documents for every tokenizer; GPT-2 and SmolLM2 are loaded from their tokenizer files only (no model is run)."
+      - "Checks run on the tokenizer's own held-out documents: the val partition (u < val_fraction) of the downloaded training-sample files, never on documents used to train the tokenizer."
     conclusion: null
   - id: EXP-M1-DECONTAM
     milestone: M1
