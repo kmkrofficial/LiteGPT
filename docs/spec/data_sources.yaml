@@ -64,16 +64,16 @@ sources:
     original_generator: none
     text_field: code
     key_field: repo_name
-    files: {pattern: "data/train-{i:05d}-of-00880.parquet", range: [0, 222]}     # F4 + file-count rule (EXP-M1-PREFLIGHT)
+    files: {pattern: "data/train-{i:05d}-of-00880.parquet", range: [0, 261]}     # F4 + file-count rule + C9 re-plan with the real tokenizer (SQL binds)
     permissive_licences: [mit, apache-2.0, bsd-2-clause, bsd-3-clause, isc, cc0-1.0, unlicense]
     filters_module: litegpt/datafilters.py   # rules, in order: size, longline, alnum, autogen, path, mirror, pyparse, sqldump, exportdump, copyleft, secret; e-mail redaction
-    languages:     # dataset language name -> weight inside the code share (F1 + C4 rule); keep_fraction derived from pre-flight supply
-      Python:     {weight: 0.63, keep_fraction: 0.54}
-      JavaScript: {weight: 0.14, keep_fraction: 0.10}
-      TypeScript: {weight: 0.14, keep_fraction: 0.48}
+    languages:     # dataset language name -> weight inside the code share (F1 + C4 rule); keep_fraction re-derived at C9 from real-token supply (disk bound only)
+      Python:     {weight: 0.63, keep_fraction: 0.80}
+      JavaScript: {weight: 0.14, keep_fraction: 0.15}
+      TypeScript: {weight: 0.14, keep_fraction: 0.75}
       SQL:        {weight: 0.04, keep_fraction: 1.00}
-      Shell:      {weight: 0.05, keep_fraction: 0.71}
-    partition: {val_fraction: 0.004, decay_fraction: 0.026, keep_fraction: 1.0}
+      Shell:      {weight: 0.05, keep_fraction: 0.80}
+    partition: {val_fraction: 0.004, decay_fraction: 0.08, keep_fraction: 1.0}   # decay fraction set by the scarcest language (SQL); repo-level, never split
   instruction_style:
     domain: chat
     repo: HuggingFaceTB/smoltalk
@@ -84,7 +84,7 @@ sources:
     text_field: messages
     key_field: {content_hash: messages}
     rendering: litegpt-chat-v1           # litegpt/chat_template.py
-    partition: {decay_fraction_of_train: 0.75, remainder: "M4 SFT split (disjoint)", val: "the dataset's own test splits (domain chat)"}
+    partition: {decay_fraction_of_train: 0.85, remainder: "M4 SFT split (disjoint)", val: "the dataset's own test splits (domain chat)"}
   smol_magpie_ultra:
     domain: m4_sft_only
     repo: HuggingFaceTB/smoltalk

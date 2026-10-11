@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import resource
 import shutil
 import sys
 import tempfile
@@ -25,6 +24,7 @@ ASSET = Path(__file__).resolve().parents[1] / "litegpt" / "assets" / "tokenizer"
 
 
 def peak_rss_gib() -> float:
+    import resource
     return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024 / 1024      # Linux: KiB
 
 
@@ -64,6 +64,22 @@ def validation_docs(sources: dict, files: dict, salt: str, per_domain: int) -> d
     return out
 
 
+def digits_single(tok) -> bool:
+    """Every maximal run of ASCII digits encodes to exactly one token per digit, each decoding to that digit."""
+    import re
+    samples = ["0123456789", "2024-10-11 12:30:45", "3.14159265358979", "x = 1234567890123456789012345", "id_007_v2",
+               "$1,234,567.89", "0xDEADBEEF 0b1010 1e-9", "tel: +1 (555) 010-9999", "a1b22c333d4444"]
+    for text in samples:
+        ids = tok.encode_text(text)
+        runs = re.findall(r"[0-9]+", text)
+        n_digit_tokens = sum(1 for i in ids if tok.decode([i]).strip() in set("0123456789") and len(tok.decode([i]).strip()) == 1)
+        if n_digit_tokens != sum(len(r) for r in runs):
+            return False
+        if any(len(tok.decode([i]).strip()) > 1 and any(c.isdigit() for c in tok.decode([i])) for i in ids):
+            return False
+    return True
+
+
 def hard_checks(tok, docs: dict) -> dict:
     from litegpt import tokenizer as T
     res = {"vocab_size": tok.vocab_size, "vocab_size_ok": tok.vocab_size == T.VOCAB_SIZE,
@@ -80,11 +96,11 @@ def hard_checks(tok, docs: dict) -> dict:
     res["round_trip_ok"] = all(v["round_trip_exact_nfc"] == v["docs"] for v in rt.values())
     inj = tok.encode_text("x <|endoftext|> <|im_start|> <|reserved_7|> y")
     res["special_text_not_control_ok"] = not (set(inj) & set(range(T.N_SPECIAL)))
-    digits = tok.encode_text("0123456789 2024")
-    res["digits_single_ok"] = all(len(tok.encode_text(d)) == 1 for d in "0123456789") and len(digits) == 10 + 4
-    ws = {"4 spaces": "    x", "tab": "\tx", "newline+indent": "\n    x", "8 spaces": "        x"}
+    res["digits_single_ok"] = digits_single(tok)
+    NL, TAB = chr(10), chr(9)
+    ws = {"4 spaces": " " * 4, "tab": TAB, "newline+4 spaces": NL + " " * 4, "newline+tab": NL + TAB, "8 spaces": " " * 8}
     res["whitespace_tokens"] = {k: len(tok.encode_text(v)) for k, v in ws.items()}
-    res["whitespace_ok"] = all(n <= 3 for n in res["whitespace_tokens"].values())
+    res["whitespace_ok"] = all(n <= 2 for n in res["whitespace_tokens"].values())
     return res
 
 
@@ -114,11 +130,12 @@ def compression(tok, docs: dict) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("mode", choices=["trial", "train"])
+    ap.add_argument("mode", choices=["trial", "train", "check"])
     ap.add_argument("--total-bytes", type=float, default=4.0e9)
     ap.add_argument("--vocab-size", type=int, default=32768)
     ap.add_argument("--files-per-source", default="fineweb_edu=1,cosmopedia_v2=1,math=1,code=12")
     ap.add_argument("--val-docs", type=int, default=2000)
+    ap.add_argument("--tokenizer", default=None, help="check mode: tokenizer json to re-check without data")
     ap.add_argument("--install", default=None, help="run directory whose tokenizer to copy to litegpt/assets (owner-approved freeze)")
     args = ap.parse_args()
     from litegpt import dataprep as P
@@ -132,6 +149,14 @@ def main() -> int:
         print("installed", ASSET, T.file_sha256(ASSET))
         return 0
 
+    if args.mode == "check":
+        tok = T.LiteTokenizer.load(args.tokenizer)
+        rec = create_run("data", "tokenizer-check", config={"tokenizer": str(args.tokenizer), "sha256": T.file_sha256(args.tokenizer)})
+        res = hard_checks(tok, {})
+        rec.write_json("check.json", res)
+        print(json.dumps(res, indent=1))
+        print("record:", rec.run_id)
+        return 0
     sources = P.load_sources()
     salt = sources["partitioning"]["salt"]
     per_source = {k: int(v) for k, v in (kv.split("=") for kv in args.files_per_source.split(","))}

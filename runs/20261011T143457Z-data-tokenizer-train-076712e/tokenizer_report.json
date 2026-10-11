@@ -1,0 +1,126 @@
+{
+  "sha256": "2f208b58085074d9520d737332f8da9fb8c8a8718479978bbe8afb5b4ea015d6",
+  "train": {
+    "train_seconds": 354.0857558250427,
+    "peak_rss_GiB": 9.473045349121094,
+    "bytes": 4995888283,
+    "docs": 1053405,
+    "vocab_size": 32768
+  },
+  "hard_checks": {
+    "vocab_size": 32768,
+    "vocab_size_ok": true,
+    "specials_ok": true,
+    "round_trip": {
+      "web": {
+        "docs": 2000,
+        "round_trip_exact_nfc": 2000,
+        "nfc_changed_docs": 0
+      },
+      "synthetic": {
+        "docs": 2000,
+        "round_trip_exact_nfc": 2000,
+        "nfc_changed_docs": 0
+      },
+      "math": {
+        "docs": 1027,
+        "round_trip_exact_nfc": 1027,
+        "nfc_changed_docs": 3
+      },
+      "code_javascript": {
+        "docs": 1088,
+        "round_trip_exact_nfc": 1088,
+        "nfc_changed_docs": 2
+      },
+      "code_python": {
+        "docs": 353,
+        "round_trip_exact_nfc": 353,
+        "nfc_changed_docs": 0
+      },
+      "code_typescript": {
+        "docs": 126,
+        "round_trip_exact_nfc": 126,
+        "nfc_changed_docs": 0
+      },
+      "code_shell": {
+        "docs": 143,
+        "round_trip_exact_nfc": 143,
+        "nfc_changed_docs": 0
+      },
+      "code_sql": {
+        "docs": 33,
+        "round_trip_exact_nfc": 33,
+        "nfc_changed_docs": 0
+      }
+    },
+    "round_trip_ok": true,
+    "special_text_not_control_ok": true,
+    "digits_single_ok": false,
+    "whitespace_tokens": {
+      "4 spaces": 2,
+      "tab": 2,
+      "newline+indent": 3,
+      "8 spaces": 2
+    },
+    "whitespace_ok": true
+  },
+  "compression": {
+    "web": {
+      "docs": 2000,
+      "bytes": 9881819,
+      "litegpt_bytes_per_token": 4.457309273105181,
+      "gpt2_bytes_per_token": 4.616378118284593,
+      "smollm2_bytes_per_token": 4.527028209463871
+    },
+    "synthetic": {
+      "docs": 2000,
+      "bytes": 7384768,
+      "litegpt_bytes_per_token": 5.227388269471306,
+      "gpt2_bytes_per_token": 5.1486626303416,
+      "smollm2_bytes_per_token": 5.238579573225016
+    },
+    "math": {
+      "docs": 1027,
+      "bytes": 5501128,
+      "litegpt_bytes_per_token": 3.491283418217589,
+      "gpt2_bytes_per_token": 3.5788236932002633,
+      "smollm2_bytes_per_token": 3.3293719913187783
+    },
+    "code_javascript": {
+      "docs": 1088,
+      "bytes": 4449150,
+      "litegpt_bytes_per_token": 2.643384987220208,
+      "gpt2_bytes_per_token": 1.8970008868574548,
+      "smollm2_bytes_per_token": 2.4740261040156946
+    },
+    "code_python": {
+      "docs": 353,
+      "bytes": 1924699,
+      "litegpt_bytes_per_token": 3.7856625847235934,
+      "gpt2_bytes_per_token": 2.187846628995718,
+      "smollm2_bytes_per_token": 3.5168386989498996
+    },
+    "code_typescript": {
+      "docs": 126,
+      "bytes": 593458,
+      "litegpt_bytes_per_token": 3.891349249542644,
+      "gpt2_bytes_per_token": 2.429456843897886,
+      "smollm2_bytes_per_token": 3.619794081050089
+    },
+    "code_shell": {
+      "docs": 143,
+      "bytes": 206726,
+      "litegpt_bytes_per_token": 2.8187730948063106,
+      "gpt2_bytes_per_token": 2.3611796418128654,
+      "smollm2_bytes_per_token": 2.626926742486816
+    },
+    "code_sql": {
+      "docs": 33,
+      "bytes": 84114,
+      "litegpt_bytes_per_token": 3.000642123287671,
+      "gpt2_bytes_per_token": 2.5612496574403947,
+      "smollm2_bytes_per_token": 2.5957105384971455
+    }
+  },
+  "sanity_bytes_per_token_vs_gpt2_web_ok": true
+}

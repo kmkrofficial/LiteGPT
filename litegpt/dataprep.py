@@ -255,10 +255,12 @@ def sample_tokenizer_text(sources: dict, mixture_stable: dict, files: dict, tota
         cfg = sources["sources"][source]
         subs = [s for s in budget if (s.startswith("code_") if source == "code" else s == source)]
         p = cfg["partition"]
+        per_file = {sub: budget[sub] / len(paths) for sub in subs}          # spread over files for diversity
         for path in paths:
+            used_in_file = {sub: 0 for sub in subs}
             for doc in read_docs(source, cfg, path):
                 sub = doc["sub"]
-                if sub not in budget or used[sub] >= budget[sub]:
+                if sub not in budget or used_in_file[sub] >= per_file[sub] or used[sub] >= budget[sub]:
                     continue
                 u = D.partition_u(salt, source, doc["key"])
                 if D.assign_partition(u, p["val_fraction"], p["decay_fraction"], doc["eligible"]) != "stable":
@@ -268,7 +270,9 @@ def sample_tokenizer_text(sources: dict, mixture_stable: dict, files: dict, tota
                     text, rule = filter_code(text, language=doc["lang"], path=doc.get("path"), size=doc.get("size"), repo=doc["key"])
                     if rule:
                         continue
-                used[sub] += len(text.encode("utf-8", "replace"))
+                n = len(text.encode("utf-8", "replace"))
+                used[sub] += n
+                used_in_file[sub] += n
                 yield text
-            if subs and all(used[s] >= budget[s] for s in subs):
-                break
+                if all(used_in_file[s] >= per_file[s] for s in subs):
+                    break
