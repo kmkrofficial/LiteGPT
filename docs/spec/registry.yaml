@@ -263,8 +263,12 @@ experiments:
     hypothesis: "Evaluation suite v0 (lm-evaluation-harness 0.4.13 + native bits-per-byte and efficiency) gives deterministic, harness-sane scores that serve as the fixed yardstick for V1, competitors and every later V2 result."
     config: litegpt/eval/suite_v0.yaml + litegpt/eval/SUITE_VERSION (0.1.0)
     parent: null
-    status: pre-registered
-    runs: []
+    status: harness-validated
+    runs:
+      - 20261011T170523Z-eval-base-gpt2-203de2f   # GPT-2 run A: zero-shot, TriviaQA, GSM8K (stopped at HumanEval: 1,024-token default)
+      - 20261011T172039Z-eval-base-gpt2-203de2f   # GPT-2 run B: same groups (determinism)
+      - 20261011T173530Z-eval-base-gpt2-1f005bc   # GPT-2 code groups A (512-token cap)
+      - 20261011T174200Z-eval-base-gpt2-1f005bc   # GPT-2 code groups B (determinism)
     decisions:   # PRE-REGISTERED 2026-10-11 before any model was scored (owner-approved PLAN_M1b.md rev 1)
       base_suite: "0-shot: hellaswag, arc_easy, arc_challenge, piqa, openbookqa, commonsense_qa, winogrande, mmlu (continuation/cloze form), truthfulqa_mc1, truthfulqa_mc2; 5-shot: triviaqa (fixed seeded 2000-question subset), gsm8k; code: humaneval (0-shot), mbpp (3-shot), pass@1 greedy; bits-per-byte on val_core and the domain sets (after M1 step 6)"
       instruct_suite: "each model's own chat template, greedy, max 512 new tokens: ifeval, gsm8k (0-shot chat), humaneval/mbpp (chat prompt), xstest (rule-based refusal scoring)"
@@ -280,7 +284,7 @@ experiments:
       - "MMLU is scored with lm-eval's mmlu_continuation (cloze) group; the code tasks are humaneval (0-shot) and mbpp (3-shot) for base models, humaneval_instruct / mbpp_instruct for chat models; gsm8k_cot_zeroshot is the chat GSM8K task; XSTest is scored natively (not in lm-eval 0.4.13)."
       - "TriviaQA subset: 2,000 document indices drawn with random.Random(1234).sample over the task's evaluation split, passed to lm-eval as `samples`."
       - "Code tasks (humaneval, mbpp, humaneval_instruct, mbpp_instruct) generate at most 512 new tokens for every model (lm-eval default 1,024 equals GPT-2's whole context and aborted the first GPT-2 run before any code score was produced; recorded 2026-10-11 before any code-task score)."
-    conclusion: null
+    conclusion: "HARNESS VALIDATED (2026-10-11, Checkpoint C). Sanity rule PASS: GPT-2 124M HellaSwag acc_norm 0.3130 (range 0.29-0.33), PIQA acc 0.6246 (range 0.61-0.65); other GPT-2 scores: ARC-Easy 0.4407, ARC-Challenge acc_norm 0.2210, OpenBookQA acc_norm 0.268, CommonsenseQA 0.1957, Winogrande 0.5083, MMLU (continuation) 0.2535, TruthfulQA MC1 0.2301 / MC2 0.4068, TriviaQA (2,000) 0.017, GSM8K strict 0.0061, HumanEval pass@1 0.0, MBPP pass@1 0.0. Determinism rule PASS: two independent runs give identical results for every task, and identical per-sample outputs for HumanEval (164) and MBPP (500). Adapter rule PASS (tests/test_eval_adapter.py). Fixes before the baselines: code tasks capped at 512 new tokens (recorded clarification); task dataset revisions were not being recorded (a falsy TaskConfig check), fixed and verified (humaneval 7dce6050, hellaswag 218ec52e: equal to the decontamination pins). GPT-2 is re-run as a single complete record in the baseline set."
   - id: EXP-M1B-BASELINES
     milestone: M1b
     hypothesis: "V1 and same-class / reference competitors measured with suite v0 on this machine define the comparison table for V2."

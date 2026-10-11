@@ -51,7 +51,7 @@ def task_dataset_revisions(task_names: list[str]) -> dict:
                 walk(v)
             else:
                 cfg = getattr(v, "config", None)
-                path = getattr(cfg, "dataset_path", None) if cfg else None
+                path = getattr(cfg, "dataset_path", None) if cfg is not None else None   # TaskConfig is falsy
                 if path and path not in out:
                     try:
                         out[path] = api.dataset_info(path).sha

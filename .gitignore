@@ -48,3 +48,5 @@ hugging_face_export/
 
 # large deterministic data artefacts (rebuilt from manifests; hashes recorded in the spec)
 runs/**/*.npz
+# per-sample evaluation outputs (large; kept on disk for audit, scores/summaries are committed)
+runs/**/eval/*.samples.jsonl

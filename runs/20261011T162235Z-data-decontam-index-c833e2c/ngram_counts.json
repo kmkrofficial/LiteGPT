@@ -1,0 +1,115 @@
+{
+  "unique_ngrams": 1612644,
+  "first_owner_counts": {
+    "hellaswag": 858577,
+    "arc_easy": 20422,
+    "arc_challenge": 13748,
+    "piqa": 24811,
+    "openbookqa": 1020,
+    "commonsenseqa": 3228,
+    "mmlu": 471072,
+    "gsm8k": 111629,
+    "winogrande": 8110,
+    "humaneval": 20886,
+    "mbpp": 11962,
+    "ifeval": 13299,
+    "truthfulqa": 4250,
+    "triviaqa": 33252,
+    "xstest": 83,
+    "multipl_e_humaneval_js": 10794,
+    "multipl_e_humaneval_ts": 1100,
+    "text_to_sql_spider": 4401
+  },
+  "benchmarks": {
+    "hellaswag": {
+      "strings": 120504,
+      "repo": "Rowan/hellaswag",
+      "revision": "218ec52e09a7e7462a5400043bb9a69a41d06b76"
+    },
+    "arc_easy": {
+      "strings": 26130,
+      "repo": "allenai/ai2_arc",
+      "revision": "210d026faf9955653af8916fad021475a3f00453"
+    },
+    "arc_challenge": {
+      "strings": 12890,
+      "repo": "allenai/ai2_arc",
+      "revision": "210d026faf9955653af8916fad021475a3f00453"
+    },
+    "piqa": {
+      "strings": 5514,
+      "repo": "baber/piqa",
+      "revision": "142f6d7367fd9877f0fb3b5734ea6a545f54cdd1"
+    },
+    "openbookqa": {
+      "strings": 5500,
+      "repo": "allenai/openbookqa",
+      "revision": "388097ea7776314e93a529163e0fea805b8a6454"
+    },
+    "commonsenseqa": {
+      "strings": 17094,
+      "repo": "tau/commonsense_qa",
+      "revision": "94630fe30dad47192a8546eb75f094926d47e155"
+    },
+    "mmlu": {
+      "strings": 84252,
+      "repo": "cais/mmlu",
+      "revision": "c30699e8356da336a370243923dbaf21066bb9fe"
+    },
+    "gsm8k": {
+      "strings": 2638,
+      "repo": "openai/gsm8k",
+      "revision": "740312add88f781978c0658806c59bc2815b9866"
+    },
+    "winogrande": {
+      "strings": 5068,
+      "repo": "allenai/winogrande",
+      "revision": "01e74176c63542e6b0bcb004dcdea22d94fb67b5"
+    },
+    "humaneval": {
+      "strings": 820,
+      "repo": "openai/openai_humaneval",
+      "revision": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544"
+    },
+    "mbpp": {
+      "strings": 3016,
+      "repo": "google-research-datasets/mbpp",
+      "revision": "4bb6404fdc6cacfda99d4ac4205087b89d32030c"
+    },
+    "ifeval": {
+      "strings": 2007,
+      "repo": "google/IFEval",
+      "revision": "966cd89545d6b6acfd7638bc708b98261ca58e84"
+    },
+    "truthfulqa": {
+      "strings": 10003,
+      "repo": "truthfulqa/truthful_qa",
+      "revision": "741b8276f2d1982aa3d5b832d3ee81ed3b896490"
+    },
+    "triviaqa": {
+      "strings": 654814,
+      "repo": "mandarjoshi/trivia_qa",
+      "revision": "0f7faf33a3908546c6fd5b73a660e0f8ff173c2f"
+    },
+    "xstest": {
+      "strings": 1830,
+      "repo": "Paul/XSTest",
+      "revision": "f600c994b256f12867dfa5b3eb3d545a3e62f8b5"
+    },
+    "multipl_e_humaneval_js": {
+      "strings": 1771,
+      "repo": "nuprl/MultiPL-E",
+      "revision": "28441b6024e71d4a1c1c0f6bf171c935cd5a43f2"
+    },
+    "multipl_e_humaneval_ts": {
+      "strings": 1749,
+      "repo": "nuprl/MultiPL-E",
+      "revision": "28441b6024e71d4a1c1c0f6bf171c935cd5a43f2"
+    },
+    "text_to_sql_spider": {
+      "strings": 58378,
+      "repo": "xlangai/spider",
+      "revision": "0c350918f3f29ec754f1181c65cdce76cd6c133c"
+    }
+  }
+}

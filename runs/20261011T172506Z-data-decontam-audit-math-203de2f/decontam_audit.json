@@ -1,0 +1,322 @@
+{
+  "source": "math",
+  "file": "finemath-3plus/train-00000-of-00128.parquet",
+  "docs": 167232,
+  "hit_docs": 150,
+  "hit_bytes_fraction": 0.002674293181128128,
+  "windows_by_benchmark": {
+    "mbpp": 200,
+    "mmlu": 223,
+    "piqa": 34,
+    "arc_easy": 20,
+    "multipl_e_humaneval_js": 20,
+    "humaneval": 136,
+    "arc_challenge": 15,
+    "truthfulqa": 11,
+    "triviaqa": 23,
+    "ifeval": 20
+  },
+  "median_hits_per_doc": 3.0,
+  "top_ngrams": [
+    {
+      "ngram": "0 0 0 0 0 0 0 0 0 0 0 0 assert",
+      "docs_windows": 20,
+      "benchmark": "multipl_e_humaneval_js"
+    },
+    {
+      "ngram": "begin bmatrix 1 0 0 0 1 0 0 0 1 end bmatrix",
+      "docs_windows": 12,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "1 one 2 two 3 three 4 four 5 five 6 six 7",
+      "docs_windows": 10,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "one 2 two 3 three 4 four 5 five 6 six 7 seven",
+      "docs_windows": 10,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "2 two 3 three 4 four 5 five 6 six 7 seven 8",
+      "docs_windows": 10,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "two 3 three 4 four 5 five 6 six 7 seven 8 eight",
+      "docs_windows": 10,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "3 three 4 four 5 five 6 six 7 seven 8 eight 9",
+      "docs_windows": 10,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "three 4 four 5 five 6 six 7 seven 8 eight 9 nine",
+      "docs_windows": 10,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "0 0 0 0 0 0 0 0 0 0 0 0 this",
+      "docs_windows": 7,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "for i in range n for j in range i 1 n if",
+      "docs_windows": 6,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "prime number or a prime is a natural number greater than 1 that",
+      "docs_windows": 6,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "dp i j 1 dp i 1 j 1 else dp i j",
+      "docs_windows": 5,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "i j 1 dp i 1 j 1 else dp i j max",
+      "docs_windows": 5,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "j 1 dp i 1 j 1 else dp i j max dp",
+      "docs_windows": 5,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "1 dp i 1 j 1 else dp i j max dp i",
+      "docs_windows": 5,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "def __init__ self data self data data self left none self right none",
+      "docs_windows": 5,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "to the right in the northern hemisphere and to the left in the",
+      "docs_windows": 4,
+      "benchmark": "arc_easy"
+    },
+    {
+      "ngram": "the right in the northern hemisphere and to the left in the southern",
+      "docs_windows": 4,
+      "benchmark": "arc_easy"
+    },
+    {
+      "ngram": "right in the northern hemisphere and to the left in the southern hemisphere",
+      "docs_windows": 4,
+      "benchmark": "arc_easy"
+    },
+    {
+      "ngram": "0 for i in range n for j in range i 1 n",
+      "docs_windows": 4,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "are 0 1 2 3 4 5 6 7 8 9 a b",
+      "docs_windows": 4,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "root node 1 root left node 2 root right node 3 root left",
+      "docs_windows": 3,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "i iv v ix x xl l xc c cd d cm m",
+      "docs_windows": 3,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "if f is differentiable at x c then f is continuous at x",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "f is differentiable at x c then f is continuous at x c",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "an object at rest will stay at rest unless acted upon by an",
+      "docs_windows": 3,
+      "benchmark": "arc_challenge"
+    },
+    {
+      "ngram": "node def __init__ self data self data data self left none self right",
+      "docs_windows": 3,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "r 2 h where r is the radius and h is the height",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "node 1 root left node 2 root right node 3 root left left",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "1 root left node 2 root right node 3 root left left node",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "root left node 2 root right node 3 root left left node 4",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "left node 2 root right node 3 root left left node 4 root",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "node 2 root right node 3 root left left node 4 root left",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "2 root right node 3 root left left node 4 root left right",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "root right node 3 root left left node 4 root left right node",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "right node 3 root left left node 4 root left right node 5",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "begin bmatrix 1 1 1 1 1 1 1 1 1 end bmatrix",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "begin bmatrix 0 0 0 0 0 0 0 0 0 end bmatrix",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "for i in range 1 n 1 for j in range 1 i",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "s a b c 2 area s s a s b s c",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "n for j in range 0 i if arr i arr j and",
+      "docs_windows": 2,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "is a natural number greater than 1 that is not a product of",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "a natural number greater than 1 that is not a product of two",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "natural number greater than 1 that is not a product of two smaller",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "number greater than 1 that is not a product of two smaller natural",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "greater than 1 that is not a product of two smaller natural numbers",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "object at rest will stay at rest unless acted upon by an outside",
+      "docs_windows": 2,
+      "benchmark": "arc_challenge"
+    },
+    {
+      "ngram": "at rest will stay at rest unless acted upon by an outside force",
+      "docs_windows": 2,
+      "benchmark": "arc_challenge"
+    },
+    {
+      "ngram": "output and the price level to change in which of the following ways",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "how many balloons would it take to lift a house like the one",
+      "docs_windows": 2,
+      "benchmark": "truthfulqa"
+    },
+    {
+      "ngram": "many balloons would it take to lift a house like the one in",
+      "docs_windows": 2,
+      "benchmark": "truthfulqa"
+    },
+    {
+      "ngram": "balloons would it take to lift a house like the one in pixar",
+      "docs_windows": 2,
+      "benchmark": "truthfulqa"
+    },
+    {
+      "ngram": "would it take to lift a house like the one in pixar s",
+      "docs_windows": 2,
+      "benchmark": "truthfulqa"
+    },
+    {
+      "ngram": "it take to lift a house like the one in pixar s up",
+      "docs_windows": 2,
+      "benchmark": "truthfulqa"
+    },
+    {
+      "ngram": "n while n 1 if n 2 0 n n 2 else n",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "provide for the common defence promote the general welfare and secure the blessings",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "for the common defence promote the general welfare and secure the blessings of",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "the common defence promote the general welfare and secure the blessings of liberty",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "number or a prime is a natural number greater than 1 that is",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "or a prime is a natural number greater than 1 that is not",
+      "docs_windows": 2,
+      "benchmark": "humaneval"
+    }
+  ]
+}
