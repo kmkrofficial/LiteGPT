@@ -39,3 +39,7 @@ out-*/
 scripts/legacy_v1/data/*/*.json
 export_to_hub.py
 hugging_face_export/
+
+# private working plan (local only)
+/PLAN.md
+/PLAN_M1.md

@@ -1,0 +1,1183 @@
+[
+  {
+    "domain": "web",
+    "repo": "HuggingFaceTB/smollm-corpus",
+    "config": "fineweb-edu-dedup",
+    "split": "train",
+    "sha": "3ba9d605774198c5868892d7a8deda78031a781f",
+    "gated": false,
+    "license": "odc-by",
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "cosmopedia-v2",
+      "fineweb-edu-dedup",
+      "python-edu"
+    ],
+    "size": {
+      "n_data_files": 234,
+      "bytes": 550069279849,
+      "examples": [
+        "fineweb-edu-dedup/train-00000-of-00234.parquet",
+        "fineweb-edu-dedup/train-00001-of-00234.parquet",
+        "fineweb-edu-dedup/train-00002-of-00234.parquet"
+      ]
+    },
+    "sample": {
+      "columns": [
+        "text",
+        "id",
+        "metadata"
+      ],
+      "text_inline_nonempty": true,
+      "rows": [
+        {
+          "len": 3679,
+          "head": "No. 24; Updated March 2011\nClick here to download and print a PDF version of this document.\nParents are usually the first to recognize that their child has a problem with emotions or behavior. Still, the decision to seek professional help can be difficult and painful for a parent. The first step is ",
+          "meta": {
+            "id": "<urn:uuid:673b1bf6-2c30-40ae-992b-c387d00a836a>",
+            "metadata": null
+          }
+        },
+        {
+          "len": 992,
+          "head": "Previous abstract Next abstract\nSession 40 - The Interstellar Medium.\nDisplay session, Tuesday, June 09\nGamma Ray Burst (GRB) explosions can make kpc-size shells and holes in the interstellar media (ISM) of spiral galaxies if much of the energy heats the local gas to above 10^7 K. Disk blowout is pr",
+          "meta": {
+            "id": "<urn:uuid:e2300ad5-01dd-4e80-92b3-7ec88785cc9d>",
+            "metadata": null
+          }
+        },
+        {
+          "len": 396,
+          "head": "Question: How is bipolar disorder different from unipolar depression or 'regular' depression?\nAnswer: Both bipolar disorder and major depression are typically associated with depressive episodes. So both illnesses are accompanied by depressions. The difference is that in bipolar disorder people also",
+          "meta": {
+            "id": "<urn:uuid:e6ba92ad-ed0a-4cac-8e5d-204b78cdd250>",
+            "metadata": null
+          }
+        }
+      ]
+    }
+  },
+  {
+    "domain": "web-fallback",
+    "repo": "HuggingFaceFW/fineweb-edu",
+    "config": "sample-100BT",
+    "split": "train",
+    "sha": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+    "gated": false,
+    "license": "odc-by",
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "default",
+      "sample-10BT",
+      "sample-100BT",
+      "sample-350BT",
+      "CC-MAIN-2025-05",
+      "CC-MAIN-2025-08",
+      "CC-MAIN-2025-13",
+      "CC-MAIN-2025-18",
+      "CC-MAIN-2025-21",
+      "CC-MAIN-2025-26",
+      "CC-MAIN-2024-51",
+      "CC-MAIN-2024-46",
+      "CC-MAIN-2024-42",
+      "CC-MAIN-2024-38",
+      "CC-MAIN-2024-33",
+      "CC-MAIN-2024-30",
+      "CC-MAIN-2024-26",
+      "CC-MAIN-2024-22",
+      "CC-MAIN-2024-18",
+      "CC-MAIN-2024-10",
+      "CC-MAIN-2023-50",
+      "CC-MAIN-2023-40",
+      "CC-MAIN-2023-23",
+      "CC-MAIN-2023-14",
+      "CC-MAIN-2023-06",
+      "CC-MAIN-2022-49",
+      "CC-MAIN-2022-40",
+      "CC-MAIN-2022-33",
+      "CC-MAIN-2022-27",
+      "CC-MAIN-2022-21",
+      "CC-MAIN-2022-05",
+      "CC-MAIN-2021-49",
+      "CC-MAIN-2021-43",
+      "CC-MAIN-2021-39",
+      "CC-MAIN-2021-31",
+      "CC-MAIN-2021-25",
+      "CC-MAIN-2021-21",
+      "CC-MAIN-2021-17",
+      "CC-MAIN-2021-10",
+      "CC-MAIN-2021-04",
+      "CC-MAIN-2020-50",
+      "CC-MAIN-2020-45",
+      "CC-MAIN-2020-40",
+      "CC-MAIN-2020-34",
+      "CC-MAIN-2020-29",
+      "CC-MAIN-2020-24",
+      "CC-MAIN-2020-16",
+      "CC-MAIN-2020-10",
+      "CC-MAIN-2020-05",
+      "CC-MAIN-2019-51",
+      "CC-MAIN-2019-47",
+      "CC-MAIN-2019-43",
+      "CC-MAIN-2019-39",
+      "CC-MAIN-2019-35",
+      "CC-MAIN-2019-30",
+      "CC-MAIN-2019-26",
+      "CC-MAIN-2019-22",
+      "CC-MAIN-2019-18",
+      "CC-MAIN-2019-13",
+      "CC-MAIN-2019-09",
+      "CC-MAIN-2019-04",
+      "CC-MAIN-2018-51",
+      "CC-MAIN-2018-47",
+      "CC-MAIN-2018-43",
+      "CC-MAIN-2018-39",
+      "CC-MAIN-2018-34",
+      "CC-MAIN-2018-30",
+      "CC-MAIN-2018-26",
+      "CC-MAIN-2018-22",
+      "CC-MAIN-2018-17",
+      "CC-MAIN-2018-13",
+      "CC-MAIN-2018-09",
+      "CC-MAIN-2018-05",
+      "CC-MAIN-2017-51",
+      "CC-MAIN-2017-47",
+      "CC-MAIN-2017-43",
+      "CC-MAIN-2017-39",
+      "CC-MAIN-2017-34",
+      "CC-MAIN-2017-30",
+      "CC-MAIN-2017-26",
+      "CC-MAIN-2017-22",
+      "CC-MAIN-2017-17",
+      "CC-MAIN-2017-13",
+      "CC-MAIN-2017-09",
+      "CC-MAIN-2017-04",
+      "CC-MAIN-2016-50",
+      "CC-MAIN-2016-44",
+      "CC-MAIN-2016-40",
+      "CC-MAIN-2016-36",
+      "CC-MAIN-2016-30",
+      "CC-MAIN-2016-26",
+      "CC-MAIN-2016-22",
+      "CC-MAIN-2016-18",
+      "CC-MAIN-2016-07",
+      "CC-MAIN-2015-48",
+      "CC-MAIN-2015-40",
+      "CC-MAIN-2015-35",
+      "CC-MAIN-2015-32",
+      "CC-MAIN-2015-27",
+      "CC-MAIN-2015-22",
+      "CC-MAIN-2015-18",
+      "CC-MAIN-2015-14",
+      "CC-MAIN-2015-11",
+      "CC-MAIN-2015-06",
+      "CC-MAIN-2014-52",
+      "CC-MAIN-2014-49",
+      "CC-MAIN-2014-42",
+      "CC-MAIN-2014-41",
+      "CC-MAIN-2014-35",
+      "CC-MAIN-2014-23",
+      "CC-MAIN-2014-15",
+      "CC-MAIN-2014-10",
+      "CC-MAIN-2013-48",
+      "CC-MAIN-2013-20"
+    ],
+    "size": {
+      "n_data_files": 0,
+      "bytes": 0,
+      "examples": []
+    },
+    "sample": {
+      "columns": [
+        "text",
+        "id",
+        "dump",
+        "url",
+        "file_path",
+        "language",
+        "language_score",
+        "token_count",
+        "score",
+        "int_score"
+      ],
+      "text_inline_nonempty": true,
+      "rows": [
+        {
+          "len": 3665,
+          "head": "The Independent Jane\nFor all the love, romance and scandal in Jane Austen\u2019s books, what they are really about is freedom and independence. Independence of thought and the freedom to choose.\nElizabeth\u2019s refusal of Mr. Collins offer of marriage showed an independence seldom seen in heroines of the day",
+          "meta": {
+            "id": "<urn:uuid:0d8a309d-25c5-405d-a08a-c11239f0d717>",
+            "dump": "CC-MAIN-2013-20",
+            "url": "http://austenauthors.net/the-independent-jane",
+            "file_path": null,
+            "language": "en",
+            "language_score": 0.9743200540542603,
+            "token_count": 845,
+            "score": 2.75,
+            "int_score": 3
+          }
+        },
+        {
+          "len": 2549,
+          "head": "Tornadoes are the most intense storms on the planet, and they\u2019re never discussed without at least some mention of the term wind shear. Many of us sitting at home, though, have no idea what wind shear is, or if we do, how it affects tornado production.\nWhat is Wind Shear\nWind shear, although it might",
+          "meta": {
+            "id": "<urn:uuid:7400301c-e625-46d5-be90-1020cf8d52f8>",
+            "dump": "CC-MAIN-2013-20",
+            "url": "http://cloudyandcool.com/2009/05/05/wind-shear-and-tornadoes/",
+            "file_path": null,
+            "language": "en",
+            "language_score": 0.9167638421058655,
+            "token_count": 573,
+            "score": 4.15625,
+            "int_score": 4
+          }
+        },
+        {
+          "len": 10328,
+          "head": "Is this bone a Neanderthal flute?\nCave Bear femur fragment from Slovenia, 43+kya\nDOUBTS AIRED OVER NEANDERTHAL BONE 'FLUTE'\n(AND REPLY BY MUSICOLOGIST BOB FINK)\nScience News 153 (April 4, 1998): 215.\nBy B. Bower\nAmid much media fanfare, a research team in 1996 trumpeted an ancient, hollowed out bear",
+          "meta": {
+            "id": "<urn:uuid:f166f15d-9976-40ed-8a49-8bed360001ff>",
+            "dump": "CC-MAIN-2013-20",
+            "url": "http://cogweb.ucla.edu/ep/FluteDebate.html",
+            "file_path": null,
+            "language": "en",
+            "language_score": 0.9578442573547363,
+            "token_count": 2445,
+            "score": 3.71875,
+            "int_score": 4
+          }
+        }
+      ]
+    }
+  },
+  {
+    "domain": "synthetic",
+    "repo": "HuggingFaceTB/smollm-corpus",
+    "config": "cosmopedia-v2",
+    "split": "train",
+    "sha": "3ba9d605774198c5868892d7a8deda78031a781f",
+    "gated": false,
+    "license": "odc-by",
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "cosmopedia-v2",
+      "fineweb-edu-dedup",
+      "python-edu"
+    ],
+    "size": {
+      "n_data_files": 104,
+      "bytes": 122361137711,
+      "examples": [
+        "cosmopedia-v2/train-00000-of-00104.parquet",
+        "cosmopedia-v2/train-00001-of-00104.parquet",
+        "cosmopedia-v2/train-00002-of-00104.parquet"
+      ]
+    },
+    "sample": {
+      "columns": [
+        "prompt",
+        "text",
+        "token_length",
+        "audience",
+        "format",
+        "seed_data"
+      ],
+      "text_inline_nonempty": true,
+      "rows": [
+        {
+          "len": 4324,
+          "head": " In today's ever-evolving world, technology has become an integral part of our lives, shaping the way we learn, work, and communicate. The COVID-19 pandemic has only accelerated this trend, forcing educational institutions worldwide to adapt quickly to remote learning models. As such, social studies",
+          "meta": {
+            "prompt": null,
+            "token_length": 805,
+            "audience": "college_students",
+            "format": "textbook",
+            "seed_data": "fineweb"
+          }
+        },
+        {
+          "len": 3856,
+          "head": " Introduction:\nIn today's world, cooking has evolved beyond traditional methods such as gas or electric stovetops. Induction cooking using ceramic or glass surfaces has become increasingly popular due to its efficiency, speed, safety, and ease of cleaning. In this section, we will delve into the con",
+          "meta": {
+            "prompt": null,
+            "token_length": 793,
+            "audience": "college_students",
+            "format": "textbook",
+            "seed_data": "fineweb"
+          }
+        },
+        {
+          "len": 4015,
+          "head": " Chapter: Cooking Up Comfort: Chemotheapy-Induced Nausea Relief Foods\n\nIntroduction:\nHave you ever felt really queasy or sick to your stomach? Maybe after eating something that didn't agree with you, or when you were on a bumpy car ride? Imagine feeling like that all the time, even when you haven't ",
+          "meta": {
+            "prompt": null,
+            "token_length": 994,
+            "audience": "middle_school_students",
+            "format": "textbook",
+            "seed_data": "fineweb"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "domain": "math-3plus",
+    "repo": "HuggingFaceTB/finemath",
+    "config": "finemath-3plus",
+    "split": "train",
+    "sha": "e92b25a616738fe95dc186b64dfb19f9c8525594",
+    "gated": false,
+    "license": "odc-by",
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "finemath-3plus",
+      "finemath-4plus",
+      "infiwebmath-3plus",
+      "infiwebmath-4plus"
+    ],
+    "size": {
+      "n_data_files": 128,
+      "bytes": 65039196945,
+      "examples": [
+        "finemath-3plus/train-00000-of-00128.parquet",
+        "finemath-3plus/train-00001-of-00128.parquet",
+        "finemath-3plus/train-00002-of-00128.parquet"
+      ]
+    },
+    "sample": {
+      "columns": [
+        "url",
+        "fetch_time",
+        "content_mime_type",
+        "warc_filename",
+        "warc_record_offset",
+        "warc_record_length",
+        "text",
+        "token_count",
+        "char_count",
+        "metadata",
+        "score",
+        "int_score",
+        "crawl",
+        "snapshot_type",
+        "language",
+        "language_score"
+      ],
+      "text_inline_nonempty": true,
+      "rows": [
+        {
+          "len": 1351,
+          "head": "1\nJEE Main 2022 (Online) 26th July Morning Shift\n+4\n-1\n\nLet f : R $$\\to$$ R be a continuous function such that $$f(3x) - f(x) = x$$. If $$f(8) = 7$$, then $$f(14)$$ is equal to :\n\nA\n4\nB\n10\nC\n11\nD\n16\n2\nJEE Main 2022 (Online) 26th July Morning Shift\n+4\n-1\n\nIf the function $$f(x) = \\left\\{ {\\matrix{ {{",
+          "meta": {
+            "url": null,
+            "fetch_time": 1716252734000000000,
+            "content_mime_type": "text/html",
+            "warc_filename": null,
+            "warc_record_offset": 434727721,
+            "warc_record_length": 48880,
+            "token_count": 668,
+            "char_count": 1351,
+            "metadata": null,
+            "score": 3.15625,
+            "int_score": 3,
+            "crawl": "CC-MAIN-2024-22",
+            "snapshot_type": "latest",
+            "language": "en",
+            "language_score": 0.6264587044715881
+          }
+        },
+        {
+          "len": 4358,
+          "head": "## Course syllabus\n\nMVE155 / MSG200 Statistical inference (7.5 hp)\u00a02021\n\nCourse is offered by the department of Mathematical Sciences\n\nSerik Sagitov\n\n### Course purpose\n\n\"Statistical Inference\" is a second course in mathematical statistics suitable for students with different backgrounds. A main pre",
+          "meta": {
+            "url": "https://chalmers.instructure.com/courses/12368/assignments/syllabus",
+            "fetch_time": 1713370895000000000,
+            "content_mime_type": "text/html",
+            "warc_filename": null,
+            "warc_record_offset": 147565129,
+            "warc_record_length": 20939,
+            "token_count": 1452,
+            "char_count": 4358,
+            "metadata": null,
+            "score": 2.6875,
+            "int_score": 3,
+            "crawl": "CC-MAIN-2024-18",
+            "snapshot_type": "latest",
+            "language": "en",
+            "language_score": 0.7001152634620667
+          }
+        },
+        {
+          "len": 3078,
+          "head": "# Activity 79 Analysis Questions\n\n## Presentation on theme: \"Activity 79 Analysis Questions\"\u2014 Presentation transcript:\n\nActivity 79 Analysis Questions\nDescribe the changes in direction and speed of the marble when they\u2019re inside the circular track? The marbles\u2019 direction changed constantly inside th",
+          "meta": {
+            "url": "http://slideplayer.com/slide/763764/",
+            "fetch_time": 1534695087000000000,
+            "content_mime_type": "text/html",
+            "warc_filename": null,
+            "warc_record_offset": 384268089,
+            "warc_record_length": 24508,
+            "token_count": 680,
+            "char_count": 3078,
+            "metadata": null,
+            "score": 4.3125,
+            "int_score": 4,
+            "crawl": "CC-MAIN-2018-34",
+            "snapshot_type": "longest",
+            "language": "en",
+            "language_score": 0.9250085949897766
+          }
+        }
+      ]
+    }
+  },
+  {
+    "domain": "math-4plus",
+    "repo": "HuggingFaceTB/finemath",
+    "config": "finemath-4plus",
+    "split": "train",
+    "sha": "e92b25a616738fe95dc186b64dfb19f9c8525594",
+    "gated": false,
+    "license": "odc-by",
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "finemath-3plus",
+      "finemath-4plus",
+      "infiwebmath-3plus",
+      "infiwebmath-4plus"
+    ],
+    "size": {
+      "n_data_files": 64,
+      "bytes": 18365184633,
+      "examples": [
+        "finemath-4plus/train-00000-of-00064.parquet",
+        "finemath-4plus/train-00001-of-00064.parquet",
+        "finemath-4plus/train-00002-of-00064.parquet"
+      ]
+    },
+    "sample": {
+      "columns": [
+        "url",
+        "fetch_time",
+        "content_mime_type",
+        "warc_filename",
+        "warc_record_offset",
+        "warc_record_length",
+        "text",
+        "token_count",
+        "char_count",
+        "metadata",
+        "score",
+        "int_score",
+        "crawl",
+        "snapshot_type",
+        "language",
+        "language_score"
+      ],
+      "text_inline_nonempty": true,
+      "rows": [
+        {
+          "len": 1930,
+          "head": "# What is the term\u201dexclamation mark\u201d in mathematics?\n\nThe answer is easy. Below are some approaches to inform as soon as an equation can be really actually a multiplication equation and also how to add and subtract using\u201dexclamation marks\u201d. For instance,\u201d2x + 3\u2033 imply\u201dmultiply two integers from abou",
+          "meta": {
+            "url": "https://ex.burnettmediagroup.com/what-is-the-phraseexclamation-mark-in-x-y/",
+            "fetch_time": 1627454305000000000,
+            "content_mime_type": "text/html",
+            "warc_filename": null,
+            "warc_record_offset": 265657037,
+            "warc_record_length": 7750,
+            "token_count": 509,
+            "char_count": 1930,
+            "metadata": null,
+            "score": 4.53125,
+            "int_score": 5,
+            "crawl": "CC-MAIN-2021-31",
+            "snapshot_type": "longest",
+            "language": "en",
+            "language_score": 0.9019942283630371
+          }
+        },
+        {
+          "len": 6132,
+          "head": "Our curriculum is spiral\n\nPlease note that our virtual Singapore Math Grade 3 curriculum is spiral and it provides for the review of the important concepts that students learned in Grade 2. Our online K-5 math curriculum is aligned with all standard Singapore Math textbook series and it includes all",
+          "meta": {
+            "url": "https://esingaporemath.com/program-grade-3",
+            "fetch_time": 1638473770000000000,
+            "content_mime_type": "text/html",
+            "warc_filename": null,
+            "warc_record_offset": 305205293,
+            "warc_record_length": 13865,
+            "token_count": 1234,
+            "char_count": 6132,
+            "metadata": null,
+            "score": 4.09375,
+            "int_score": 4,
+            "crawl": "CC-MAIN-2021-49",
+            "snapshot_type": "latest",
+            "language": "en",
+            "language_score": 0.9147014021873474
+          }
+        },
+        {
+          "len": 3141,
+          "head": "# Fractions Bundle \"Twist\" 12 Worksheets\n\nSubject\nResource Type\nProduct Rating\nFile Type\n\nWord Document File\n\n181 KB|20 pages\nShare\nProduct Description\nFRACTIONS BUNDLE \"TWIST\" 12 WORKSHEETS\n\nYou receive 12 FULL worksheets all on the 4 OPERATIONS of FRACTIONS including WORD PROBLEMS for EACH operati",
+          "meta": {
+            "url": null,
+            "fetch_time": 1537662858000000000,
+            "content_mime_type": "text/html",
+            "warc_filename": null,
+            "warc_record_offset": 874532398,
+            "warc_record_length": 19691,
+            "token_count": 709,
+            "char_count": 3141,
+            "metadata": null,
+            "score": 3.921875,
+            "int_score": 4,
+            "crawl": "CC-MAIN-2018-39",
+            "snapshot_type": "latest",
+            "language": "en",
+            "language_score": 0.7646512985229492
+          }
+        }
+      ]
+    }
+  },
+  {
+    "domain": "wiki",
+    "repo": "wikimedia/wikipedia",
+    "config": "20231101.en",
+    "split": "train",
+    "sha": "b04c8d1ceb2f5cd4588862100d08de323dccfbaa",
+    "gated": false,
+    "license": [
+      "cc-by-sa-3.0",
+      "gfdl"
+    ],
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "20231101.ab",
+      "20231101.ace",
+      "20231101.ady",
+      "20231101.af",
+      "20231101.als",
+      "20231101.alt",
+      "20231101.am",
+      "20231101.ami",
+      "20231101.an",
+      "20231101.ang",
+      "20231101.anp",
+      "20231101.ar",
+      "20231101.arc",
+      "20231101.ary",
+      "20231101.arz",
+      "20231101.as",
+      "20231101.ast",
+      "20231101.atj",
+      "20231101.av",
+      "20231101.avk",
+      "20231101.awa",
+      "20231101.ay",
+      "20231101.az",
+      "20231101.azb",
+      "20231101.ba",
+      "20231101.ban",
+      "20231101.bar",
+      "20231101.bat-smg",
+      "20231101.bcl",
+      "20231101.be",
+      "20231101.be-x-old",
+      "20231101.bg",
+      "20231101.bh",
+      "20231101.bi",
+      "20231101.bjn",
+      "20231101.blk",
+      "20231101.bm",
+      "20231101.bn",
+      "20231101.bo",
+      "20231101.bpy",
+      "20231101.br",
+      "20231101.bs",
+      "20231101.bug",
+      "20231101.bxr",
+      "20231101.ca",
+      "20231101.cbk-zam",
+      "20231101.cdo",
+      "20231101.ce",
+      "20231101.ceb",
+      "20231101.ch",
+      "20231101.chr",
+      "20231101.chy",
+      "20231101.ckb",
+      "20231101.co",
+      "20231101.cr",
+      "20231101.crh",
+      "20231101.cs",
+      "20231101.csb",
+      "20231101.cu",
+      "20231101.cv",
+      "20231101.cy",
+      "20231101.da",
+      "20231101.dag",
+      "20231101.de",
+      "20231101.din",
+      "20231101.diq",
+      "20231101.dsb",
+      "20231101.dty",
+      "20231101.dv",
+      "20231101.dz",
+      "20231101.ee",
+      "20231101.el",
+      "20231101.eml",
+      "20231101.en",
+      "20231101.eo",
+      "20231101.es",
+      "20231101.et",
+      "20231101.eu",
+      "20231101.ext",
+      "20231101.fa",
+      "20231101.fat",
+      "20231101.ff",
+      "20231101.fi",
+      "20231101.fiu-vro",
+      "20231101.fj",
+      "20231101.fo",
+      "20231101.fon",
+      "20231101.fr",
+      "20231101.frp",
+      "20231101.frr",
+      "20231101.fur",
+      "20231101.fy",
+      "20231101.ga",
+      "20231101.gag",
+      "20231101.gan",
+      "20231101.gcr",
+      "20231101.gd",
+      "20231101.gl",
+      "20231101.glk",
+      "20231101.gn",
+      "20231101.gom",
+      "20231101.gor",
+      "20231101.got",
+      "20231101.gpe",
+      "20231101.gu",
+      "20231101.guc",
+      "20231101.gur",
+      "20231101.guw",
+      "20231101.gv",
+      "20231101.ha",
+      "20231101.hak",
+      "20231101.haw",
+      "20231101.he",
+      "20231101.hi",
+      "20231101.hif",
+      "20231101.hr",
+      "20231101.hsb",
+      "20231101.ht",
+      "20231101.hu",
+      "20231101.hy",
+      "20231101.hyw",
+      "20231101.ia",
+      "20231101.id",
+      "20231101.ie",
+      "20231101.ig",
+      "20231101.ik",
+      "20231101.ilo",
+      "20231101.inh",
+      "20231101.io",
+      "20231101.is",
+      "20231101.it",
+      "20231101.iu",
+      "20231101.ja",
+      "20231101.jam",
+      "20231101.jbo",
+      "20231101.jv",
+      "20231101.ka",
+      "20231101.kaa",
+      "20231101.kab",
+      "20231101.kbd",
+      "20231101.kbp",
+      "20231101.kcg",
+      "20231101.kg",
+      "20231101.ki",
+      "20231101.kk",
+      "20231101.kl",
+      "20231101.km",
+      "20231101.kn",
+      "20231101.ko",
+      "20231101.koi",
+      "20231101.krc",
+      "20231101.ks",
+      "20231101.ksh",
+      "20231101.ku",
+      "20231101.kv",
+      "20231101.kw",
+      "20231101.ky",
+      "20231101.la",
+      "20231101.lad",
+      "20231101.lb",
+      "20231101.lbe",
+      "20231101.lez",
+      "20231101.lfn",
+      "20231101.lg",
+      "20231101.li",
+      "20231101.lij",
+      "20231101.lld",
+      "20231101.lmo",
+      "20231101.ln",
+      "20231101.lo",
+      "20231101.lt",
+      "20231101.ltg",
+      "20231101.lv",
+      "20231101.mad",
+      "20231101.mai",
+      "20231101.map-bms",
+      "20231101.mdf",
+      "20231101.mg",
+      "20231101.mhr",
+      "20231101.mi",
+      "20231101.min",
+      "20231101.mk",
+      "20231101.ml",
+      "20231101.mn",
+      "20231101.mni",
+      "20231101.mnw",
+      "20231101.mr",
+      "20231101.mrj",
+      "20231101.ms",
+      "20231101.mt",
+      "20231101.mwl",
+      "20231101.my",
+      "20231101.myv",
+      "20231101.mzn",
+      "20231101.nah",
+      "20231101.nap",
+      "20231101.nds",
+      "20231101.nds-nl",
+      "20231101.ne",
+      "20231101.new",
+      "20231101.nia",
+      "20231101.nl",
+      "20231101.nn",
+      "20231101.no",
+      "20231101.nov",
+      "20231101.nqo",
+      "20231101.nrm",
+      "20231101.nso",
+      "20231101.nv",
+      "20231101.ny",
+      "20231101.oc",
+      "20231101.olo",
+      "20231101.om",
+      "20231101.or",
+      "20231101.os",
+      "20231101.pa",
+      "20231101.pag",
+      "20231101.pam",
+      "20231101.pap",
+      "20231101.pcd",
+      "20231101.pcm",
+      "20231101.pdc",
+      "20231101.pfl",
+      "20231101.pi",
+      "20231101.pih",
+      "20231101.pl",
+      "20231101.pms",
+      "20231101.pnb",
+      "20231101.pnt",
+      "20231101.ps",
+      "20231101.pt",
+      "20231101.pwn",
+      "20231101.qu",
+      "20231101.rm",
+      "20231101.rmy",
+      "20231101.rn",
+      "20231101.ro",
+      "20231101.roa-rup",
+      "20231101.roa-tara",
+      "20231101.ru",
+      "20231101.rue",
+      "20231101.rw",
+      "20231101.sa",
+      "20231101.sah",
+      "20231101.sat",
+      "20231101.sc",
+      "20231101.scn",
+      "20231101.sco",
+      "20231101.sd",
+      "20231101.se",
+      "20231101.sg",
+      "20231101.sh",
+      "20231101.shi",
+      "20231101.shn",
+      "20231101.si",
+      "20231101.simple",
+      "20231101.sk",
+      "20231101.skr",
+      "20231101.sl",
+      "20231101.sm",
+      "20231101.smn",
+      "20231101.sn",
+      "20231101.so",
+      "20231101.sq",
+      "20231101.sr",
+      "20231101.srn",
+      "20231101.ss",
+      "20231101.st",
+      "20231101.stq",
+      "20231101.su",
+      "20231101.sv",
+      "20231101.sw",
+      "20231101.szl",
+      "20231101.szy",
+      "20231101.ta",
+      "20231101.tay",
+      "20231101.tcy",
+      "20231101.te",
+      "20231101.tet",
+      "20231101.tg",
+      "20231101.th",
+      "20231101.ti",
+      "20231101.tk",
+      "20231101.tl",
+      "20231101.tly",
+      "20231101.tn",
+      "20231101.to",
+      "20231101.tpi",
+      "20231101.tr",
+      "20231101.trv",
+      "20231101.ts",
+      "20231101.tt",
+      "20231101.tum",
+      "20231101.tw",
+      "20231101.ty",
+      "20231101.tyv",
+      "20231101.udm",
+      "20231101.ug",
+      "20231101.uk",
+      "20231101.ur",
+      "20231101.uz",
+      "20231101.ve",
+      "20231101.vec",
+      "20231101.vep",
+      "20231101.vi",
+      "20231101.vls",
+      "20231101.vo",
+      "20231101.wa",
+      "20231101.war",
+      "20231101.wo",
+      "20231101.wuu",
+      "20231101.xal",
+      "20231101.xh",
+      "20231101.xmf",
+      "20231101.yi",
+      "20231101.yo",
+      "20231101.za",
+      "20231101.zea",
+      "20231101.zh",
+      "20231101.zh-classical",
+      "20231101.zh-min-nan",
+      "20231101.zh-yue",
+      "20231101.zu"
+    ],
+    "size": {
+      "n_data_files": 41,
+      "bytes": 11630929031,
+      "examples": [
+        "20231101.en/train-00000-of-00041.parquet",
+        "20231101.en/train-00001-of-00041.parquet",
+        "20231101.en/train-00002-of-00041.parquet"
+      ]
+    },
+    "sample": {
+      "columns": [
+        "id",
+        "url",
+        "title",
+        "text"
+      ],
+      "text_inline_nonempty": true,
+      "rows": [
+        {
+          "len": 46064,
+          "head": "Anarchism is a political philosophy and movement that is skeptical of all justifications for authority and seeks to abolish the institutions it claims maintain unnecessary coercion and hierarchy, typically including nation-states, and capitalism. Anarchism advocates for the replacement of the state ",
+          "meta": {
+            "id": "12",
+            "url": "https://en.wikipedia.org/wiki/Anarchism",
+            "title": "Anarchism"
+          }
+        },
+        {
+          "len": 25076,
+          "head": "Albedo (; ) is the fraction of sunlight that is diffusely reflected by a body. It is measured on a scale from 0 (corresponding to a black body that absorbs all incident radiation) to 1 (corresponding to a body that reflects all incident radiation).\n\nSurface albedo is defined as the ratio of radiosit",
+          "meta": {
+            "id": "39",
+            "url": "https://en.wikipedia.org/wiki/Albedo",
+            "title": "Albedo"
+          }
+        },
+        {
+          "len": 10574,
+          "head": "A, or a, is the first letter and the first vowel of the Latin alphabet, used in the modern English alphabet, the alphabets of other western European languages and others worldwide. Its name in English is a (pronounced ), plural aes. It is similar in shape to the Ancient Greek letter Alpha, from whic",
+          "meta": {
+            "id": "290",
+            "url": "https://en.wikipedia.org/wiki/A",
+            "title": "A"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "domain": "instruction",
+    "repo": "HuggingFaceTB/smoltalk",
+    "config": "all",
+    "split": "train",
+    "sha": "5feaf2fd3ffca7c237fc38d1861bc30365d48ffa",
+    "gated": false,
+    "license": null,
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "all",
+      "smol-magpie-ultra",
+      "smol-constraints",
+      "smol-rewrite",
+      "smol-summarize",
+      "apigen-80k",
+      "everyday-conversations",
+      "explore-instruct-rewriting",
+      "longalign",
+      "metamathqa-50k",
+      "numina-cot-100k",
+      "openhermes-100k",
+      "self-oss-instruct",
+      "systemchats-30k"
+    ],
+    "size": {
+      "n_data_files": 10,
+      "bytes": 2114145746,
+      "examples": [
+        "data/all/test-00000-of-00001.parquet",
+        "data/all/train-00000-of-00009.parquet",
+        "data/all/train-00001-of-00009.parquet"
+      ]
+    },
+    "sample": {
+      "columns": [
+        "messages",
+        "source"
+      ],
+      "text_inline_nonempty": true,
+      "rows": [
+        {
+          "len": 2,
+          "head": "[{\"content\": \"The function \\\\( g(x) \\\\) satisfies the functional equation\\n\\\\[ g(x + y) = g(x) + g(y) \\\\]\\nfor all real numbers \\\\( x \\\\) and \\\\( y \\\\), and it is given that \\\\( g(3) = 4 \\\\). Find \\\\( g(10) \\\\).\", \"role\": \"user\"}, {\"content\": \"Given the functional equation and the specific value \\\\(",
+          "meta": {
+            "source": "numina-cot-100k"
+          }
+        },
+        {
+          "len": 2,
+          "head": "[{\"content\": \"Ben twice chooses a random integer between 1 and 60, inclusive. What is the probability that at least one of the numbers Ben chooses is a multiple of 4?\", \"role\": \"user\"}, {\"content\": \"First, we find the number of multiples of 4 between 1 and 60. The smallest multiple of 4 is $4 \\\\time",
+          "meta": {
+            "source": "numina-cot-100k"
+          }
+        },
+        {
+          "len": 2,
+          "head": "[{\"content\": \"Find all values of $x$ that satisfy the equation $|2x-5| = 3x + 1$.\", \"role\": \"user\"}, {\"content\": \"We can solve the equation $|2x-5| = 3x + 1$ by considering two cases for the absolute value.\\n\\n**Case 1**: When $2x - 5 \\\\geq 0$, which simplifies to $x \\\\geq \\\\frac{5}{2}$.\\n\\\\[\\n2x - ",
+          "meta": {
+            "source": "numina-cot-100k"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "domain": "code",
+    "repo": "HuggingFaceTB/smollm-corpus",
+    "config": "python-edu",
+    "split": "train",
+    "sha": "3ba9d605774198c5868892d7a8deda78031a781f",
+    "gated": false,
+    "license": "odc-by",
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "cosmopedia-v2",
+      "fineweb-edu-dedup",
+      "python-edu"
+    ],
+    "size": {
+      "n_data_files": 2,
+      "bytes": 643903049,
+      "examples": [
+        "python-edu/train-00000-of-00002.parquet",
+        "python-edu/train-00001-of-00002.parquet"
+      ]
+    },
+    "sample": {
+      "columns": [
+        "blob_id",
+        "repo_name",
+        "path",
+        "length_bytes",
+        "score",
+        "int_score"
+      ],
+      "text_inline_nonempty": false,
+      "rows": [
+        {
+          "len": null,
+          "head": "null",
+          "meta": {
+            "blob_id": "55884a59514464a78f8002779532a7eb01b8331c",
+            "repo_name": "sudajzp/jzp-s-python",
+            "path": "/FBNQ_py/Fib_circle.py",
+            "length_bytes": 854,
+            "score": 3.84375,
+            "int_score": 4
+          }
+        },
+        {
+          "len": null,
+          "head": "null",
+          "meta": {
+            "blob_id": "bbdbe92fa64d8a4006a4a6f7ef2ffc862ffaadb2",
+            "repo_name": "waffle-iron/osmaxx",
+            "path": "/osmaxx/utils/directory_changer_helper.py",
+            "length_bytes": 1710,
+            "score": 3.609375,
+            "int_score": 4
+          }
+        },
+        {
+          "len": null,
+          "head": "null",
+          "meta": {
+            "blob_id": "dadbdd33b087e16ffcbb985b8b28e1e215f5fc53",
+            "repo_name": "Sandro37/Introducao_ao_python-CURSO-Digital_Innovation-One",
+            "path": "/aula02.py",
+            "length_bytes": 1172,
+            "score": 4.25,
+            "int_score": 4
+          }
+        }
+      ]
+    }
+  },
+  {
+    "domain": "code",
+    "repo": "HuggingFaceTB/stack-edu",
+    "config": null,
+    "split": "train",
+    "sha": "eeec5caac5cc3758a18f1d3ba4416837a9ba814c",
+    "gated": false,
+    "license": null,
+    "license_name": null,
+    "license_link": null,
+    "configs": [
+      "C",
+      "CSharp",
+      "Cpp",
+      "Go",
+      "Java",
+      "JavaScript",
+      "Markdown",
+      "PHP",
+      "Python",
+      "Ruby",
+      "Rust",
+      "SQL",
+      "Shell",
+      "Swift",
+      "TypeScript"
+    ],
+    "size": {
+      "n_data_files": 42,
+      "bytes": 17465393334,
+      "examples": [
+        "C/train-00000-of-00002.parquet",
+        "C/train-00001-of-00002.parquet",
+        "CSharp/train-00000-of-00003.parquet"
+      ]
+    },
+    "sample_error": "ValueError: Config name is missing.\nPlease pick one among the available configs: ['C', 'CSharp', 'Cpp', 'Go', 'Java', 'JavaScript', 'Markdown', 'PHP', 'Python', 'Ruby', 'Rust', 'SQL', 'Shell', 'Swift', 'TypeScrip"
+  },
+  {
+    "domain": "code",
+    "repo": "bigcode/the-stack-dedup",
+    "config": null,
+    "split": "train",
+    "sha": "17cad72c886a2858e08d4c349a00d6466f54df63",
+    "gated": "auto",
+    "license": [
+      "other"
+    ],
+    "license_name": null,
+    "license_link": null,
+    "configs": null,
+    "size": {
+      "n_data_files": 5140,
+      "bytes": 996367388093,
+      "examples": [
+        "data/abap/data-00000-of-00001.parquet",
+        "data/actionscript/data-00000-of-00002.parquet",
+        "data/actionscript/data-00001-of-00002.parquet"
+      ]
+    },
+    "sample_error": "DatasetNotFoundError: Dataset 'bigcode/the-stack-dedup' is a gated dataset on the Hub. Visit the dataset page at https://huggingface.co/datasets/bigcode/the-stack-dedup to ask for access."
+  },
+  {
+    "domain": "code",
+    "repo": "bigcode/starcoderdata",
+    "config": null,
+    "split": "train",
+    "sha": "9fc30b578cedaec69e47302df72cf00feed7c8c4",
+    "gated": "auto",
+    "license": [
+      "other"
+    ],
+    "license_name": null,
+    "license_link": null,
+    "configs": null,
+    "size": {
+      "n_data_files": 863,
+      "bytes": 310802033041,
+      "examples": [
+        "ada/train-00000-of-00001.parquet",
+        "agda/train-00000-of-00001.parquet",
+        "alloy/train-00000-of-00001.parquet"
+      ]
+    },
+    "sample_error": "DatasetNotFoundError: Dataset 'bigcode/starcoderdata' is a gated dataset on the Hub. Visit the dataset page at https://huggingface.co/datasets/bigcode/starcoderdata to ask for access."
+  },
+  {
+    "domain": "code",
+    "repo": "codeparrot/github-code-clean",
+    "config": null,
+    "split": "train",
+    "sha": "c48d40f9e70f0196f8236901ee35807f7d6c44c0",
+    "gated": false,
+    "license": "apache-2.0",
+    "license_name": null,
+    "license_link": null,
+    "configs": null,
+    "size": {
+      "n_data_files": 880,
+      "bytes": 313663761086,
+      "examples": [
+        "data/train-00000-of-00880.parquet",
+        "data/train-00001-of-00880.parquet",
+        "data/train-00002-of-00880.parquet"
+      ]
+    },
+    "sample_error": "RuntimeError: Dataset scripts are no longer supported, but found github-code-clean.py"
+  }
+]
