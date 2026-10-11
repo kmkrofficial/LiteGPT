@@ -15,6 +15,7 @@ from litegpt import data as D  # noqa: E402
 from litegpt import dataprep as P  # noqa: E402
 from litegpt import tokenizer as T  # noqa: E402
 from litegpt.decontam import NgramIndex  # noqa: E402
+from litegpt.records import read_jsonl  # noqa: E402
 
 SALT = "smoke-salt"
 BENCH = "what is the capital of the faraway kingdom of zorblax located far beyond the northern mountains and the silent sea"
@@ -93,7 +94,7 @@ def test_partitions_are_disjoint_and_shards_decode(world, tmp_path):
     assert kept["fineweb_edu/val"] > 10 and kept["fineweb_edu/decay"] > 20 and kept["fineweb_edu/stable"] > 150
     assert sum(kept.values()) == 399
     # validation raw text keys never appear in a training partition by the partition function
-    val_keys = [json.loads(line)["key"] for line in (out / "fineweb_edu" / "val" / "f0.jsonl").read_text(encoding="utf-8").splitlines()]
+    val_keys = [r["key"] for r in read_jsonl(out / "fineweb_edu" / "val" / "f0.jsonl")]
     for k in val_keys:
         assert D.partition_u(SALT, "fineweb_edu", k) < 0.1
     # decay only holds eligible documents (int_score 4 => i % 3 == 0)
@@ -126,8 +127,8 @@ def test_code_filters_languages_and_keep_fraction(world, tmp_path):
     for sub in subs:
         for part in ("val",):
             for f in (out / sub / part).glob("*.jsonl"):
-                for line in f.read_text(encoding="utf-8").splitlines():
-                    key = json.loads(line)["key"]
+                for row in read_jsonl(f):
+                    key = row["key"]
                     assert D.assign_partition(D.partition_u(SALT, "code", key), 0.1, 0.2) == "val"
 
 

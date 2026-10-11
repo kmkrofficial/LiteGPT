@@ -29,7 +29,7 @@ sources:
     original_generator: none
     text_field: text
     key_field: id
-    files: {pattern: "fineweb-edu-dedup/train-{i:05d}-of-00234.parquet", indices: [0, 18, 36, 54, 72, 90, 108, 125, 143, 161, 179, 197, 215, 233]}
+    files: {pattern: "fineweb-edu-dedup/train-{i:05d}-of-00234.parquet", indices: [0, 18, 36, 54, 72, 90, 108, 125, 143, 161, 179, 197, 215, 233, 9, 27]}   # 9, 27 added after the first mix (decay margin, EXP-M1-DATA)
     decay_eligible: {field: "metadata.int_score", min: 4}
     partition: {val_fraction: 0.002, decay_fraction: 0.30, keep_fraction: 1.0}
   cosmopedia_v2:

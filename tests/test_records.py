@@ -87,3 +87,12 @@ def test_jsonl_and_atomic_json(run):
 def test_create_run_rejects_unknown_kind(tmp_path):
     with pytest.raises(AssertionError):
         records.create_run("nonsense", "x", root=tmp_path)
+
+
+def test_read_jsonl_keeps_unicode_line_separators(tmp_path):
+    import json as _json
+    from litegpt.records import read_jsonl
+    rows = [{"text": "a" + chr(0x2028) + "b" + chr(0x85) + "c" + chr(0x2029) + "d"}, {"text": "plain"}]
+    p = tmp_path / "x.jsonl"
+    p.write_text("".join(_json.dumps(r, ensure_ascii=False) + chr(10) for r in rows), encoding="utf-8")
+    assert read_jsonl(p) == rows

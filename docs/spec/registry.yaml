@@ -247,8 +247,9 @@ experiments:
     hypothesis: "The prepared shards meet the token plan, validation is disjoint from training, and the loader is exactly resumable."
     config: scripts/prepare_data.py + litegpt/data.py + docs/spec/data_sources.yaml
     parent: EXP-M1-PREFLIGHT
-    status: pre-registered
-    runs: []
+    status: step6-corrections-in-progress
+    runs:
+      - 20261011T173054Z-data-prepare-1f005bc   # full preparation (298 files) + first mix
     thresholds:   # PRE-REGISTERED 2026-10-11
       counts: "prepared tokens per source (and per code language) >= plan targets: stable 14.0B and decay 1.0B at the mixture weights, x 1.03 margin"
       val_core: ">= 20M tokens; frozen with sha256; domains web, synthetic, code, math, chat at 2.1M tokens each"
@@ -262,6 +263,15 @@ experiments:
       - "Duplicates (ADR-008 decision 8): measured on the shards by hashing each document's token sequence (identical text gives identical tokens with the frozen tokenizer). Reported: within-source and cross-source exact duplicate token shares per source, and validation-vs-training exact duplicates per source. The 1% cross-source rule returns the decision to the owner; any validation-vs-training duplicate is reported and those validation documents are excluded from val_text."
       - "Disjointness is checked twice: (1) every validation key recomputes to u < val_fraction under the partition hash (so it cannot be in a training partition), (2) no validation document's token hash occurs in the training partitions of any source."
       - "GPT-2 proxy slice: indexes proxy_gpt2_train (first 1.0B tokens of the GPT-2-tokenized FineWeb-Edu stable documents, seeded block permutation) and proxy_gpt2_val (up to 10,240 blocks of the GPT-2-tokenized FineWeb-Edu validation documents)."
+    protocol_corrections:   # recorded 2026-10-12 after the first mix, BEFORE any hash is frozen into the spec
+      - finding: "Counts: every source and code language meets its stable and decay targets (no shortfall), but FineWeb-Edu decay has 436M tokens for a 432M need (1.01x), below the registered 1.03x margin (C9 requires >= 1.05x before step 5; the proxy estimate had been 1.10x)."
+        correction: "Apply the registered remedy (extend the fixed file list): two more FineWeb-Edu files (indices 9 and 27) are added to docs/spec/data_sources.yaml and processed into the same run; the mix is re-run. Expected decay supply ~498M tokens (1.15x)."
+      - finding: "Prefix proportions: the stable index never deviates by more than 1 block from any source's exact share at any prefix (the smooth weighted round-robin guarantee); as a fraction this is 0.115 percentage points at the first 1M-token prefix (488 blocks, where one block is 0.2%) and at most 0.014 pp after the first 10M tokens. The registered '0.1% at every 1M-token prefix' is not attainable at the first prefixes because of block granularity: a defect in how the criterion was written, not in the index."
+        correction: "The criterion is evaluated as 'at most 1 block deviation per source at every prefix' (met) and the fraction figures are reported as they are. No change to the index."
+      - finding: "Duplicates: cross-source exact duplicates ~0% for every source (rule not triggered). Within-source: Cosmopedia v2 1.07% of documents are exact duplicates of another Cosmopedia document (all others < 0.07%). Validation vs training: 5 chat validation documents (SmolTalk test split) also occur in the decay slice."
+        correction: "No dedup is applied (decision 8 covers cross-source only; ~1% of Cosmopedia documents seen twice is negligible). The 5 chat documents are excluded from val_text; they remain in the token-level val_chat set (5 of 8,821 documents) and are reported."
+      - finding: "Decontamination: the instruction slice dropped 6.1% of its bytes (17,194 documents matched IFEval, 9 others), above the 0.5% audit rule; every other source is below 0.27%."
+        correction: "Audit of the matching 13-grams before training (scripts/audit_decontam.py on smol-constraints); the drops are kept regardless, because the slice still has 61M tokens for a 50M need (1.21x) and IFEval overlap in a constraint-following dataset is exactly what decontamination is for. Outcome recorded in EXP-M1-DECONTAM."
     conclusion: null
   - id: EXP-M1B-SUITE
     milestone: M1b

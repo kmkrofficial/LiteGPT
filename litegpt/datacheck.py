@@ -13,6 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from litegpt import data as D
+from litegpt.records import read_jsonl
 from litegpt.tokenizer import EOT
 
 VAL_TEXT_BYTES = 2_000_000
@@ -29,7 +30,7 @@ def chat_to_plain(rendered: str) -> str:
 def _val_docs(out_dir: Path, sub: str) -> list[dict]:
     docs = []
     for f in sorted((out_dir / sub / "val").glob("*.jsonl")):
-        docs += [json.loads(line) for line in f.read_text(encoding="utf-8").splitlines()]
+        docs += read_jsonl(f)
     return docs
 
 

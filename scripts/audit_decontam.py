@@ -32,6 +32,7 @@ def main() -> int:
     ap.add_argument("--file-index", type=int, default=0)
     ap.add_argument("--ngrams", required=True)
     ap.add_argument("--max-docs", type=int, default=200000)
+    ap.add_argument("--repo-file", default=None, help="explicit file in the source repo (sources without a fixed file list)")
     args = ap.parse_args()
     sources = load_sources()
     cfg = sources["sources"][args.source]
@@ -39,8 +40,11 @@ def main() -> int:
     rec = create_run("data", f"decontam-audit-{args.source}", config=vars(args))
     tmp = tempfile.mkdtemp(prefix="_audit_", dir=str(Path.home()))
     try:
-        idxs = cfg["files"].get("indices") or list(range(cfg["files"]["range"][0], cfg["files"]["range"][1] + 1))
-        fn = cfg["files"]["pattern"].format(i=idxs[args.file_index])
+        if args.repo_file:
+            fn = args.repo_file
+        else:
+            idxs = cfg["files"].get("indices") or list(range(cfg["files"]["range"][0], cfg["files"]["range"][1] + 1))
+            fn = cfg["files"]["pattern"].format(i=idxs[args.file_index])
         local = hf_hub_download(cfg["repo"], fn, repo_type="dataset", revision=cfg["revision"], local_dir=tmp)
         grams = collections.Counter()
         gram_bench = {}

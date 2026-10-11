@@ -65,8 +65,9 @@ def cmd_bpb(args, model_info) -> dict:
     out = {}
     for dom_file in sorted(Path(args.val_dir).glob("*.jsonl")):
         nll, nbytes, ndocs = 0.0, 0, 0
-        for line in dom_file.read_text(encoding="utf-8").splitlines():
-            text = json.loads(line)["text"]
+        from litegpt.records import read_jsonl
+        for row in read_jsonl(dom_file):
+            text = row["text"]
             ids = tok(text, add_special_tokens=False)["input_ids"]
             bos = tok.bos_token_id if tok.bos_token_id is not None else tok.eos_token_id
             ids = [bos] + ids

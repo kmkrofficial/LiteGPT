@@ -230,4 +230,5 @@ def read_jsonl(path: Path) -> list[dict]:
     p = Path(path)
     if not p.exists():
         return []
-    return [json.loads(line) for line in p.read_text(encoding="utf-8").splitlines() if line.strip()]
+    # split on newline only: json.dumps(ensure_ascii=False) leaves U+2028 / U+0085 unescaped and str.splitlines() splits on them
+    return [json.loads(line) for line in p.read_text(encoding="utf-8").split(chr(10)) if line.strip()]

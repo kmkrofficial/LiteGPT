@@ -56,8 +56,9 @@ def cmd_scan(args) -> int:
     from litegpt.decontam import NgramIndex
     ix = NgramIndex.load(args.index)
     hits, total, by = 0, 0, {}
-    for line in Path(args.file).read_text(encoding="utf-8").splitlines():
-        text = json.loads(line)[args.field]
+    from litegpt.records import read_jsonl
+    for row in read_jsonl(args.file):
+        text = row[args.field]
         total += 1
         m = ix.match(text if isinstance(text, str) else json.dumps(text, ensure_ascii=False))
         if m is not None:
