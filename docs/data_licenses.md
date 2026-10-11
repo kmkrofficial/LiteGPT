@@ -87,6 +87,33 @@ the released model subject to the "Llama" naming requirement (for example `Llama
 This is recorded, not decided. Options include accepting the naming and notice, or dropping Smol-Magpie-Ultra and keeping the remaining three subsets
 (~74M tokens), which would not cover the decay slice plus an SFT split.
 
+## Generator terms of the decay-slice subsets (pre-flight check C5, 2026-10-11)
+
+| Subset | Generator (source) | Generator licence | Naming / attribution clause |
+|---|---|---|---|
+| smol-magpie-ultra | Llama-3.1-405B-Instruct-FP8 (dataset card, SmolLM2 paper) | Llama 3.1 Community License | "Llama" prefix + "Built with Llama" (see above) |
+| smol-summarize, smol-rewrite | Qwen2.5-72B-Instruct (SmolLM2 paper, arXiv 2502.02737; **not stated on the dataset card**) | Qwen LICENSE AGREEMENT (Hub licence tag "other") | "Built with Qwen" / "Improved using Qwen" in related documentation (section 5(b)), plus the Qwen notice file (section 3(c)) |
+| smol-constraints | Qwen2.5-72B-Instruct (same paper) | same | same |
+| cosmopedia-v2 | Mixtral-8x7B-Instruct-v0.1 (dataset card) | Apache-2.0 (Hub licence tag) | none |
+
+The Qwen clause is read from a summary of the licence page; verify against the licence file at M5. Section 5(b) is conditional on the
+trained model being "distributed or made available". The licence does not define "outputs", and it is unclear whether a party that
+only trains on a public dataset of outputs is bound at all. This is a legal question for the owner, not a technical one.
+
+**Consequence for the plan:** the pre-registered pass rule of C5 (no naming or attribution clause on the decay subsets) is **not met**.
+Pretraining (decay slice) would give the base model the Qwen display requirement. Options for the owner:
+1. Accept the "Built with Qwen" notice for the base model (documentation only), keeping the 5% instruction-style slice.
+2. Drop the instruction-style slice from pretraining (its 5% goes to the other decay sources proportionally). The base model then
+   carries no Llama or Qwen terms; they apply only to the Instruct model, which uses these subsets in M4 SFT.
+
+## Pre-flight evidence for the code source (2026-10-11, 12 files, GPT-2 tokenizer proxy)
+
+- Final code languages and weights: Python 63, JavaScript 14, TypeScript 14, SQL 4, Shell 5 (percent of code tokens); input files 0-222.
+- GPL/AGPL/LGPL header notices found in permissive-labelled files before the rule: 0.09-0.76% of files per language; dropped (rescan finds none).
+- Secrets before the rule (private keys, AWS/GCP/GitHub/Slack token formats) in 12 files: Python 16 documents, JavaScript 96,
+  TypeScript 20, Shell 2; dropped. E-mail addresses redacted to `<EMAIL>`.
+- Evidence records: `20261011T140430Z-data-preflight-code` (final), `20261011T135845Z-data-preflight-code` (first pass).
+
 ## Evaluation datasets (decontamination reference)
 
 Used only to build the 13-gram filter and for scoring, never as training data. Revisions and licences are pinned in step 2 with `data_sources.yaml`.
@@ -96,5 +123,6 @@ Used only to build the 13-gram filter and for scoring, never as training data. R
 1. Llama 3.1 naming/notice terms (Smol-Magpie-Ultra), above.
 2. Code: repository-level licence labels, attribution requirements not reproduced.
 3. Common Crawl terms of use (web, math sources).
-4. Cosmopedia generator (Mixtral, Apache-2.0): no restriction noted.
+4. Cosmopedia generator (Mixtral, Apache-2.0): no restriction found (C5).
+5b. Qwen2.5-72B-Instruct display requirement (smol-summarize / rewrite / constraints), above.
 5. Wikipedia: excluded, nothing carried.

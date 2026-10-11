@@ -326,6 +326,277 @@ def cmd_smoltalk(args) -> int:
     return 0
 
 
+PF_TARGET = {"Python": 0.62, "JavaScript": 0.14, "TypeScript": 0.14, "SQL": 0.05, "Shell": 0.05}   # F1
+PF_FILES = 210                                                                                      # F4
+PF_SAMPLES = 3                                                                                      # kept docs saved per language per file
+
+
+def _pf_file(job):
+    import random
+    import pyarrow.parquet as pq
+    from huggingface_hub import hf_hub_download
+    from tokenizers import Tokenizer
+    from litegpt.datafilters import KEEP_LANGUAGES, PERMISSIVE_LICENSES, copyleft_or_secret_after, filter_code
+    idx, rev, tmp = job
+    tok = Tokenizer.from_pretrained("openai-community/gpt2")
+    path = hf_hub_download(CODE_REPO, f"data/train-{idx:05d}-of-{N_CODE_FILES:05d}.parquet", repo_type="dataset", revision=rev, local_dir=tmp)
+    rng = random.Random(idx)
+    stat = {l: collections.Counter() for l in KEEP_LANGUAGES}
+    drop_bytes = {l: collections.Counter() for l in KEEP_LANGUAGES}
+    samples = {l: [] for l in KEEP_LANGUAGES}
+    tokdocs = {l: [] for l in KEEP_LANGUAGES}
+    for batch in pq.ParquetFile(path).iter_batches(batch_size=4096, columns=["code", "repo_name", "path", "language", "license", "size"]):
+        d = batch.to_pydict()
+        for code, repo, p, lang, lc, size in zip(d["code"], d["repo_name"], d["path"], d["language"], d["license"], d["size"]):
+            if lang not in stat or not code:
+                continue
+            c = stat[lang]
+            c["docs"] += 1
+            c["bytes"] += size
+            if lc not in PERMISSIVE_LICENSES:
+                continue
+            c["perm_docs"] += 1
+            c["perm_bytes"] += size
+            text, rule = filter_code(code, language=lang, path=p, size=size, counters=c, repo=repo)
+            if rule:
+                c[f"drop_{rule}"] += 1
+                drop_bytes[lang][rule] += size
+                continue
+            nb = len(text.encode("utf-8", "replace"))
+            c["kept_docs"] += 1
+            c["kept_bytes"] += nb
+            if copyleft_or_secret_after(text):
+                c["post_violations"] += 1
+            n = c["kept_docs"]
+            if len(samples[lang]) < PF_SAMPLES:
+                samples[lang].append({"repo": repo, "path": p, "bytes": nb, "head": text[:1500]})
+            elif rng.random() < PF_SAMPLES / n:
+                samples[lang][rng.randrange(PF_SAMPLES)] = {"repo": repo, "path": p, "bytes": nb, "head": text[:1500]}
+            if n % SAMPLE_EVERY == 0:
+                tokdocs[lang].append(text)
+    tokstats = {}
+    for lang, docs in tokdocs.items():
+        if docs:
+            encs = tok.encode_batch(docs)
+            tokstats[lang] = [sum(len(e.ids) for e in encs), sum(len(s.encode("utf-8", "replace")) for s in docs)]
+    Path(path).unlink()
+    return {"idx": idx, "stat": {k: dict(v) for k, v in stat.items()}, "drop_bytes": {k: dict(v) for k, v in drop_bytes.items()},
+            "samples": samples, "tok": tokstats}
+
+
+def _junk_stats(text: str) -> dict:
+    lines = [ln for ln in text.split("\n") if ln.strip()]
+    n = max(len(lines), 1)
+    return {"lines": len(lines), "mean_line_len": round(sum(map(len, lines)) / n, 1),
+            "comment_frac": round(sum(1 for ln in lines if ln.lstrip().startswith(("#", "//", "/*", "*", "--"))) / n, 2),
+            "digit_frac": round(sum(map(str.isdigit, text)) / max(len(text), 1), 2),
+            "unique_line_frac": round(len(set(lines)) / n, 2)}
+
+
+def cmd_preflight_code(args) -> int:
+    from litegpt.datafilters import KEEP_LANGUAGES, RULES
+    from litegpt.records import create_run
+    rev = verified_revisions()[CODE_REPO]
+    n = args.files
+    idxs = sorted({round(i * (N_CODE_FILES - 1) / (n - 1)) for i in range(n)})
+    rec = create_run("data", "preflight-code", config={"repo": CODE_REPO, "revision": rev, "file_indices": idxs, "languages": list(KEEP_LANGUAGES),
+                     "rules": list(RULES), "targets": PF_TARGET, "code_token_target": CODE_TOKEN_TARGET, "planned_files": PF_FILES, "token_proxy": "gpt2"})
+    tmp = tempfile.mkdtemp(prefix="gcc_pf_", dir=str(Path.home()))
+    try:
+        with ProcessPoolExecutor(max_workers=args.workers) as ex:
+            results = list(ex.map(_pf_file, [(i, rev, tmp) for i in idxs]))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    out, nf = {}, len(results)
+    for lang in KEEP_LANGUAGES:
+        c = collections.Counter()
+        tk = [0, 0]
+        samples = []
+        for r in results:
+            c.update(r["stat"][lang])
+            samples += r["samples"][lang]
+            if lang in r["tok"]:
+                tk[0] += r["tok"][lang][0]
+                tk[1] += r["tok"][lang][1]
+        tpb = tk[0] / tk[1] if tk[1] else None
+        kept_tok_file = c["kept_bytes"] / nf * tpb if tpb else None
+        supply = kept_tok_file * PF_FILES if kept_tok_file else None
+        target = PF_TARGET[lang] * CODE_TOKEN_TARGET
+        reach = lambda r: c.get(f"reach_{r}", 0)
+        out[lang] = {
+            "docs": c["docs"], "permissive_docs": c["perm_docs"], "kept_docs": c["kept_docs"],
+            "kept_over_permissive_docs": c["kept_docs"] / max(c["perm_docs"], 1),
+            "tokens_per_byte": tpb, "kept_tokens_per_file_M": kept_tok_file / 1e6 if kept_tok_file else None,
+            "supply_over_planned_files_M": supply / 1e6 if supply else None, "target_M": target / 1e6,
+            "margin_x": supply / target if supply else None,
+            "drop_docs": {r: c.get(f"drop_{r}", 0) for r in RULES}, "reach_docs": {r: reach(r) for r in RULES},
+            "drop_rate_at_stage": {r: c.get(f"drop_{r}", 0) / reach(r) for r in RULES if reach(r)},
+            "secret_hits_before_rule": {k[7:]: v for k, v in c.items() if k.startswith("secret_")},
+            "copyleft_header_rate_before_rule": c.get("drop_copyleft", 0) / max(reach("copyleft"), 1),
+            "email_redacted_docs": c.get("email_redacted_docs", 0), "post_violations": c.get("post_violations", 0),
+            "samples": [dict(s, **_junk_stats(s["head"])) for s in samples],
+        }
+    # C4 rule (pre-registered): SQL / Shell below 1.10x target over the planned files -> 0.04 each, Python +0.01 each
+    c4 = {l: (out[l]["margin_x"] is not None and out[l]["margin_x"] >= 1.10) for l in ("SQL", "Shell")}
+    final_w = dict(PF_TARGET)
+    for l, ok in c4.items():
+        if not ok:
+            final_w[l] = 0.04
+            final_w["Python"] = round(final_w["Python"] + 0.01, 4)
+    print(f"files audited: {nf} of {N_CODE_FILES}; planned input files: {PF_FILES}")
+    print(f"{'language':11} {'kept/perm':>9} {'tok/file M':>10} {'supply M':>9} {'target M':>9} {'margin':>7} {'copyleft%':>9} {'post-viol':>9}")
+    for lang, o in out.items():
+        print(f"{lang:11} {o['kept_over_permissive_docs']:9.1%} {(o['kept_tokens_per_file_M'] or 0):10.2f} "
+              f"{o['supply_over_planned_files_M'] or 0:9.0f} {o['target_M']:9.0f} {(o['margin_x'] or 0):7.2f} "
+              f"{o['copyleft_header_rate_before_rule']:9.2%} {o['post_violations']:9}")
+        print("   drops by rule (docs):", {k: v for k, v in o["drop_docs"].items() if v}, "| secrets before rule:", o["secret_hits_before_rule"],
+              "| emails redacted docs:", o["email_redacted_docs"])
+    print("C4:", c4, "-> final weights", final_w)
+    rec.write_json("preflight_code.json", {"revision": rev, "files": idxs, "languages": out, "c4": c4, "final_weights": final_w})
+    print("record:", rec.run_id)
+    return 0
+
+
+def cmd_terms(args) -> int:
+    from huggingface_hub import hf_hub_download
+    from litegpt.records import create_run
+    revs = verified_revisions()
+    rec = create_run("data", "audit-terms", config={"repos": ["HuggingFaceTB/smoltalk", "HuggingFaceTB/smollm-corpus"], "revisions": revs})
+    rx = re.compile(r"qwen|llama|mixtral|mistral|gpt-?\d|claude|gemma|generated|distilabel|licen[cs]e|terms|apache|synthetic", re.I)
+    out = {}
+    for repo in ("HuggingFaceTB/smoltalk", "HuggingFaceTB/smollm-corpus"):
+        text = Path(hf_hub_download(repo, "README.md", repo_type="dataset", revision=revs[repo])).read_text(encoding="utf-8")
+        hits = [ln.strip()[:600] for ln in text.split("\n") if rx.search(ln) and not ln.lstrip().startswith(("- config_name", "path:", "- split"))]
+        out[repo] = {"revision": revs[repo], "lines": hits[:80]}
+        print(f"== {repo} @ {revs[repo][:8]}: {len(hits)} matching lines")
+        for ln in hits[:60]:
+            print("  ", ln[:400])
+    rec.write_json("terms.json", out)
+    print("record:", rec.run_id)
+    return 0
+
+
+THROUGHPUT_PROBES = [  # (key, repo, path, planned_files)
+    ("fineweb_edu_dedup", "HuggingFaceTB/smollm-corpus", "fineweb-edu-dedup/train-00000-of-00234.parquet", 14),
+    ("cosmopedia_v2", "HuggingFaceTB/smollm-corpus", "cosmopedia-v2/train-00000-of-00104.parquet", 7),
+    ("finemath_3plus", "HuggingFaceTB/finemath", "finemath-3plus/train-00000-of-00128.parquet", 8),
+    ("code", "codeparrot/github-code-clean", "data/train-00000-of-00880.parquet", PF_FILES),
+    ("smoltalk", "HuggingFaceTB/smoltalk", "data/smol-summarize/train-00000-of-00001.parquet", 1),
+]
+
+
+def cmd_throughput(args) -> int:
+    import time
+    from huggingface_hub import hf_hub_download
+    from litegpt.records import create_run
+    revs = verified_revisions()
+    rec = create_run("data", "preflight-throughput", config={"probes": THROUGHPUT_PROBES})
+    tmp = tempfile.mkdtemp(prefix="dl_probe_", dir=str(Path.home()))
+    rows, total_gb, total_s = [], 0.0, 0.0
+    try:
+        for key, repo, path, nfiles in THROUGHPUT_PROBES:
+            t0 = time.time()
+            try:
+                p = Path(hf_hub_download(repo, path, repo_type="dataset", revision=revs[repo], local_dir=tmp))
+                size = p.stat().st_size
+                dt = time.time() - t0
+                p.unlink()
+                rows.append({"source": key, "file": path, "GB": size / 1e9, "seconds": dt, "MBps": size / 1e6 / dt, "planned_files": nfiles,
+                             "projected_GB": size / 1e9 * nfiles, "projected_hours": size / 1e9 * nfiles * 1e3 / (size / 1e6 / dt) / 3600})
+            except Exception as e:
+                rows.append({"source": key, "file": path, "error": f"{type(e).__name__}: {str(e)[:150]}"})
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    for r in rows:
+        print(r)
+    ok = [r for r in rows if "error" not in r]
+    total_gb = sum(r["projected_GB"] for r in ok)
+    total_h = sum(r["projected_hours"] for r in ok)
+    home = shutil.disk_usage(str(Path.home()))
+    disks = {"wsl_home_free_GB": home.free / 1e9}
+    try:
+        disks["c_drive_free_GB"] = shutil.disk_usage("/mnt/c").free / 1e9
+    except Exception:
+        pass
+    need = 31 + 10   # shards + temporaries
+    verdict = {"projected_download_GB": total_gb, "projected_download_hours": total_h, "disks": disks, "required_headroom_GB": 60,
+               "headroom_after_shards_GB": min(disks.values()) - need}
+    print(verdict)
+    rec.write_json("throughput.json", {"rows": rows, "verdict": verdict})
+    print("record:", rec.run_id)
+    return 0
+
+
+EVALSETS = [  # (name, [(repo, config, split), ... alternates in order])
+    ("hellaswag", [("Rowan/hellaswag", None, "validation")]),
+    ("arc_easy", [("allenai/ai2_arc", "ARC-Easy", "test")]),
+    ("arc_challenge", [("allenai/ai2_arc", "ARC-Challenge", "test")]),
+    ("piqa", [("ybisk/piqa", None, "validation"), ("baber/piqa", None, "validation")]),
+    ("openbookqa", [("allenai/openbookqa", "main", "test")]),
+    ("commonsenseqa", [("tau/commonsense_qa", None, "validation")]),
+    ("mmlu", [("cais/mmlu", "all", "test")]),
+    ("gsm8k", [("openai/gsm8k", "main", "test")]),
+    ("winogrande", [("allenai/winogrande", "winogrande_xl", "validation")]),
+    ("humaneval", [("openai/openai_humaneval", None, "test")]),
+    ("mbpp", [("google-research-datasets/mbpp", "full", "test")]),
+    ("ifeval", [("google/IFEval", None, "train")]),
+    ("truthfulqa", [("truthfulqa/truthful_qa", "generation", "validation")]),
+    ("triviaqa", [("mandarjoshi/trivia_qa", "rc.nocontext", "validation")]),
+    ("xstest", [("walledai/XSTest", None, "test"), ("Paul/XSTest", None, "train"), ("natolambert/xstest-v2-copy", None, "prompts")]),   # first is gated (owner terms); ungated copies are scoring/decontamination references only
+    ("multipl_e_humaneval_js", [("nuprl/MultiPL-E", "humaneval-js", "test")]),
+    ("multipl_e_humaneval_ts", [("nuprl/MultiPL-E", "humaneval-ts", "test")]),
+    ("text_to_sql_spider", [("xlangai/spider", None, "validation"), ("spider", None, "validation")]),
+]
+NGRAM = 13
+
+
+def _strings(x):
+    if isinstance(x, str):
+        yield x
+    elif isinstance(x, dict):
+        for v in x.values():
+            yield from _strings(v)
+    elif isinstance(x, (list, tuple)):
+        for v in x:
+            yield from _strings(v)
+
+
+def cmd_evalsets(args) -> int:
+    from datasets import load_dataset
+    from huggingface_hub import HfApi
+    from litegpt.records import create_run
+    rec = create_run("data", "preflight-evalsets", config={"evalsets": [(n, a) for n, a in EVALSETS], "ngram": NGRAM})
+    api, rows, all_grams = HfApi(), {}, set()
+    for name, alts in EVALSETS:
+        for repo, cfg, split in alts:
+            try:
+                sha = api.dataset_info(repo).sha
+                kw = {"revision": sha}
+                ds = load_dataset(repo, cfg, split=split, streaming=True, **kw) if cfg else load_dataset(repo, split=split, streaming=True, **kw)
+                grams, n_rows = set(), 0
+                for row in ds:
+                    n_rows += 1
+                    for s in _strings(row):
+                        w = re.findall(r"\w+", s.lower())
+                        for i in range(len(w) - NGRAM + 1):
+                            grams.add(" ".join(w[i:i + NGRAM]))
+                rows[name] = {"repo": repo, "config": cfg, "split": split, "revision": sha, "rows": n_rows, "ngrams_13": len(grams), "ok": n_rows > 0}
+                all_grams |= grams
+                print(f"OK     {name:24} {repo}:{cfg} {split} @{sha[:8]} rows={n_rows} 13-grams={len(grams)}")
+                break
+            except Exception as e:
+                rows.setdefault(name, {"ok": False, "errors": []})["errors"].append(f"{repo}: {type(e).__name__}: {str(e)[:140]}")
+        else:
+            print(f"FAILED {name:24} {rows[name]['errors']}")
+    verdict = {"all_resolved": all(r.get("ok") for r in rows.values()), "n_benchmarks": len(rows),
+               "unique_ngrams_13_total": len(all_grams), "failed": [k for k, v in rows.items() if not v.get("ok")]}
+    print(verdict)
+    rec.write_json("evalsets.json", {"rows": rows, "verdict": verdict})
+    print("record:", rec.run_id)
+    return 0
+
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -334,8 +605,15 @@ def main() -> int:
     c.add_argument("--workers", type=int, default=4)
     sub.add_parser("pretrain")
     sub.add_parser("smoltalk")
+    pc = sub.add_parser("preflight-code", help="C1-C4: filters, samples, secrets, SQL/Shell capacity (F1/F6)")
+    pc.add_argument("--files", type=int, default=12)
+    pc.add_argument("--workers", type=int, default=4)
+    sub.add_parser("terms", help="C5: generator and terms lines from the dataset cards")
+    sub.add_parser("throughput", help="C6: time one download per source, check disk headroom")
+    sub.add_parser("evalsets", help="C7: pin evaluation sets and count 13-grams")
     args = ap.parse_args()
-    return {"code": cmd_code, "pretrain": cmd_pretrain, "smoltalk": cmd_smoltalk}[args.cmd](args)
+    return {"code": cmd_code, "pretrain": cmd_pretrain, "smoltalk": cmd_smoltalk, "preflight-code": cmd_preflight_code,
+            "terms": cmd_terms, "throughput": cmd_throughput, "evalsets": cmd_evalsets}[args.cmd](args)
 
 
 if __name__ == "__main__":
