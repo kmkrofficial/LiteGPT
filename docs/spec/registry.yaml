@@ -249,3 +249,39 @@ experiments:
       duplicates: "exact cross-source duplicate rate > 1% of any source's tokens returns the dedup decision to the owner"
       bpb: "BPB = sum NLL / ln 2 over sum UTF-8 bytes of target tokens, special tokens excluded"
     conclusion: null
+  - id: EXP-M1B-SUITE
+    milestone: M1b
+    hypothesis: "Evaluation suite v0 (lm-evaluation-harness 0.4.13 + native bits-per-byte and efficiency) gives deterministic, harness-sane scores that serve as the fixed yardstick for V1, competitors and every later V2 result."
+    config: litegpt/eval/suite_v0.yaml + litegpt/eval/SUITE_VERSION (0.1.0)
+    parent: null
+    status: pre-registered
+    runs: []
+    decisions:   # PRE-REGISTERED 2026-10-11 before any model was scored (owner-approved PLAN_M1b.md rev 1)
+      base_suite: "0-shot: hellaswag, arc_easy, arc_challenge, piqa, openbookqa, commonsense_qa, winogrande, mmlu (continuation/cloze form), truthfulqa_mc1, truthfulqa_mc2; 5-shot: triviaqa (fixed seeded 2000-question subset), gsm8k; code: humaneval (0-shot), mbpp (3-shot), pass@1 greedy; bits-per-byte on val_core and the domain sets (after M1 step 6)"
+      instruct_suite: "each model's own chat template, greedy, max 512 new tokens: ifeval, gsm8k (0-shot chat), humaneval/mbpp (chat prompt), xstest (rule-based refusal scoring)"
+      efficiency: "bf16 GPU; prompt 128/512 x output 128 x batch 1/8; prefill tok/s, decode tok/s, bytes/s, time to first token, peak VRAM"
+      protocol: "seed 1234; greedy; bf16; sample-level outputs saved; task dataset revisions pinned to docs/spec/data_sources.yaml references where shared; no limit except the registered TriviaQA subset; no trust_remote_code; generated code executed only in WSL2 in a separate process with timeout, memory limit and no network"
+      deferred_to_M4: ["Spider execution accuracy (databases outside the Hub)", "MultiPL-E JS/TS execution (needs Node.js/TypeScript installed by the owner)"]
+    thresholds:
+      harness_sanity: "GPT-2 124M base suite: hellaswag acc_norm in [0.29, 0.33] and piqa acc in [0.61, 0.65]; otherwise no baseline is published until the setup is fixed"
+      determinism: "the same model run twice gives identical scores on every task"
+      adapter: "native LiteGPT adapter log-likelihoods equal direct model log-probabilities on litegpt-tiny (abs diff <= 1e-4 in fp32)"
+    clarifications:   # recorded 2026-10-11 BEFORE the first score
+      - "Task dataset revisions: lm-eval 0.4.13 loads each task's dataset at its latest revision and has no per-task revision option without forking task configs. The resolved Hub commit of every task dataset is therefore recorded in each run (eval/summary.json, task_dataset_revisions) and compared with the decontamination pins; a mismatch is flagged in the report, and baselines are re-run if a task dataset changes between models."
+      - "MMLU is scored with lm-eval's mmlu_continuation (cloze) group; the code tasks are humaneval (0-shot) and mbpp (3-shot) for base models, humaneval_instruct / mbpp_instruct for chat models; gsm8k_cot_zeroshot is the chat GSM8K task; XSTest is scored natively (not in lm-eval 0.4.13)."
+      - "TriviaQA subset: 2,000 document indices drawn with random.Random(1234).sample over the task's evaluation split, passed to lm-eval as `samples`."
+    conclusion: null
+  - id: EXP-M1B-BASELINES
+    milestone: M1b
+    hypothesis: "V1 and same-class / reference competitors measured with suite v0 on this machine define the comparison table for V2."
+    config: litegpt/eval/run.py
+    parent: EXP-M1B-SUITE
+    status: pre-registered
+    runs: []
+    decisions:
+      base_models: [koganrath/LiteGPT-Base, HuggingFaceTB/SmolLM2-135M, HuggingFaceTB/SmolLM2-360M, google/gemma-3-270m, EleutherAI/pythia-160m, EleutherAI/pythia-410m, openai-community/gpt2, openai-community/gpt2-medium, Qwen/Qwen2.5-0.5B, Qwen/Qwen3-0.6B-Base]
+      instruct_models: [koganrath/LiteGPT-Instruct, HuggingFaceTB/SmolLM2-135M-Instruct, HuggingFaceTB/SmolLM2-360M-Instruct, google/gemma-3-270m-it, Qwen/Qwen2.5-0.5B-Instruct, Qwen/Qwen3-0.6B]
+      exclusions: "MobileLLM-125M/350M unless loadable without trust_remote_code in transformers 5.18 (recorded either way)"
+      revisions: "resolved and pinned at run time; stored in each record"
+      published_numbers: "never mixed with measured ones; context columns (training tokens, licence) are labelled as published"
+    conclusion: null

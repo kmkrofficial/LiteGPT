@@ -147,7 +147,7 @@ class Attention(nn.Module):
         if kv_cache is not None:
             k, v = kv_cache.update(self.layer_idx, k, v, start_pos)
 
-        if kv_cache is None and (self.backend == "flash" or (
+        if kv_cache is None and attn_mask is None and (self.backend == "flash" or (
                 self.backend == "auto" and effective_attention_backend("auto", q.device.type, q.dtype) == "flash")):
             from flash_attn import flash_attn_func, flash_attn_varlen_func
             qf, kf, vf = (t.transpose(1, 2) for t in (q, k, v))  # (B, T, h, hd)
@@ -250,10 +250,13 @@ class LiteGPT(nn.Module):
 
     # ----- forward -------------------------------------------------------------------------------------------------
     def forward(self, idx, targets=None, kv_cache: KVCache | None = None, start_pos: int | None = None,
-                cu_seqlens: torch.Tensor | None = None, max_seqlen: int | None = None, logits_all: bool = False):
+                cu_seqlens: torch.Tensor | None = None, max_seqlen: int | None = None, logits_all: bool = False,
+                key_padding_mask: torch.Tensor | None = None):
         """idx: (B, T) token ids. targets: (B, T) with -1 = ignore (assistant-only loss masks use this).
         kv_cache: incremental decoding; start_pos defaults to kv_cache.length. cu_seqlens: packed documents (see
         doc_ids_from_cu_seqlens), RoPE positions restart per document and attention is block-diagonal causal.
+        key_padding_mask: (B, start_pos + T) bool, True = real token; used for left-padded batched generation (padded keys are
+        never attended to; each position may always attend to itself so no attention row is empty).
         Returns (logits, loss). Without targets only the last position's logits are returned unless logits_all."""
         B, T = idx.shape
         cfg = self.config
@@ -276,6 +279,13 @@ class LiteGPT(nn.Module):
                 i = torch.arange(T, device=idx.device)[:, None] + start_pos
                 j = torch.arange(start_pos + T, device=idx.device)[None, :]
                 attn_mask = (j <= i)[None, None]
+            if key_padding_mask is not None:
+                assert cu_seqlens is None and key_padding_mask.shape == (B, start_pos + T), "key_padding_mask must be (B, start_pos + T)"
+                i = torch.arange(T, device=idx.device)[:, None] + start_pos
+                j = torch.arange(start_pos + T, device=idx.device)[None, :]
+                allowed = (j <= i)[None] & key_padding_mask[:, None, :].to(torch.bool)
+                allowed = allowed | (j == i)[None]
+                attn_mask = allowed[:, None]
 
         x = self.model.embed_tokens(idx)
         cos, sin = cos.to(x.dtype), sin.to(x.dtype)

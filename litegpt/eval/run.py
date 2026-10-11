@@ -1,0 +1,135 @@
+"""Run evaluation suite v0 on one model and write a run record (EXP-M1B-SUITE / EXP-M1B-BASELINES).
+
+    python -m litegpt.eval.run --model hf:openai-community/gpt2 --suite base
+    python -m litegpt.eval.run --model hf:HuggingFaceTB/SmolLM2-135M-Instruct --suite instruct
+
+HF models run through lm-eval's `hf` backend with the model revision pinned to the commit resolved at start. Native LiteGPT
+checkpoints (`litegpt:<path>`) use `litegpt.eval.lm_adapter` (added to the CLI when the first checkpoint exists, M2).
+`--limit` is for smoke tests only and marks the record as not comparable.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import platform
+import random
+import sys
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+SUITE = Path(__file__).resolve().parent / "suite_v0.yaml"
+
+
+def load_suite() -> dict:
+    return yaml.safe_load(SUITE.read_text(encoding="utf-8"))
+
+
+def resolve_model(spec: str) -> dict:
+    kind, _, name = spec.partition(":")
+    if kind != "hf":
+        raise SystemExit("only hf:<repo> models are supported until the first LiteGPT checkpoint exists (M2)")
+    from huggingface_hub import HfApi
+    info = HfApi().model_info(name)
+    return {"kind": "hf", "repo": name, "revision": info.sha, "gated": info.gated,
+            "license": (info.card_data.to_dict() if info.card_data else {}).get("license")}
+
+
+def task_dataset_revisions(task_names: list[str]) -> dict:
+    """Resolved Hub commit of each task's dataset (recorded; compared with the decontamination pins)."""
+    from huggingface_hub import HfApi
+    from lm_eval.tasks import TaskManager, get_task_dict
+    api, out = HfApi(), {}
+    tasks = get_task_dict(task_names, TaskManager())
+
+    def walk(d):
+        for k, v in d.items():
+            if isinstance(v, dict):
+                walk(v)
+            else:
+                cfg = getattr(v, "config", None)
+                path = getattr(cfg, "dataset_path", None) if cfg else None
+                if path and path not in out:
+                    try:
+                        out[path] = api.dataset_info(path).sha
+                    except Exception as e:                 # local / non-Hub datasets
+                        out[path] = f"unresolved: {type(e).__name__}"
+    walk(tasks)
+    return out
+
+
+def triviaqa_subset(size: int, seed: int) -> list[int]:
+    from lm_eval.tasks import TaskManager, get_task_dict
+    task = get_task_dict(["triviaqa"], TaskManager())["triviaqa"]
+    n = len(list(task.eval_docs))
+    rng = random.Random(seed)
+    return sorted(rng.sample(range(n), min(size, n)))
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--model", required=True, help="hf:<repo>")
+    ap.add_argument("--suite", choices=["base", "instruct"], required=True)
+    ap.add_argument("--batch-size", default="16")
+    ap.add_argument("--groups", default=None, help="comma-separated subset of suite groups (default: all)")
+    ap.add_argument("--limit", type=int, default=None, help="smoke tests only: record is marked non-comparable")
+    args = ap.parse_args()
+
+    import lm_eval
+    from litegpt.records import create_run
+    suite = load_suite()
+    model = resolve_model(args.model)
+    groups = [g for g in suite[args.suite] if not args.groups or g["name"] in args.groups.split(",")]
+    unsafe = any(g.get("unsafe_code") for g in groups)
+    if unsafe and platform.system() != "Linux":
+        raise SystemExit("code-execution tasks run only in WSL2 (Linux); use --groups to skip them on Windows")
+    if unsafe:
+        os.environ["HF_ALLOW_CODE_EVAL"] = "1"
+    rec = create_run("eval", f"{args.suite}-{model['repo'].split('/')[-1]}", config={
+        "suite_version": suite["suite_version"], "suite": args.suite, "groups": [g["name"] for g in groups], "model": model,
+        "batch_size": args.batch_size, "limit": args.limit, "comparable": args.limit is None})
+    seed = suite["protocol"]["seed"]
+    model_args = f"pretrained={model['repo']},revision={model['revision']},dtype=bfloat16,trust_remote_code=False"
+    results, revisions = {}, {}
+    for g in groups:
+        if g.get("native"):
+            print(f"[{g['name']}] native task: run with litegpt.eval.xstest (separate entry point)", flush=True)
+            continue
+        samples = None
+        if g.get("subset") and args.limit is None:
+            samples = {t: triviaqa_subset(g["subset"]["size"], g["subset"]["seed"]) for t in g["tasks"]}
+        revisions.update(task_dataset_revisions(g["tasks"]))
+        print(f"[{g['name']}] {g['tasks']} shots={g['num_fewshot']}", flush=True)
+        out = lm_eval.simple_evaluate(
+            model="hf", model_args=model_args, tasks=g["tasks"], num_fewshot=g["num_fewshot"], batch_size=args.batch_size,
+            device="cuda", limit=args.limit, samples=samples, log_samples=True, apply_chat_template=bool(g.get("chat")),
+            random_seed=seed, numpy_random_seed=seed, torch_random_seed=seed, fewshot_random_seed=seed,
+            confirm_run_unsafe_code=bool(g.get("unsafe_code")))
+        results[g["name"]] = {"results": out["results"], "n_samples": out.get("n-samples"), "versions": out.get("versions"),
+                              "configs": {k: {kk: str(vv) for kk, vv in v.items()} for k, v in out.get("configs", {}).items()}}
+        rec.write_json(f"eval/{g['name']}.json", results[g["name"]])
+        for task, samples_list in (out.get("samples") or {}).items():
+            with open(rec.path / "eval" / f"{task}.samples.jsonl", "w", encoding="utf-8") as f:
+                for s in samples_list:
+                    f.write(json.dumps(s, default=str, ensure_ascii=False) + "\n")
+    head = suite["headline_metrics"]
+    summary = {}
+    for gname, r in results.items():
+        for task, metrics in r["results"].items():
+            m = head.get(task)
+            if m:
+                key = next((k for k in metrics if k.startswith(m + ",")), None)
+                if key:
+                    summary[task] = {"metric": m, "value": metrics[key], "stderr": metrics.get(key.replace(m + ",", m + "_stderr,"))}
+    rec.write_json("eval/summary.json", {"model": model, "suite_version": suite["suite_version"], "task_dataset_revisions": revisions,
+                                         "headline": summary, "comparable": args.limit is None})
+    print(json.dumps(summary, indent=1))
+    print("record:", rec.run_id)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
