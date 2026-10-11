@@ -64,3 +64,13 @@ def test_save_load_hash_is_stable(lt, tmp_path):
     h = lt.save(p)
     again = T.LiteTokenizer.load(p)
     assert T.file_sha256(p) == h and again.encode_text(CORPUS[0]) == lt.encode_text(CORPUS[0])
+
+
+def test_frozen_asset_matches_spec_hash():
+    from litegpt.spec import load_spec
+    spec = load_spec()["tokenizer"]
+    assert T.DEFAULT_PATH.exists(), "frozen tokenizer asset missing"
+    assert T.file_sha256(T.DEFAULT_PATH) == spec["sha256"]
+    tok = T.LiteTokenizer.load()
+    assert tok.vocab_size == spec["vocab_size"] == T.VOCAB_SIZE
+    assert tok.decode(tok.encode_text("def f(x):\n    return x  # 2026\n")) == "def f(x):\n    return x  # 2026\n"

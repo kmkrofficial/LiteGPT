@@ -13,6 +13,7 @@ logs.txt
 wandb/
 input.txt
 assets/
+!litegpt/assets/
 
 # model / data artifacts (never committed anywhere)
 *.bin

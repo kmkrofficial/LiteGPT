@@ -81,7 +81,9 @@ tokenizer:
   special_tokens: ["<|bos|>", "<|endoftext|>", "<|im_start|>", "<|im_end|>", "<|pad|>"]   # ids 0-4 in this order
   reserved_tokens: 32             # ids 5-36: <|reserved_0|> ... <|reserved_31|> (future features, no resize)
   file: litegpt/assets/tokenizer/litegpt-32k.json
-  sha256: pending                 # set at M1 Checkpoint B (tokenizer freeze); any later change needs a new ADR
+  sha256: "2f208b58085074d9520d737332f8da9fb8c8a8718479978bbe8afb5b4ea015d6"   # FROZEN 2026-10-11 (owner, M1 Checkpoint B); any change needs a new ADR
+  frozen: 2026-10-11
+  frozen_from_run: 20261011T143457Z-data-tokenizer-train-076712e
   acceptance: docs/spec/registry.yaml#EXP-M1-TOKENIZER
 
 chat_template:

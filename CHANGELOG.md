@@ -5,6 +5,9 @@ Format: newest first. Spec changes are recorded with their ADR (docs/decisions/)
 ## Unreleased (V2 development)
 
 ### 2026-10-11
+- **Tokenizer frozen** (owner, M1 Checkpoint B): `litegpt/assets/tokenizer/litegpt-32k.json`, sha256 `2f208b58085074d9...` in spec
+  `tokenizer.sha256`. 32,768 entries; web 0.966x GPT-2 bytes/token, Python/JS/TS/Shell/SQL 1.2-1.7x better (EXP-M1-TOKENIZER).
+- C9 re-plan with the real tokenizer: code files 0-261, code decay fraction 0.08, instruction decay fraction 0.85.
 - **Spec 2.0.0-spec.6** (ADR-008): Wikipedia removed from the mixture and redistributed proportionally; focused code mix (Python 63 /
   JavaScript 14 / TypeScript 14 / SQL 4 / Shell 5); decontamination now filters pretraining data; tokenizer, `val_core` and data-order
   hashes added as `pending`; new binding file `docs/spec/data_sources.yaml` (exact revisions, file lists, partitions, filters).
