@@ -170,20 +170,35 @@ def cmd_prepare(args) -> int:
     jobs = [(n, t, r, f, v, s, g, str(out), str(args.tokenizer), str(args.ngrams) if args.ngrams else None, sources["sources"][n], salt)
             for (n, t, r, f, v, s, g) in jobs_meta]
     print(f"{len(jobs)} files; run {rec.run_id}", flush=True)
+    # Memory-aware scheduling: large-file sources (~3 GB RSS per worker) are limited to --heavy concurrent jobs.
+    heavy_sources = {"fineweb_edu", "cosmopedia_v2", "math"}
+    pending = sorted(jobs, key=lambda j: j[0] not in heavy_sources)          # start the long heavy jobs first
+    running: dict = {}
     done = 0
     with ProcessPoolExecutor(max_workers=args.workers) as ex:
-        futs = {ex.submit(_prepare_one, j): j for j in jobs}
-        for fut in as_completed(futs):
-            j = futs[fut]
+        def fill():
+            while pending and len(running) < args.workers:
+                n_heavy = sum(1 for j in running.values() if j[0] in heavy_sources)
+                pick = next((k for k, j in enumerate(pending) if j[0] not in heavy_sources or n_heavy < args.heavy), None)
+                if pick is None:
+                    return
+                j = pending.pop(pick)
+                running[ex.submit(_prepare_one, j)] = j
+        fill()
+        while running:
+            fut = next(as_completed(list(running)))
+            j = running.pop(fut)
             try:
                 st = fut.result()
             except Exception as e:
                 rec.log("error", source=j[0], file=j[1], error=f"{type(e).__name__}: {str(e)[:300]}")
                 print(f"ERROR {j[0]} {j[1]}: {type(e).__name__}: {str(e)[:200]}", flush=True)
+                fill()
                 continue
             done += 1
             rec.log("progress", source=j[0], file=j[1], skipped=bool(st.get("skipped")), tokens=st.get("tokens"), docs_read=st.get("docs_read"))
             print(f"[{done}/{len(jobs)}] {j[0]} {j[1]} {'skipped' if st.get('skipped') else sum((st.get('tokens') or {}).values())} tokens", flush=True)
+            fill()
     print("record:", rec.run_id)
     return 0
 
@@ -225,7 +240,8 @@ def main() -> int:
     pp = sub.add_parser("prepare", help="download -> filter -> decontaminate -> partition -> tokenize -> shards (resumable)")
     pp.add_argument("--tokenizer", required=True, help="frozen tokenizer json")
     pp.add_argument("--ngrams", default=None, help="13-gram index (scripts/decontaminate.py build); omit only for dry runs")
-    pp.add_argument("--workers", type=int, default=12)
+    pp.add_argument("--workers", type=int, default=7)
+    pp.add_argument("--heavy", type=int, default=3, help="max concurrent jobs of the large-file sources (memory)")
     pp.add_argument("--sources", default=None, help="comma-separated subset of sources")
     pp.add_argument("--limit-files", type=int, default=None, help="process only the first N files of each source (dry run)")
     pp.add_argument("--resume", default=None, help="existing data run directory to continue")

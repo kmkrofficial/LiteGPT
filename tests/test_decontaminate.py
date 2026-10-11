@@ -42,3 +42,12 @@ def test_empty_index_and_roundtrip(tmp_path):
     ix.save(p)
     again = NgramIndex.load(p)
     assert len(again) == len(ix) and again.names == ["a", "b"] and again.match(BENCH_A) == 0
+
+
+def test_number_and_letter_sequences_are_not_reference_ngrams():
+    bench = "assert f([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) == 0 0 0 0 0 0 0 0 0 0 0 0 0 0 a b c d e f g h i j k l m n"
+    ix = NgramIndex.from_texts({"code": [bench]})
+    math_page = "Count: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15. Zeros: 0 0 0 0 0 0 0 0 0 0 0 0 0 0. Letters a b c d e f g h i j k l m n."
+    assert ix.match(math_page) is None
+    real = NgramIndex.from_texts({"b": [BENCH_A]})
+    assert real.match("x " + BENCH_A) == 0            # windows with real words still match

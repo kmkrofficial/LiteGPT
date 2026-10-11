@@ -20,7 +20,14 @@ def words(text: str) -> list[str]:
     return _WORD.findall(text.lower())
 
 
-def window_hashes(text: str, n: int = NGRAM) -> np.ndarray:
+def _trivial(w: str) -> bool:
+    """A word with no identifying content: a number or a single character."""
+    return w.isdigit() or len(w) == 1
+
+
+def window_hashes(text: str, n: int = NGRAM, skip_trivial: bool = False) -> np.ndarray:
+    """Hashes of every n-word window. With skip_trivial, windows made only of numbers / single characters are left out
+    (used when building the reference set: sequences like '1 2 3 ... 13' or primes are not benchmark-specific)."""
     ws = words(text)
     m = len(ws) - n + 1
     if m <= 0:
@@ -30,6 +37,11 @@ def window_hashes(text: str, n: int = NGRAM) -> np.ndarray:
     with np.errstate(over="ignore"):
         for j in range(n):
             h = h * _MULT + codes[j:j + m]
+    if skip_trivial:
+        triv = np.fromiter((_trivial(w) for w in ws), dtype=np.int32, count=len(ws))
+        c = np.concatenate(([0], np.cumsum(triv)))
+        keep = (c[n:n + m] - c[:m]) < n
+        h = h[keep]
     return h
 
 
@@ -45,7 +57,7 @@ class NgramIndex:
         all_h, all_b = [], []
         for bi, name in enumerate(names):
             for t in named_texts[name]:
-                h = window_hashes(t)
+                h = window_hashes(t, skip_trivial=True)
                 if len(h):
                     all_h.append(h)
                     all_b.append(np.full(len(h), bi, dtype=np.int16))

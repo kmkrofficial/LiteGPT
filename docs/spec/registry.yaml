@@ -226,13 +226,22 @@ experiments:
     hypothesis: "13-gram word overlap with the pinned evaluation sets removes benchmark text from pretraining data at a negligible token cost."
     config: scripts/decontaminate.py + docs/spec/data_sources.yaml#decontamination
     parent: EXP-M1-PREFLIGHT
-    status: pre-registered
-    runs: []
+    status: corrected-index-in-use
+    runs:
+      - 20261011T162235Z-data-decontam-index-c833e2c     # first index (1,612,644 13-grams), used by the dry run
+      - 20261011T162414Z-data-prepare-c833e2c            # dry run, 2 files per source (superseded: built with the first index)
+      - 20261011T172128Z-data-decontam-audit-math-203de2f # audit that triggered the correction
+      - 20261011T172349Z-data-decontam-index-203de2f     # corrected index (1,609,910 13-grams; 2,734 number/letter-only removed) - used for preparation
     thresholds:
       rule: "a document is dropped if it shares any 13-gram (lowercased word tokens) with a reference set; reference sets are the 18 benchmarks pinned by C7"
       audit: "if one benchmark accounts for > 0.5% of a source's dropped tokens, audit its n-gram set for boilerplate (very short or generic prompts) and record the outcome before training"
       records: "dropped documents and tokens per source x benchmark with sample matches"
-    conclusion: null
+    protocol_corrections:   # recorded BEFORE the corrected index is built and before the full preparation run
+      - date: 2026-10-11
+        run: 20261011T172128Z-data-decontam-audit-math-203de2f
+        finding: "Dry run (2 files per source): decontamination dropped ~4.2% of FineMath bytes (humaneval 2,359 documents, mbpp 1,021), triggering the 0.5% audit rule; FineWeb-Edu 0.37%, Cosmopedia 0.04%, code < 0.2%. The audit of FineMath file 0 shows the matches are generic sequences from benchmark test cases, not benchmark text: '0 0 0 ... 0' (3,240 windows), '1 2 3 ... 13' and its shifts (~5,600), lists of primes, 'a b c ... m', '000 000 ...' (TriviaQA). These carry no item-specific content and occur naturally in math pages."
+        correction: "Reference 13-grams whose 13 words are all numbers or single characters are excluded when the index is built (litegpt/decontam.py, window_hashes(skip_trivial=True); test added). Windows containing any real word are unchanged, so genuine benchmark text is still caught. The index is rebuilt, the audit is re-run on FineMath and FineWeb-Edu, and the full preparation runs in a new run directory with the corrected index (the dry-run shards are discarded; its record is kept)."
+    conclusion: "Re-audit with the corrected index (records *data-decontam-audit-math* and *data-decontam-audit-fineweb_edu* of 2026-10-11): FineMath file 0 drops 0.27% of bytes (150 of 167,232 documents), FineWeb-Edu file 0 (first 200,000 documents) 0.29% (154 documents); both below the 0.5% audit rule. Remaining matches are mostly quoted public texts that also appear in benchmark items (Declaration of Independence and US Constitution passages in MMLU; the Gettysburg Address in TriviaQA) and a few code idioms; these documents are dropped as planned (conservative). Final per-source drop rates come from the full preparation run."
   - id: EXP-M1-DATA
     milestone: M1
     hypothesis: "The prepared shards meet the token plan, validation is disjoint from training, and the loader is exactly resumable."
@@ -270,6 +279,7 @@ experiments:
       - "Task dataset revisions: lm-eval 0.4.13 loads each task's dataset at its latest revision and has no per-task revision option without forking task configs. The resolved Hub commit of every task dataset is therefore recorded in each run (eval/summary.json, task_dataset_revisions) and compared with the decontamination pins; a mismatch is flagged in the report, and baselines are re-run if a task dataset changes between models."
       - "MMLU is scored with lm-eval's mmlu_continuation (cloze) group; the code tasks are humaneval (0-shot) and mbpp (3-shot) for base models, humaneval_instruct / mbpp_instruct for chat models; gsm8k_cot_zeroshot is the chat GSM8K task; XSTest is scored natively (not in lm-eval 0.4.13)."
       - "TriviaQA subset: 2,000 document indices drawn with random.Random(1234).sample over the task's evaluation split, passed to lm-eval as `samples`."
+      - "Code tasks (humaneval, mbpp, humaneval_instruct, mbpp_instruct) generate at most 512 new tokens for every model (lm-eval default 1,024 equals GPT-2's whole context and aborted the first GPT-2 run before any code score was produced; recorded 2026-10-11 before any code-task score)."
     conclusion: null
   - id: EXP-M1B-BASELINES
     milestone: M1b

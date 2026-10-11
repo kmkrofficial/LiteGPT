@@ -107,7 +107,7 @@ def main() -> int:
             model="hf", model_args=model_args, tasks=g["tasks"], num_fewshot=g["num_fewshot"], batch_size=args.batch_size,
             device="cuda", limit=args.limit, samples=samples, log_samples=True, apply_chat_template=bool(g.get("chat")),
             random_seed=seed, numpy_random_seed=seed, torch_random_seed=seed, fewshot_random_seed=seed,
-            confirm_run_unsafe_code=bool(g.get("unsafe_code")))
+            confirm_run_unsafe_code=bool(g.get("unsafe_code")), gen_kwargs=g.get("gen_kwargs"))
         results[g["name"]] = {"results": out["results"], "n_samples": out.get("n-samples"), "versions": out.get("versions"),
                               "configs": {k: {kk: str(vv) for kk, vv in v.items()} for k, v in out.get("configs", {}).items()}}
         rec.write_json(f"eval/{g['name']}.json", results[g["name"]])
