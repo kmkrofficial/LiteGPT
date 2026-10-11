@@ -1,7 +1,7 @@
 # Experiment registry: one entry per experiment. The report is built from this index plus run records.
 # Pre-registered thresholds live here (and in docs/spec/v2.yaml) BEFORE the corresponding runs start.
 registry_version: 1
-spec_version: "2.0.0-spec.5"
+spec_version: "2.0.0-spec.6"
 experiments:
   - id: EXP-M0-ENV
     milestone: M0
@@ -153,7 +153,7 @@ experiments:
     hypothesis: "The focused code mix (Python/JS/TS/SQL/Shell) is supplied by github-code-clean files 0-209 with acceptable quality, licence-label accuracy, secret hygiene and SQL/Shell capacity, and the decay-slice generators carry no naming or attribution terms."
     config: litegpt/datafilters.py + scripts/audit_sources.py (preflight-code, terms, throughput, evalsets)
     parent: EXP-M1-CODE
-    status: checks-done-C5-needs-owner
+    status: done-C5-owner-accepted
     runs:
       - 20261011T135330Z-data-audit-terms-1a0a85a            # C5 (card text)
       - 20261011T135337Z-data-preflight-evalsets-1a0a85a     # C7 first pass (XSTest gated)
@@ -193,4 +193,46 @@ experiments:
         run: 20261011T135845Z-data-preflight-code-1a0a85a
         finding: "C4: SQL supply over 210 files is 0.91x the 5% target (margin 1.14x at the 4% weight prescribed by the C4 rule); the exportdump rule will remove SQL tokens."
         correction: "File-count rule added (consistent with C9): after the corrected re-run, if a language's supply is < 1.15x its target at its final weight, the fixed input list is extended to ceil(210 x 1.15 / margin) files (at most 300), keeping the contiguous range starting at file 0."
-    conclusion: "C1 PASS: 36 kept documents per language were reviewed; junk classes were below ~10% (vendored mirrors 2/36 JS, export dumps 3/36 SQL) and both were removed by the recorded protocol corrections (JS mirror rule dropped 2,841 documents in the 12 audited files, SQL export-dump rule 171). C2 PASS: GPL/AGPL/LGPL header notices among permissive-labelled files before the rule: Python 0.76%, JavaScript 0.55%, TypeScript 0.09%, SQL 0.49%, Shell 0.59%; post-filter rescan finds 0. C3 PASS: before the rule, private keys / tokens in 12 files: Python 16 documents, JavaScript 96, TypeScript 20, Shell 2, SQL 0; all dropped, post-filter rescan 0; e-mail addresses redacted in 3,075-3,940 JS/Python documents. C4: at the F1 weights SQL supply is 0.87x its 5% target, so the pre-registered rule moves SQL to 4% and Python to 63% (final code weights Python 0.63, JavaScript 0.14, TypeScript 0.14, SQL 0.04, Shell 0.05); at 4% SQL margin is 1.09x, below the 1.15x file-count rule, so the fixed input list is extended to files 0-222 (223 files, ~79 GB). Supply over 223 files vs target (proxy tokens): Python ~2.67B vs 1.25B (2.1x), JavaScript ~3.2B vs 0.28B, TypeScript ~0.67B vs 0.28B, SQL ~91M vs 79M (1.15x), Shell ~160M vs 99M (1.6x). C5 FAIL (needs owner): smol-summarize, smol-rewrite and smol-constraints were generated with Qwen2.5-72B-Instruct (SmolLM2 paper, arXiv 2502.02737; not stated on the dataset card); its licence (Qwen LICENSE AGREEMENT, per a summary of the licence page, to be verified at M5) has section 5(b): anyone who uses the Materials or any outputs or results to create, train, fine-tune or improve an AI model that is distributed or made available must prominently display 'Built with Qwen' or 'Improved using Qwen' in related product documentation, and keep the Qwen notice. Cosmopedia v2 was generated with Mixtral-8x7B-Instruct-v0.1 (Hub licence tag apache-2.0): no clause, passes. C6 PASS: measured 25-28 MB/s on the three large web/synthetic sources (the code probe hit the local cache at 921 MB/s and is not representative; the 25 MB/s figure is used), projected ~125 GB of downloads, about 1.4 hours; free space C: 277 GB, WSL disk limit not binding, headroom after 41 GB of shards and temporaries 236 GB. C7 PASS: all 18 benchmarks resolve at pinned revisions (XSTest via the ungated copy Paul/XSTest, 450 prompts; the gated walledai/XSTest was not used), 1,612,644 unique 13-grams in total. OWNER DECISION PENDING: C5 (see docs/data_licenses.md)."
+    conclusion: "C1 PASS: 36 kept documents per language were reviewed; junk classes were below ~10% (vendored mirrors 2/36 JS, export dumps 3/36 SQL) and both were removed by the recorded protocol corrections (JS mirror rule dropped 2,841 documents in the 12 audited files, SQL export-dump rule 171). C2 PASS: GPL/AGPL/LGPL header notices among permissive-labelled files before the rule: Python 0.76%, JavaScript 0.55%, TypeScript 0.09%, SQL 0.49%, Shell 0.59%; post-filter rescan finds 0. C3 PASS: before the rule, private keys / tokens in 12 files: Python 16 documents, JavaScript 96, TypeScript 20, Shell 2, SQL 0; all dropped, post-filter rescan 0; e-mail addresses redacted in 3,075-3,940 JS/Python documents. C4: at the F1 weights SQL supply is 0.87x its 5% target, so the pre-registered rule moves SQL to 4% and Python to 63% (final code weights Python 0.63, JavaScript 0.14, TypeScript 0.14, SQL 0.04, Shell 0.05); at 4% SQL margin is 1.09x, below the 1.15x file-count rule, so the fixed input list is extended to files 0-222 (223 files, ~79 GB). Supply over 223 files vs target (proxy tokens): Python ~2.67B vs 1.25B (2.1x), JavaScript ~3.2B vs 0.28B, TypeScript ~0.67B vs 0.28B, SQL ~91M vs 79M (1.15x), Shell ~160M vs 99M (1.6x). C5 FAIL (needs owner): smol-summarize, smol-rewrite and smol-constraints were generated with Qwen2.5-72B-Instruct (SmolLM2 paper, arXiv 2502.02737; not stated on the dataset card); its licence (Qwen LICENSE AGREEMENT, per a summary of the licence page, to be verified at M5) has section 5(b): anyone who uses the Materials or any outputs or results to create, train, fine-tune or improve an AI model that is distributed or made available must prominently display 'Built with Qwen' or 'Improved using Qwen' in related product documentation, and keep the Qwen notice. Cosmopedia v2 was generated with Mixtral-8x7B-Instruct-v0.1 (Hub licence tag apache-2.0): no clause, passes. C6 PASS: measured 25-28 MB/s on the three large web/synthetic sources (the code probe hit the local cache at 921 MB/s and is not representative; the 25 MB/s figure is used), projected ~125 GB of downloads, about 1.4 hours; free space C: 277 GB, WSL disk limit not binding, headroom after 41 GB of shards and temporaries 236 GB. C7 PASS: all 18 benchmarks resolve at pinned revisions (XSTest via the ungated copy Paul/XSTest, 450 prompts; the gated walledai/XSTest was not used), 1,612,644 unique 13-grams in total. OWNER DECISION PENDING: C5 (see docs/data_licenses.md). OWNER DECISION (2026-10-11, in chat): C5 is not treated as a blocker; F8 stands (the 5% instruction slice uses smol-summarize, smol-rewrite and smol-constraints). The Qwen display clause stays in docs/data_licenses.md as an item carried to the M5 release gate (not dismissed: it is recorded so that the model card and naming can be handled there)."
+  - id: EXP-M1-TOKENIZER
+    milestone: M1
+    hypothesis: "A 32,768-entry byte-level BPE trained on the stable mixture (code in the F1 split) satisfies the hard requirements and compresses no worse than 0.90x GPT-2 on the stable mixture."
+    config: scripts/train_tokenizer.py + litegpt/tokenizer.py (litegpt/assets/tokenizer/litegpt-32k.json)
+    parent: EXP-M1-SOURCES
+    status: pre-registered
+    runs: []
+    thresholds:   # PRE-REGISTERED 2026-10-11 before any tokenizer was trained
+      hard: ["byte-exact round trip on 100% of validation documents in every domain", "vocabulary size exactly 32768",
+             "the 37 special tokens are atomic with fixed ids 0-36", "literal special-token text in documents never produces a special id",
+             "digits are always single tokens", "4 spaces, a tab and a newline-plus-indent are encoded without byte fallback explosion (<= 2 tokens each)"]
+      sanity: "overall bytes/token on the stable mixture >= 0.90 x GPT-2's; per-domain and per-language ratios are informational; failure triggers an investigation, nothing is adopted automatically"
+      training: "3-5 GB from training partitions only, largest size whose projected peak RAM <= 20 GiB (WSL has 23 GiB)"
+    conclusion: null
+  - id: EXP-M1-DECONTAM
+    milestone: M1
+    hypothesis: "13-gram word overlap with the pinned evaluation sets removes benchmark text from pretraining data at a negligible token cost."
+    config: scripts/decontaminate.py + docs/spec/data_sources.yaml#decontamination
+    parent: EXP-M1-PREFLIGHT
+    status: pre-registered
+    runs: []
+    thresholds:
+      rule: "a document is dropped if it shares any 13-gram (lowercased word tokens) with a reference set; reference sets are the 18 benchmarks pinned by C7"
+      audit: "if one benchmark accounts for > 0.5% of a source's dropped tokens, audit its n-gram set for boilerplate (very short or generic prompts) and record the outcome before training"
+      records: "dropped documents and tokens per source x benchmark with sample matches"
+    conclusion: null
+  - id: EXP-M1-DATA
+    milestone: M1
+    hypothesis: "The prepared shards meet the token plan, validation is disjoint from training, and the loader is exactly resumable."
+    config: scripts/prepare_data.py + litegpt/data.py + docs/spec/data_sources.yaml
+    parent: EXP-M1-PREFLIGHT
+    status: pre-registered
+    runs: []
+    thresholds:   # PRE-REGISTERED 2026-10-11
+      counts: "prepared tokens per source (and per code language) >= plan targets: stable 14.0B and decay 1.0B at the mixture weights, x 1.03 margin"
+      val_core: ">= 20M tokens; frozen with sha256; domains web, synthetic, code, math, chat at 2.1M tokens each"
+      disjoint: "no document key shared between any training partition and validation; no repository shared between code partitions (tests + record)"
+      proportions: "index prefix proportions within 0.1% of the mixture weights at every 1M-token prefix"
+      resume: "loader batches after resuming at step k are bit-identical to an uninterrupted run"
+      duplicates: "exact cross-source duplicate rate > 1% of any source's tokens returns the dedup decision to the owner"
+      bpb: "BPB = sum NLL / ln 2 over sum UTF-8 bytes of target tokens, special tokens excluded"
+    conclusion: null

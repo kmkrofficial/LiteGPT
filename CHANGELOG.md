@@ -4,6 +4,14 @@ Format: newest first. Spec changes are recorded with their ADR (docs/decisions/)
 
 ## Unreleased (V2 development)
 
+### 2026-10-11
+- **Spec 2.0.0-spec.6** (ADR-008): Wikipedia removed from the mixture and redistributed proportionally; focused code mix (Python 63 /
+  JavaScript 14 / TypeScript 14 / SQL 4 / Shell 5); decontamination now filters pretraining data; tokenizer, `val_core` and data-order
+  hashes added as `pending`; new binding file `docs/spec/data_sources.yaml` (exact revisions, file lists, partitions, filters).
+- M1 pre-flight (EXP-M1-PREFLIGHT, C1-C7): shared document filters `litegpt/datafilters.py`, `scripts/audit_sources.py`
+  (`preflight-code`, `terms`, `throughput`, `evalsets`), 18 evaluation sets pinned for decontamination.
+- Licence register `docs/data_licenses.md`: generator terms (Llama 3.1, Qwen2.5-72B) carried to the M5 gate.
+
 ### 2026-10-07
 - GPU operating-point sweep (EXP-M0-POWER) completed: `benchmarks/power_sweep.py` (`screen` / `compare` / `soak` and the
   faster single-process `auto` protocol), per-second telemetry incl. the enforced power limit, pre-registered validity /

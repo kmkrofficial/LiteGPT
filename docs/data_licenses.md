@@ -106,6 +106,10 @@ Pretraining (decay slice) would give the base model the Qwen display requirement
 2. Drop the instruction-style slice from pretraining (its 5% goes to the other decay sources proportionally). The base model then
    carries no Llama or Qwen terms; they apply only to the Instruct model, which uses these subsets in M4 SFT.
 
+**Owner decision (2026-10-11):** ignore the Qwen clause for now and proceed with option 1 (the instruction slice stays in the
+decay mix). The clause is not removed from this register: it is carried to the M5 release gate so that the model card, naming and
+notice files can be handled there.
+
 ## Pre-flight evidence for the code source (2026-10-11, 12 files, GPT-2 tokenizer proxy)
 
 - Final code languages and weights: Python 63, JavaScript 14, TypeScript 14, SQL 4, Shell 5 (percent of code tokens); input files 0-222.
