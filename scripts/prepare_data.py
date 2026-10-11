@@ -227,8 +227,21 @@ def cmd_mix(args) -> int:
         h.update(arr.tobytes())
         total += D.BLOCK_TOKENS
     man["val_core"] = {"sha256": h.hexdigest(), "tokens": total, "blocks": int(len(src))}
+    # EXP-M1-DATA checks and derived sets
+    from litegpt import datacheck as C
+    shards_dir = run_dir / "shards"
+    print("duplicate analysis ...", flush=True)
+    man["duplicates"] = C.duplicate_report(shards_dir)
+    man["val_key_check"] = C.check_val_keys(shards_dir, sources)
+    st_src, _, st_names, _ = D.load_index(shards_dir / "indexes" / "stable.npz")
+    man["prefix_proportions_stable"] = C.prefix_proportions(st_src, st_names, mix["stable"], step_blocks=int(1e6 // D.BLOCK_TOKENS))
+    man["resume_check_stable"] = C.resume_check(shards_dir, shards_dir / "indexes" / "stable.npz")
+    leak = {(sub, k) for sub, r in man["duplicates"].items() for k in r["val_leak_keys"]}
+    man["val_text"] = C.build_val_text(shards_dir, sources["partitioning"]["salt"], langs, exclude_keys=leak)
+    man["val_text_excluded_leaks"] = len(leak)
     rec.write_json("mix_manifest.json", man)
-    print(json.dumps({k: man[k] for k in ("data_order_sha256", "val_core", "shortfalls")}, indent=1))
+    print(json.dumps({k: man[k] for k in ("data_order_sha256", "val_core", "shortfalls", "val_key_check", "prefix_proportions_stable", "resume_check_stable", "val_text")}, indent=1))
+    print(json.dumps(man["duplicates"], indent=1))
     print("record:", rec.run_id)
     return 0
 

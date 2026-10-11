@@ -180,3 +180,35 @@ def test_tokenizer_sample_uses_only_stable_documents(world):
     texts = list(P.sample_tokenizer_text(sources, {"fineweb_edu": 1.0}, {"fineweb_edu": [world["files"]["fineweb_edu"]]}, 10_000_000, SALT))
     assert 100 < len(texts) < 400
     assert not any(BENCH in t for t in texts) or True      # contamination is handled at prepare time, not in the sample
+
+
+def test_step6_checks_on_smoke_data(world, tmp_path):
+    from litegpt import datacheck as C
+    out = tmp_path / "o"
+    run_all(world, out)
+    # an exact duplicate planted across sources must be found
+    dup = P.process_file("cosmopedia_v2", world["cfgs"]["cosmopedia_v2"], world["files"]["fineweb_edu"], out, "dup", world["tok"], SALT)
+    assert dup["docs_read"] == 400
+    rep = C.duplicate_report(out)
+    assert rep["cosmopedia_v2"]["cross_source_duplicate_docs"] > 0
+    assert rep["fineweb_edu"]["val_rows_aligned"] and rep["math"]["val_docs_also_in_training"] == 0
+    sources = {"partitioning": {"salt": SALT}, "sources": world["cfgs"]}
+    keys = C.check_val_keys(out, sources)
+    assert keys["fineweb_edu"]["val_docs"] > 0 and all(v["violations"] == 0 for v in keys.values())
+    vt = C.build_val_text(out, SALT, {"Python": 0.5, "JavaScript": 0.2, "SQL": 0.3}, budget=5000)
+    assert set(vt) == {"web", "synthetic", "math", "chat", "code"} and all(v["docs"] > 0 for v in vt.values())
+    chat = (out / "val_text" / "chat.jsonl").read_text(encoding="utf-8")
+    assert "<|im_start|>" not in chat and "user: " in chat
+    mixture = {"stable": {"fineweb_edu": 0.6, "cosmopedia_v2": 0.2, "math": 0.2},
+               "decay": {"fineweb_edu": 0.5, "cosmopedia_v2": 0.2, "math": 0.2, "instruction_style": 0.1}}
+    P.build_mix(out, mixture, seed=5, stable_tokens=32 * 40, decay_tokens=32 * 10, val_core_blocks=6, domain_blocks=3, block_len=32,
+                proxy_tokens=32 * 20)
+    src, _, names, _ = D.load_index(out / "indexes" / "stable.npz")
+    assert C.prefix_proportions(src, names, mixture["stable"], step_blocks=10)["max_abs_deviation"] < 0.06
+    assert C.resume_check(out, out / "indexes" / "stable.npz", batch_size=2, k=3, block_len=32)
+
+
+def test_chat_to_plain():
+    from litegpt.datacheck import chat_to_plain
+    r = "<|bos|><|im_start|>user\nhi there<|im_end|>\n<|im_start|>assistant\nhello\nworld<|im_end|>\n"
+    assert chat_to_plain(r) == "user: hi there\n\nassistant: hello\nworld"

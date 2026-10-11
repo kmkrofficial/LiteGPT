@@ -242,6 +242,15 @@ def build_mix(out_dir, mixture: dict, seed: int, stable_tokens: float, decay_tok
     make("proxy_1b", "stable", mixture["stable"], proxy_blocks)
     nocm = {k: v for k, v in mixture["stable"].items() if not (k.startswith("code_") or k == "math")}
     make("proxy_1b_nocodemath", "stable", nocm, proxy_blocks)
+    # GPT-2-tokenized FineWeb-Edu slice for M2 steps 1-6 (separate token space; single-source indexes)
+    gp_train = man["available_blocks"]["stable"].get("proxy_gpt2", 0)
+    gp_val = man["available_blocks"]["val"].get("proxy_gpt2", 0)
+    if gp_train:
+        make("proxy_gpt2_train", "stable", {"proxy_gpt2": 1.0}, min(gp_train, proxy_blocks))
+        if gp_train < proxy_blocks:
+            man["shortfalls"].append(f"proxy_gpt2_train: {gp_train} blocks < {proxy_blocks}")
+    if gp_val:
+        make("proxy_gpt2_val", "val", {"proxy_gpt2": 1.0}, min(gp_val, val_core_blocks))
     (idx_dir / "mix_manifest.json").write_text(json.dumps(man, indent=1), encoding="utf-8")
     return man
 

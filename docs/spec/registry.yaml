@@ -257,6 +257,11 @@ experiments:
       resume: "loader batches after resuming at step k are bit-identical to an uninterrupted run"
       duplicates: "exact cross-source duplicate rate > 1% of any source's tokens returns the dedup decision to the owner"
       bpb: "BPB = sum NLL / ln 2 over sum UTF-8 bytes of target tokens, special tokens excluded"
+    clarifications:   # recorded 2026-10-12 BEFORE step 6 (mix) runs on the real data
+      - "Cross-model validation text (val_text, for bits-per-byte of models with other tokenizers): per domain (web, synthetic, code, math, chat) whole validation documents are ordered by sha256(salt:val_text:domain:key) and taken until >= 2,000,000 UTF-8 bytes; the code domain is split by the code language weights (bytes); chat conversations are written as plain 'role: content' turns (no special-token strings). Each file's sha256 is recorded. Cross-model core BPB = stable-mixture-weighted mean of the web / synthetic / code / math domain BPBs (weights 0.6458 / 0.1042 / 0.125 / 0.125). The token-level val_core used by the G1 gate is unchanged."
+      - "Duplicates (ADR-008 decision 8): measured on the shards by hashing each document's token sequence (identical text gives identical tokens with the frozen tokenizer). Reported: within-source and cross-source exact duplicate token shares per source, and validation-vs-training exact duplicates per source. The 1% cross-source rule returns the decision to the owner; any validation-vs-training duplicate is reported and those validation documents are excluded from val_text."
+      - "Disjointness is checked twice: (1) every validation key recomputes to u < val_fraction under the partition hash (so it cannot be in a training partition), (2) no validation document's token hash occurs in the training partitions of any source."
+      - "GPT-2 proxy slice: indexes proxy_gpt2_train (first 1.0B tokens of the GPT-2-tokenized FineWeb-Edu stable documents, seeded block permutation) and proxy_gpt2_val (up to 10,240 blocks of the GPT-2-tokenized FineWeb-Edu validation documents)."
     conclusion: null
   - id: EXP-M1B-SUITE
     milestone: M1b
