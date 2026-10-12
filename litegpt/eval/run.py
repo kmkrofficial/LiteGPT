@@ -38,16 +38,38 @@ def resolve_model(spec: str) -> dict:
             "license": (info.card_data.to_dict() if info.card_data else {}).get("license")}
 
 
-def local_with_template(model: dict, template_file: str) -> str:
-    """Snapshot of the pinned revision with `chat_template` added to tokenizer_config.json (for models published without one)."""
+GEN_LENGTH_KEYS = ("max_new_tokens", "max_length")
+
+
+def generation_length_override(model: dict) -> dict:
+    """Length keys in the model's generation_config.json; transformers lets them override lm-eval's generation limit."""
+    from huggingface_hub import hf_hub_download
+    try:
+        p = hf_hub_download(model["repo"], "generation_config.json", revision=model["revision"])
+    except Exception:
+        return {}
+    cfg = json.loads(Path(p).read_text(encoding="utf-8"))
+    return {k: cfg[k] for k in GEN_LENGTH_KEYS if cfg.get(k) is not None}
+
+
+def local_copy(model: dict, template_file: str | None = None) -> tuple[str, dict]:
+    """Snapshot of the pinned revision, adjusted for the suite protocol: a chat template for models published without one
+    (V1-Instruct), and generation-length keys removed from generation_config.json so lm-eval's limits apply."""
     from huggingface_hub import snapshot_download
-    dest = Path.home() / ".cache" / "litegpt" / "templated" / f"{model['repo'].replace('/', '__')}@{model['revision'][:12]}"
+    dest = Path.home() / ".cache" / "litegpt" / "adjusted" / f"{model['repo'].replace('/', '__')}@{model['revision'][:12]}"
     snapshot_download(model["repo"], revision=model["revision"], local_dir=dest)
-    cfg_path = dest / "tokenizer_config.json"
-    cfg = json.loads(cfg_path.read_text(encoding="utf-8")) if cfg_path.exists() else {}
-    cfg["chat_template"] = Path(template_file).read_text(encoding="utf-8")
-    cfg_path.write_text(json.dumps(cfg, indent=1, ensure_ascii=False), encoding="utf-8")
-    return str(dest)
+    if template_file:
+        cfg_path = dest / "tokenizer_config.json"
+        cfg = json.loads(cfg_path.read_text(encoding="utf-8")) if cfg_path.exists() else {}
+        cfg["chat_template"] = Path(template_file).read_text(encoding="utf-8")
+        cfg_path.write_text(json.dumps(cfg, indent=1, ensure_ascii=False), encoding="utf-8")
+    removed = {}
+    gc_path = dest / "generation_config.json"
+    if gc_path.exists():
+        gc = json.loads(gc_path.read_text(encoding="utf-8"))
+        removed = {k: gc.pop(k) for k in GEN_LENGTH_KEYS if gc.get(k) is not None}
+        gc_path.write_text(json.dumps(gc, indent=1), encoding="utf-8")
+    return str(dest), removed
 
 
 def task_dataset_revisions(task_names: list[str]) -> dict:
@@ -114,8 +136,12 @@ def main() -> int:
         "chat_template": Path(args.chat_template_file).read_text(encoding="utf-8") if args.chat_template_file else None})
     seed = suite["protocol"]["seed"]
     pretrained = f"pretrained={model['repo']},revision={model['revision']}"
-    if args.chat_template_file:
-        pretrained = f"pretrained={local_with_template(model, args.chat_template_file)}"
+    override = generation_length_override(model)
+    removed = {}
+    if args.chat_template_file or override:
+        path, removed = local_copy(model, args.chat_template_file)
+        pretrained = f"pretrained={path}"
+    rec.update(generation_config_removed=removed)            # recorded in run.json (protocol correction, EXP-M1B-SUITE)
     model_args = f"{pretrained},dtype=bfloat16,trust_remote_code=False" + (f",{args.extra_model_args}" if args.extra_model_args else "")
     results, revisions = {}, {}
     for g in groups:
