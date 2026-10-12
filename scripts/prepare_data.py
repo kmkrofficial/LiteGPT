@@ -257,6 +257,23 @@ def cmd_mix(args) -> int:
     return 0
 
 
+def cmd_index(args) -> int:
+    """Extra single-purpose index over existing shards (e.g. FineWeb-only for ladder step 7); records its sha256."""
+    from litegpt import data as D, dataprep as P
+    from litegpt.records import RunRecord
+    run_dir = Path(args.run).resolve()
+    rec = RunRecord(run_dir, json.loads((run_dir / "run.json").read_text(encoding="utf-8")))
+    shards = P.collect_shards(run_dir / "shards")
+    weights = json.loads(args.weights)
+    nb = {n: D.block_count(len(shards[f"{n}/{args.part}"])) for n in weights}
+    src, blk, names = D.build_index(nb, weights, int(args.tokens // D.BLOCK_TOKENS), args.seed)
+    h = D.save_index(run_dir / "shards" / "indexes" / f"{args.name}.npz", src, blk, names, {"part": args.part, "weights": weights})
+    entry = {"name": args.name, "part": args.part, "weights": weights, "blocks": int(len(src)), "seed": args.seed, "sha256": h}
+    rec.log("extra_indexes", **entry)
+    print(json.dumps(entry, indent=1))
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -271,8 +288,15 @@ def main() -> int:
     pp.add_argument("--resume", default=None, help="existing data run directory to continue")
     pm = sub.add_parser("mix", help="build stable/decay/validation/proxy indexes and freeze hashes")
     pm.add_argument("--run", required=True, help="data run directory holding shards/")
+    pi = sub.add_parser("index", help="extra index over existing shards (recorded in <run>/extra_indexes.jsonl)")
+    pi.add_argument("--run", required=True)
+    pi.add_argument("--name", required=True)
+    pi.add_argument("--part", default="stable")
+    pi.add_argument("--weights", required=True, help='JSON, e.g. {"fineweb_edu": 1.0}')
+    pi.add_argument("--tokens", type=float, required=True)
+    pi.add_argument("--seed", type=int, default=20261011)
     args = ap.parse_args()
-    return {"verify": cmd_verify, "prepare": cmd_prepare, "mix": cmd_mix}[args.cmd](args)
+    return {"verify": cmd_verify, "prepare": cmd_prepare, "mix": cmd_mix, "index": cmd_index}[args.cmd](args)
 
 
 if __name__ == "__main__":

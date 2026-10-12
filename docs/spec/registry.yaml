@@ -318,3 +318,43 @@ experiments:
       - "Qwen3-0.6B (hybrid thinking model) is scored with thinking disabled (lm-eval enable_thinking=False; XSTest: enable_thinking=False in the chat template), so every instruct model answers directly."
       - "Base suite batch size 16 for every model; efficiency runs are executed only when no other GPU job is running."
     conclusion: null
+  - id: EXP-M2-LADDER
+    milestone: M2
+    hypothesis: "Each V2 architecture change (ADR-005) improves or does not hurt bits-per-byte at proxy scale when applied one at a time; the 32k tokenizer and the code+math mixture have measurable, reported per-domain effects."
+    config: benchmarks/ablation.py + litegpt/training/ + benchmarks/ladder/*.yaml
+    parent: null
+    status: pre-registered
+    runs: []
+    decisions:   # PRE-REGISTERED 2026-10-12 before any ladder run (owner-approved PLAN_M2.md rev 1)
+      proxy: "about 32M non-embedding parameters (held within +-3% of step 1 by MLP width), context 2048, 1.0B tokens per run, identical optimizer / schedule / batch / data order for every step"
+      steps:
+        s1: "V1 architecture: 8L x 576, 9 heads MHA, GELU MLP hidden 2304, LayerNorm (no bias, eps 1e-5), learned positions, tied embeddings; GPT-2 tokenizer, FineWeb-Edu (proxy_gpt2_train); seeds 1 and 2"
+        s2: "+ RoPE (theta 10000) instead of learned positions"
+        s3: "+ RMSNorm (pre-norm and final) and per-head QK-norm before RoPE"
+        s4: "+ SwiGLU MLP, hidden 1536 (parameter-matched)"
+        s5: "+ GQA 9 query / 3 key-value heads, SwiGLU hidden 1792 (parameter-matched)"
+        s6: "+ deep-thin: 18L x 384, 6 query / 2 key-value heads, SwiGLU hidden 1216 (= LiteGPT architecture at proxy scale)"
+        s7: "+ LiteGPT 32k tokenizer, FineWeb-Edu only (LiteGPT tokens)"
+        s8a: "+ full stable mixture (index proxy_1b)"
+        s8b: "same as 8a without code and math (index proxy_1b_nocodemath) - the single registered mixture ablation"
+      optimizer: "AdamW betas (0.9, 0.95), weight decay 0.1 on 2-D weights, gradient clipping 1.0, bf16 autocast, torch.compile, ~262k tokens per step (16 x 2048 x 8 accumulation)"
+      schedule: "WSD: linear warmup over the first 1% of tokens, constant, then decay over the last 20% to 10% of the peak (1-sqrt shape)"
+    thresholds:
+      noise_floor: "s = |BPB(s1 seed 1) - BPB(s1 seed 2)| on val_text/web at the end of training"
+      effect: "a step helps if web BPB drops by more than max(2s, 0.005), hurts if it rises by more than that, otherwise no measurable effect at proxy scale; steps 7-8 are judged per domain (web, synthetic, code, math, chat) with the same rule"
+      adoption: "not automatic: results are evidence for ADR-005; a step that hurts is returned to the owner with the numbers"
+      validity: "invalid if training diverges (non-finite loss, or a spike > 10% above the running minimum that does not recover within 1% of the run), throttles thermally for > 5% of its time, or deviates from the shared configuration"
+      proxy_lr: "sweep 1e-3, 2e-3, 4e-3 on s1 seed 1 for 0.25B tokens each (same schedule shape); lowest val_text/web BPB wins, ties within 0.002 go to the lower LR; the winner is used for every ladder step"
+    conclusion: null
+  - id: EXP-M2-M3LR
+    milestone: M2
+    hypothesis: "A short sweep on the real 28-layer model identifies the M3 peak learning rate."
+    config: litegpt/training/ (litegpt-v2-28l, stable index, micro-batch 4 x 2048 x 64 accumulation = 524,288 tokens per step)
+    parent: EXP-M2-LADDER
+    status: pre-registered
+    runs: []
+    thresholds:   # PRE-REGISTERED 2026-10-12
+      grid: "peak LR 6e-4, 1.2e-3, 2.4e-3; 0.2B tokens each; WSD with 2% warmup and the last 25% as decay; same data order (stable index prefix)"
+      rule: "lowest val_core BPB after the decay wins; if the winner is an end point of the grid, one more point (x0.5 or x2) is run before deciding; ties within 0.003 BPB go to the lower LR"
+      adoption: "the proposed M3 LR goes into the spec only with the owner's approval (M3 freeze)"
+    conclusion: null
