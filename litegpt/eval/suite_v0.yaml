@@ -21,7 +21,7 @@ base:                         # all base models (and instruct models for referen
   - {name: mbpp, tasks: [mbpp], num_fewshot: 3, unsafe_code: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}
 
 instruct:                     # instruct / chat models, each with its own chat template
-  - {name: ifeval, tasks: [ifeval], num_fewshot: 0, chat: true, gen_kwargs: {max_gen_toks: 1280, max_new_tokens: 1280}}
+  - {name: ifeval, tasks: [ifeval], num_fewshot: 0, chat: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}   # registered instruct cap (EXP-M1B-SUITE)
   - {name: gsm8k_chat, tasks: [gsm8k_cot_zeroshot], num_fewshot: 0, chat: true, gen_kwargs: {max_gen_toks: 256, max_new_tokens: 256}}
   - {name: code_chat, tasks: [humaneval_instruct, mbpp_instruct], num_fewshot: 0, chat: true, unsafe_code: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}
   - {name: xstest, native: xstest, chat: true, max_new_tokens: 256}
