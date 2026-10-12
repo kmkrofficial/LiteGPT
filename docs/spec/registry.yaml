@@ -313,4 +313,8 @@ experiments:
       exclusions: "MobileLLM-125M/350M unless loadable without trust_remote_code in transformers 5.18 (recorded either way)"
       revisions: "resolved and pinned at run time; stored in each record"
       published_numbers: "never mixed with measured ones; context columns (training tokens, licence) are labelled as published"
+    clarifications:   # recorded 2026-10-12 BEFORE any instruct-suite score
+      - "V1-Instruct (koganrath/LiteGPT-Instruct) is published without a chat template; it is scored with V1's own inference prompt as a template (litegpt/eval/templates/alpaca_v1.jinja, sha256 8c0747d2debaf278..., verified to reproduce scripts/legacy_v1/hugging_face_inference/inference_instruct.py exactly), applied to a local copy of the pinned snapshot. The template text is stored in each run record."
+      - "Qwen3-0.6B (hybrid thinking model) is scored with thinking disabled (lm-eval enable_thinking=False; XSTest: enable_thinking=False in the chat template), so every instruct model answers directly."
+      - "Base suite batch size 16 for every model; efficiency runs are executed only when no other GPU job is running."
     conclusion: null

@@ -38,6 +38,18 @@ def resolve_model(spec: str) -> dict:
             "license": (info.card_data.to_dict() if info.card_data else {}).get("license")}
 
 
+def local_with_template(model: dict, template_file: str) -> str:
+    """Snapshot of the pinned revision with `chat_template` added to tokenizer_config.json (for models published without one)."""
+    from huggingface_hub import snapshot_download
+    dest = Path.home() / ".cache" / "litegpt" / "templated" / f"{model['repo'].replace('/', '__')}@{model['revision'][:12]}"
+    snapshot_download(model["repo"], revision=model["revision"], local_dir=dest)
+    cfg_path = dest / "tokenizer_config.json"
+    cfg = json.loads(cfg_path.read_text(encoding="utf-8")) if cfg_path.exists() else {}
+    cfg["chat_template"] = Path(template_file).read_text(encoding="utf-8")
+    cfg_path.write_text(json.dumps(cfg, indent=1, ensure_ascii=False), encoding="utf-8")
+    return str(dest)
+
+
 def task_dataset_revisions(task_names: list[str]) -> dict:
     """Resolved Hub commit of each task's dataset (recorded; compared with the decontamination pins)."""
     from huggingface_hub import HfApi
@@ -76,6 +88,9 @@ def main() -> int:
     ap.add_argument("--batch-size", default="16")
     ap.add_argument("--groups", default=None, help="comma-separated subset of suite groups (default: all)")
     ap.add_argument("--limit", type=int, default=None, help="smoke tests only: record is marked non-comparable")
+    ap.add_argument("--extra-model-args", default="", help="appended to lm-eval model_args, e.g. enable_thinking=False (Qwen3)")
+    ap.add_argument("--chat-template-file", default=None,
+                    help="for chat models without a template (V1-Instruct): a local copy of the pinned snapshot gets this template")
     args = ap.parse_args()
 
     import lm_eval
@@ -90,9 +105,14 @@ def main() -> int:
         os.environ["HF_ALLOW_CODE_EVAL"] = "1"
     rec = create_run("eval", f"{args.suite}-{model['repo'].split('/')[-1]}", config={
         "suite_version": suite["suite_version"], "suite": args.suite, "groups": [g["name"] for g in groups], "model": model,
-        "batch_size": args.batch_size, "limit": args.limit, "comparable": args.limit is None})
+        "batch_size": args.batch_size, "limit": args.limit, "comparable": args.limit is None,
+        "extra_model_args": args.extra_model_args,
+        "chat_template": Path(args.chat_template_file).read_text(encoding="utf-8") if args.chat_template_file else None})
     seed = suite["protocol"]["seed"]
-    model_args = f"pretrained={model['repo']},revision={model['revision']},dtype=bfloat16,trust_remote_code=False"
+    pretrained = f"pretrained={model['repo']},revision={model['revision']}"
+    if args.chat_template_file:
+        pretrained = f"pretrained={local_with_template(model, args.chat_template_file)}"
+    model_args = f"{pretrained},dtype=bfloat16,trust_remote_code=False" + (f",{args.extra_model_args}" if args.extra_model_args else "")
     results, revisions = {}, {}
     for g in groups:
         if g.get("native"):

@@ -118,6 +118,8 @@ def cmd_efficiency(args, model_info) -> dict:
 def cmd_xstest(args, model_info) -> dict:
     from datasets import load_dataset
     model, tok = load_hf(model_info["repo"], model_info["revision"])
+    if args.chat_template_file:
+        tok.chat_template = Path(args.chat_template_file).read_text(encoding="utf-8")
     if not getattr(tok, "chat_template", None):
         raise SystemExit("xstest needs a chat model with a chat template")
     ds = load_dataset(XSTEST["repo"], split=XSTEST["split"], revision=XSTEST["revision"])
@@ -153,6 +155,7 @@ def main() -> int:
     ap.add_argument("--val-dir", default=None, help="bpb: directory of <domain>.jsonl raw validation documents")
     ap.add_argument("--new-tokens", type=int, default=128)
     ap.add_argument("--batch-size", type=int, default=16)
+    ap.add_argument("--chat-template-file", default=None, help="xstest: template for chat models published without one (V1-Instruct)")
     args = ap.parse_args()
     info = resolve_model(args.model)
     rec = create_run("eval", f"{args.task}-{info['repo'].split('/')[-1]}", config={"task": args.task, "model": info, "args": vars(args)})
