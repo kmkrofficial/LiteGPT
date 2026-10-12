@@ -19,7 +19,7 @@ litegpt = "litegpt.cli:main"
 
 [dependency-groups]
 train = ["datasets==5.1.0", "matplotlib==3.11.2", "pyyaml", "nvidia-ml-py"]
-eval = ["lm-eval==0.4.13", "transformers==5.18.0", "datasets==5.1.0"]
+eval = ["lm-eval[ifeval]==0.4.13", "transformers==5.18.0", "datasets==5.1.0"]
 hf = ["transformers==5.18.0"]
 # Optional cross-check tools only (e.g. verify our DPO loss against TRL on the HF export).
 # The V2 architecture and training loop do not depend on them.
