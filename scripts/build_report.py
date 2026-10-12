@@ -271,7 +271,7 @@ def load_data_run() -> dict | None:
 
 
 def chart_mixture(mixture: dict, out: Path) -> str:
-    names = sorted(set(mixture["stable"]) | set(mixture["decay"]), key=lambda n: -mixture["stable"].get(n, 0))
+    names = sorted(set(mixture["stable"]) | set(mixture["decay"]), key=lambda n: (-mixture["stable"].get(n, 0), n))  # name breaks ties: set order varies per process
     y = list(range(len(names)))
     fig, ax = plt.subplots(figsize=(7.5, 0.42 * len(names) + 1.2))
     h = 0.38
@@ -362,6 +362,192 @@ def data_section(A, out: Path) -> list:
     ] + [[f"val_text/{k}.jsonl ({v['docs']:,} docs, {v['bytes'] / 1e6:.1f} MB)", f"`{v['sha256']}`"] for k, v in sorted(mix.get("val_text", {}).items())]))
     A("")
     return d["files"]
+
+
+# ---------------------------------------------------------------- baselines (M1b) ----------------------------------
+ZERO_SHOT = ["hellaswag", "arc_easy", "arc_challenge", "piqa", "openbookqa", "commonsense_qa", "winogrande",
+             "mmlu_continuation", "truthfulqa_mc1", "truthfulqa_mc2"]
+GENERATIVE = ["triviaqa", "gsm8k", "humaneval", "mbpp"]
+INSTRUCT_TASKS = ["ifeval", "gsm8k_cot_zeroshot", "humaneval_instruct", "mbpp_instruct"]
+EVAL_DIR = REPO_ROOT / "litegpt" / "eval"
+
+
+def load_eval_records() -> dict:
+    """Latest complete, comparable record per (kind, model repo); kind is base | instruct | xstest | efficiency | bpb.
+    A suite record counts only when it ran every non-native group of its suite and wrote eval/summary.json."""
+    import yaml
+    suite = yaml.safe_load((EVAL_DIR / "suite_v0.yaml").read_text(encoding="utf-8"))
+    out = {}
+    for run_json in sorted(RUNS_DIR.glob("*-eval-*/run.json")):
+        run = json.loads(run_json.read_text(encoding="utf-8"))
+        cfg = run.get("config", {})
+        repo = cfg.get("model", {}).get("repo")
+        if cfg.get("suite") in ("base", "instruct"):
+            kind, res = cfg["suite"], run_json.parent / "eval" / "summary.json"
+            need = {g["name"] for g in suite[kind] if not g.get("native")}
+            if not cfg.get("comparable") or not need <= set(cfg.get("groups", [])):
+                continue
+        elif cfg.get("task") in ("xstest", "efficiency", "bpb"):
+            kind, res = cfg["task"], run_json.parent / "eval" / f"{cfg['task']}.json"
+        else:
+            continue
+        if not repo or not res.exists():
+            continue
+        problems = validate_run_record(run)
+        if problems:
+            raise ValueError(f"{run_json.parent.name}: invalid run record: {problems}")
+        out[(kind, repo)] = {"run": run, "result": json.loads(res.read_text(encoding="utf-8")), "files": [run_json, res]}
+    return out
+
+
+def fmt_tokens(n) -> str:
+    if n is None:
+        return "not published"
+    return f"{n / 1e12:g}T" if n >= 1e12 else f"{n / 1e9:.0f}B"
+
+
+def chart_capability(points, out: Path) -> str:
+    fig, ax = plt.subplots(figsize=(7.2, 4.0))
+    for label, x, y, v1 in points:
+        ax.scatter([x], [y], s=46, color=ORANGE if v1 else BLUE, zorder=3)
+        ax.annotate(label, (x, y), textcoords="offset points", xytext=(5, 4), fontsize=8, color=INK2)
+    ax.set_xscale("log")
+    ax.set_xlabel("parameters (millions, counted from the weights, log scale)")
+    ax.set_ylabel("zero-shot mean (10 tasks)")
+    ax.grid(True, color=GRID, linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.set_title("Capability vs parameters (orange = LiteGPT V1)", loc="left", fontsize=11)
+    fig.tight_layout()
+    save_svg(fig, out / "baselines_capability.svg")
+    return "figures/baselines_capability.svg"
+
+
+def chart_bpb(domains, points, out: Path) -> str:
+    fig, axes = plt.subplots(1, len(domains), figsize=(2.3 * len(domains) + 0.6, 3.2), sharey=False, squeeze=False)
+    for ax, dom in zip(axes[0], domains):
+        for label, x, vals, v1 in points:
+            if dom in vals:
+                ax.scatter([x], [vals[dom]], s=30, color=ORANGE if v1 else BLUE, zorder=3)
+        ax.set_xscale("log")
+        ax.set_title(dom, fontsize=9, loc="left")
+        ax.tick_params(labelsize=7)
+        ax.grid(True, color=GRID, linewidth=0.8)
+        ax.set_axisbelow(True)
+    axes[0][0].set_ylabel("bits per byte (lower is better)", fontsize=8)
+    fig.supxlabel("parameters (millions, log scale)", fontsize=8)
+    fig.suptitle("Bits per byte on the M1 validation text vs parameters (orange = LiteGPT V1)", fontsize=10, x=0.01, ha="left")
+    fig.tight_layout()
+    save_svg(fig, out / "baselines_bpb.svg")
+    return "figures/baselines_bpb.svg"
+
+
+def baselines_section(A, out: Path) -> list:
+    import yaml
+    recs = load_eval_records()
+    A("## 3d. Baselines (M1b)\n")
+    if not recs:
+        A("_No baseline records yet (`python -m litegpt.eval.run`)._\n")
+        return []
+    suite = yaml.safe_load((EVAL_DIR / "suite_v0.yaml").read_text(encoding="utf-8"))
+    ctx = yaml.safe_load((EVAL_DIR / "baseline_context.yaml").read_text(encoding="utf-8"))["models"]
+    order = [c["repo"] for c in ctx]
+    label = {c["repo"]: c["label"] for c in ctx}
+    repos = sorted({r for _, r in recs}, key=lambda r: (order.index(r) if r in order else len(order), r))
+    get = lambda kind, repo: recs.get((kind, repo))  # noqa: E731
+    params = {r: get("efficiency", r)["result"].get("params") for r in repos if get("efficiency", r)}
+    params = {r: p for r, p in params.items() if p}
+    is_v1 = lambda r: r.startswith("koganrath/")  # noqa: E731
+    f3 = lambda v: f"{v:.3f}" if isinstance(v, (int, float)) else "–"  # noqa: E731
+    A(f"Suite v{suite['suite_version']} ({suite['harness']['name']} {suite['harness']['version']}), seed {suite['protocol']['seed']}, "
+      f"greedy, bf16; one record per model and part (the latest complete, comparable run). Parameters are counted from the "
+      f"loaded weights (efficiency records); training tokens are the publishers' figures (`litegpt/eval/baseline_context.yaml`), "
+      f"shown as published, not measured.\n")
+    A("### Models\n")
+    rows = []
+    for r in repos:
+        c = next((x for x in ctx if x["repo"] == r), {})
+        any_rec = next(v for (k, rr), v in sorted(recs.items()) if rr == r)
+        m = any_rec["run"]["config"]["model"]
+        p = params.get(r)
+        rows.append([label.get(r, r), c.get("role", "–"), f"`{r}`", f"`{m['revision'][:12]}`",
+                     f"{p['total'] / 1e6:.1f}M" if p else "–", f"{p['non_embedding'] / 1e6:.1f}M" if p else "–",
+                     f"{p['vocab_size']:,}" if p else "–",
+                     (c.get("training_tokens_note", "") + " " + fmt_tokens(c.get("training_tokens"))).strip() if c else "–",
+                     m.get("license") or "–"])
+    A(md_table(["model", "role", "repo", "revision", "params", "non-embedding", "vocab", "training tokens (published)", "licence (card)"], rows))
+    A("")
+    head = suite["headline_metrics"]
+    base = [r for r in repos if get("base", r)]
+    if base:
+        A("### Base suite: zero-shot (higher is better)\n")
+        rows = []
+        for r in base:
+            h = get("base", r)["result"]["headline"]
+            vals = [h.get(t, {}).get("value") for t in ZERO_SHOT]
+            mean = sum(vals) / len(vals) if all(v is not None for v in vals) else None
+            rows.append([label.get(r, r)] + [f3(v) for v in vals] + [f3(mean)])
+        A(md_table(["model"] + [f"{t} ({head[t]})" for t in ZERO_SHOT] + ["mean (descriptive)"], rows))
+        A("\n### Base suite: generative (higher is better; ± standard error)\n")
+        rows = []
+        for r in base:
+            h = get("base", r)["result"]["headline"]
+            rows.append([label.get(r, r)] + [f"{f3(h[t]['value'])} ± {f3(h[t].get('stderr'))}" if t in h else "–" for t in GENERATIVE])
+        A(md_table(["model"] + [f"{t} ({head[t]})" for t in GENERATIVE], rows))
+        A("\nTriviaQA: the registered 2,000-question subset (5-shot); GSM8K 5-shot; HumanEval 0-shot and MBPP 3-shot, pass@1 greedy, "
+          "at most 512 new tokens, executed in WSL2.\n")
+    inst = [r for r in repos if get("instruct", r) or get("xstest", r)]
+    if inst:
+        A("### Instruct suite and XSTest\n")
+        rows = []
+        for r in inst:
+            h = get("instruct", r)["result"]["headline"] if get("instruct", r) else {}
+            x = get("xstest", r)["result"] if get("xstest", r) else {}
+            rows.append([label.get(r, r)] + [f3(h.get(t, {}).get("value")) for t in INSTRUCT_TASKS]
+                        + [f"{100 * x['unsafe_refusal_rate']:.1f}%" if x else "–", f"{100 * x['safe_over_refusal_rate']:.1f}%" if x else "–"])
+        A(md_table(["model"] + [f"{t} ({head[t]})" for t in INSTRUCT_TASKS]
+                   + ["XSTest unsafe refused (higher is safer)", "XSTest safe refused (lower is better)"], rows))
+        A("\nEach model's own chat template (V1-Instruct: its Alpaca template, `litegpt/eval/templates/alpaca_v1.jinja`; Qwen3 with "
+          "thinking disabled); at most 512 new tokens per answer (256 for GSM8K and XSTest). XSTest uses a string-match refusal "
+          "classifier, no LLM judge.\n")
+    bpb = [r for r in repos if get("bpb", r)]
+    domains = sorted({d for r in bpb for d in get("bpb", r)["result"]["domains"]})
+    if bpb:
+        A("### Bits per byte on the M1 validation text (lower is better)\n")
+        A(md_table(["model"] + domains + ["window / stride"],
+                   [[label.get(r, r)] + [f3(get("bpb", r)["result"]["domains"].get(d, {}).get("bpb")) for d in domains]
+                    + [f"{get('bpb', r)['result']['window']} / {get('bpb', r)['result']['stride']}"] for r in bpb]))
+        A("\nTokenizer-independent: summed negative log-likelihood over each document's UTF-8 bytes, sliding window of "
+          "min(context, 2,048) tokens. Documents: `val_text/*.jsonl` of the M1 data run (hashes in section 3c).\n")
+    eff = [r for r in repos if get("efficiency", r)]
+    if eff:
+        A("### Efficiency on this laptop (bf16, HF transformers generate with KV cache, prompt 512 tokens, 128 new tokens)\n")
+        rows = []
+        for r in eff:
+            res = get("efficiency", r)["result"]
+            row = {(x["prompt_tokens"], x["batch"]): x for x in res["rows"]}
+            b1, b8 = row.get((512, 1)), row.get((512, 8))
+            rows.append([label.get(r, r), f"{b1['prefill_tok_s']:,.0f}" if b1 else "–", f"{1000 * b1['ttft_s']:.1f}" if b1 else "–",
+                         f"{b1['decode_tok_s']:,.0f}" if b1 else "–", f"{b1['decode_bytes_s']:,.0f}" if b1 else "–",
+                         f"{b8['decode_tok_s']:,.0f}" if b8 else "–", f"{b8['peak_vram_GiB']:.2f}" if b8 else "–",
+                         f"{res['gpu_power_limit_w']:.0f}" if res.get("gpu_power_limit_w") else "–"])
+        A(md_table(["model", "prefill tok/s (b1)", "time to first token ms (b1)", "decode tok/s (b1)", "decode bytes/s (b1)",
+                    "decode tok/s (b8)", "peak VRAM GiB (b8)", "GPU power limit W"], rows))
+        A("\nDecode bytes/s divides generated UTF-8 bytes by decode time, so models with different tokenizers compare fairly. "
+          "Prompt 128 and batch combinations are in the records.\n")
+    pts = []
+    for r in base:
+        h = get("base", r)["result"]["headline"]
+        vals = [h.get(t, {}).get("value") for t in ZERO_SHOT]
+        if r in params and all(v is not None for v in vals):
+            pts.append((label.get(r, r), params[r]["total"] / 1e6, sum(vals) / len(vals), is_v1(r)))
+    if pts:
+        A(f"![capability vs parameters]({chart_capability(pts, out / 'figures')})\n")
+    bpts = [(label.get(r, r), params[r]["total"] / 1e6, {d: v["bpb"] for d, v in get("bpb", r)["result"]["domains"].items()}, is_v1(r))
+            for r in bpb if r in params]
+    if bpts:
+        A(f"![bits per byte vs parameters]({chart_bpb(domains, bpts, out / 'figures')})\n")
+    A("The zero-shot mean is an unweighted average shown for orientation only; comparisons use the per-task numbers.\n")
+    return [f for _, v in sorted(recs.items()) for f in v["files"]]
 
 
 def env_label(run: dict) -> str:
@@ -513,9 +699,10 @@ def build(out: Path) -> None:
             A(f"![power sweep]({fig})\n")
 
     data_files = data_section(A, out)
+    eval_files = baselines_section(A, out)
     A("## 4. Data provenance of this report\n")
     files = ([f for r in runs for f in r["files"]] + [f for r in eqs for f in r["files"]]
-             + [f for r in sweeps for f in r["files"]] + data_files)
+             + [f for r in sweeps for f in r["files"]] + data_files + eval_files)
     A(md_table(["file", "sha256 (12)"], [[f"`runs/{f.relative_to(RUNS_DIR).as_posix()}`", sha_short(f)] for f in files])
       if files else "_No input run records._")
     A("\n## 5. Reproduce\n")

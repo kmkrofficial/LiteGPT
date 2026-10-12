@@ -165,3 +165,45 @@ def test_data_section_without_data_run(sandbox, tmp_path):
     out = tmp_path / "out"
     rb.build(out)
     assert "No mixed data run yet" in (out / "REPORT.md").read_text(encoding="utf-8")
+
+
+def _fake_eval(runs_dir: Path, name: str, config: dict, path: str, result: dict) -> Path:
+    rec = records.create_run("eval", name, root=runs_dir, config=config)
+    rec.write_json(path, result)
+    return rec.path
+
+
+def test_baselines_section_renders_from_records(sandbox, tmp_path):
+    from scripts.build_report import GENERATIVE, ZERO_SHOT
+    gpt2 = {"repo": "openai-community/gpt2", "revision": "a" * 40, "license": "mit"}
+    v1 = {"repo": "koganrath/LiteGPT-Instruct", "revision": "b" * 40, "license": "apache-2.0"}
+    groups = ["zero_shot_lm", "triviaqa", "gsm8k", "code", "mbpp"]
+    head = {t: {"metric": "acc", "value": 0.25, "stderr": 0.01} for t in ZERO_SHOT + GENERATIVE}
+    _fake_eval(sandbox, "base-gpt2", {"suite": "base", "model": gpt2, "comparable": True, "groups": groups},
+               "eval/summary.json", {"headline": dict(head, hellaswag={"metric": "acc_norm", "value": 0.313, "stderr": 0.005})})
+    _fake_eval(sandbox, "base-gpt2-smoke", {"suite": "base", "model": gpt2, "comparable": False, "groups": groups},  # ignored
+               "eval/summary.json", {"headline": dict(head, hellaswag={"metric": "acc_norm", "value": 0.999})})
+    _fake_eval(sandbox, "efficiency-gpt2", {"task": "efficiency", "model": gpt2}, "eval/efficiency.json",
+               {"rows": [{"prompt_tokens": 512, "batch": b, "prefill_tok_s": 9000.0, "ttft_s": 0.02, "decode_tok_s": 150.0 * b,
+                          "decode_bytes_s": 600.0, "peak_vram_GiB": 0.7} for b in (1, 8)], "gpu_power_limit_w": 175.0,
+                "params": {"total": 124439808, "embedding": 39383808, "non_embedding": 85056000, "tied_output": True, "vocab_size": 50257}})
+    _fake_eval(sandbox, "bpb-gpt2", {"task": "bpb", "model": gpt2}, "eval/bpb.json",
+               {"window": 1024, "stride": 512, "domains": {"web": {"bpb": 1.111}, "code": {"bpb": 2.222}}})
+    _fake_eval(sandbox, "xstest-LiteGPT-Instruct", {"task": "xstest", "model": v1}, "eval/xstest.json",
+               {"unsafe_refusal_rate": 0.0, "safe_over_refusal_rate": 0.04})
+    out = tmp_path / "out"
+    rb.build(out)
+    text = (out / "REPORT.md").read_text(encoding="utf-8")
+    assert "## 3d. Baselines (M1b)" in text
+    assert "0.313" in text and "0.999" not in text                  # latest COMPLETE, COMPARABLE record only
+    assert "124.4M" in text and "85.1M" in text and "50,257" in text  # counted parameters from the efficiency record
+    assert "not published" in text and "300B" not in text            # GPT-2 tokens: published context, not invented
+    assert "1.111" in text and "2.222" in text and "4.0%" in text and "1,200" in text
+    assert (out / "figures" / "baselines_capability.svg").exists() and (out / "figures" / "baselines_bpb.svg").exists()
+    assert "eval/efficiency.json" in text                             # listed as a report input
+
+
+def test_baselines_section_without_records(sandbox, tmp_path):
+    out = tmp_path / "out"
+    rb.build(out)
+    assert "No baseline records yet" in (out / "REPORT.md").read_text(encoding="utf-8")

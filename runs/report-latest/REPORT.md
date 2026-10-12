@@ -412,6 +412,68 @@ E-mail addresses redacted in 181,283 documents. `keep_fraction` drops only bound
 | val_text/synthetic.jsonl (540 docs, 2.0 MB) | `ca20fb1b388d8bb310b689e0093862e929f35229e4db78e6b0f00f54e0e40026` |
 | val_text/web.jsonl (423 docs, 2.0 MB) | `bebad4065f4b953954844d9230916639a5f288a13982a13eb1d7349c439cff52` |
 
+## 3d. Baselines (M1b)
+
+Suite v0.1.0 (lm-evaluation-harness 0.4.13), seed 1234, greedy, bf16; one record per model and part (the latest complete, comparable run). Parameters are counted from the loaded weights (efficiency records); training tokens are the publishers' figures (`litegpt/eval/baseline_context.yaml`), shown as published, not measured.
+
+### Models
+
+| model | role | repo | revision | params | non-embedding | vocab | training tokens (published) | licence (card) |
+|---|---|---|---|---|---|---|---|---|
+| LiteGPT V1 Base | V1 | `koganrath/LiteGPT-Base` | `62ccc46d556d` | – | – | – | 10B | apache-2.0 |
+| LiteGPT V1 Instruct | V1 | `koganrath/LiteGPT-Instruct` | `a9fe728b9f2e` | – | – | – | 10B | apache-2.0 |
+| GPT-2 | same class | `openai-community/gpt2` | `607a30d783df` | – | – | – | not published | mit |
+| SmolLM2-135M | same class | `HuggingFaceTB/SmolLM2-135M` | `93efa2f097d5` | – | – | – | 2T | apache-2.0 |
+| Pythia-160M | same class | `EleutherAI/pythia-160m` | `50f5173d932e` | – | – | – | 300B | apache-2.0 |
+| Gemma 3 270M | same class | `google/gemma-3-270m` | `9b0cfec892e2` | – | – | – | 6T | gemma |
+| GPT-2 Medium | same class | `openai-community/gpt2-medium` | `6dcaa7a952f7` | – | – | – | not published | mit |
+| SmolLM2-360M | same class | `HuggingFaceTB/SmolLM2-360M` | `f8027fd0eaee` | – | – | – | 4T | apache-2.0 |
+| Pythia-410M | same class | `EleutherAI/pythia-410m` | `9879c9b5f8be` | – | – | – | 300B | apache-2.0 |
+| Qwen2.5-0.5B | reference | `Qwen/Qwen2.5-0.5B` | `060db6499f32` | – | – | – | up to 18T | apache-2.0 |
+| Qwen3-0.6B-Base | reference | `Qwen/Qwen3-0.6B-Base` | `da87bfb608c1` | – | – | – | 36T | apache-2.0 |
+
+### Base suite: zero-shot (higher is better)
+
+| model | hellaswag (acc_norm) | arc_easy (acc) | arc_challenge (acc_norm) | piqa (acc) | openbookqa (acc_norm) | commonsense_qa (acc) | winogrande (acc) | mmlu_continuation (acc) | truthfulqa_mc1 (acc) | truthfulqa_mc2 (acc) | mean (descriptive) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LiteGPT V1 Base | 0.326 | 0.529 | 0.255 | 0.630 | 0.326 | 0.197 | 0.522 | 0.265 | 0.244 | 0.415 | 0.371 |
+| GPT-2 | 0.313 | 0.441 | 0.221 | 0.625 | 0.268 | 0.196 | 0.508 | 0.253 | 0.230 | 0.407 | 0.346 |
+| SmolLM2-135M | 0.432 | 0.644 | 0.296 | 0.683 | 0.328 | 0.192 | 0.528 | 0.299 | 0.239 | 0.388 | 0.403 |
+| Pythia-160M | 0.303 | 0.370 | 0.224 | 0.594 | 0.262 | 0.195 | 0.515 | 0.250 | 0.262 | 0.466 | 0.344 |
+| Gemma 3 270M | 0.414 | 0.590 | 0.278 | 0.676 | 0.304 | 0.208 | 0.526 | 0.285 | 0.246 | 0.402 | 0.393 |
+| GPT-2 Medium | 0.394 | 0.497 | 0.254 | 0.674 | 0.294 | 0.195 | 0.520 | 0.269 | 0.228 | 0.405 | 0.373 |
+| SmolLM2-360M | 0.564 | 0.703 | 0.381 | 0.715 | 0.370 | 0.204 | 0.591 | 0.339 | 0.213 | 0.334 | 0.442 |
+| Pythia-410M | 0.402 | 0.515 | 0.242 | 0.669 | 0.294 | 0.190 | 0.552 | 0.275 | 0.246 | 0.413 | 0.380 |
+| Qwen2.5-0.5B | 0.521 | 0.649 | 0.321 | 0.708 | 0.352 | 0.546 | 0.565 | 0.315 | 0.256 | 0.399 | 0.463 |
+| Qwen3-0.6B-Base | 0.538 | 0.652 | 0.383 | 0.697 | 0.350 | 0.586 | 0.588 | 0.344 | 0.295 | 0.459 | 0.489 |
+
+### Base suite: generative (higher is better; ± standard error)
+
+| model | triviaqa (exact_match) | gsm8k (exact_match) | humaneval (pass@1) | mbpp (pass_at_1) |
+|---|---|---|---|---|
+| LiteGPT V1 Base | 0.029 ± 0.004 | 0.002 ± 0.001 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| GPT-2 | 0.017 ± 0.003 | 0.006 ± 0.002 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| SmolLM2-135M | 0.134 ± 0.008 | 0.017 ± 0.004 | 0.000 ± 0.000 | 0.038 ± 0.009 |
+| Pythia-160M | 0.003 ± 0.001 | 0.000 ± 0.000 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| Gemma 3 270M | 0.133 ± 0.008 | 0.011 ± 0.003 | 0.030 ± 0.013 | 0.014 ± 0.005 |
+| GPT-2 Medium | 0.069 ± 0.006 | 0.012 ± 0.003 | 0.000 ± 0.000 | 0.000 ± 0.000 |
+| SmolLM2-360M | 0.242 ± 0.010 | 0.035 ± 0.005 | 0.000 ± 0.000 | 0.176 ± 0.017 |
+| Pythia-410M | 0.081 ± 0.006 | 0.012 ± 0.003 | 0.012 ± 0.009 | 0.012 ± 0.005 |
+| Qwen2.5-0.5B | 0.182 ± 0.009 | 0.348 ± 0.013 | 0.299 ± 0.036 | 0.296 ± 0.020 |
+| Qwen3-0.6B-Base | 0.188 ± 0.009 | 0.490 ± 0.014 | 0.293 ± 0.036 | 0.400 ± 0.022 |
+
+TriviaQA: the registered 2,000-question subset (5-shot); GSM8K 5-shot; HumanEval 0-shot and MBPP 3-shot, pass@1 greedy, at most 512 new tokens, executed in WSL2.
+
+### Instruct suite and XSTest
+
+| model | ifeval (prompt_level_strict_acc) | gsm8k_cot_zeroshot (exact_match) | humaneval_instruct (pass@1) | mbpp_instruct (pass_at_1) | XSTest unsafe refused (higher is safer) | XSTest safe refused (lower is better) |
+|---|---|---|---|---|---|---|
+| LiteGPT V1 Instruct | 0.083 | 0.000 | 0.000 | 0.000 | 0.0% | 0.0% |
+
+Each model's own chat template (V1-Instruct: its Alpaca template, `litegpt/eval/templates/alpaca_v1.jinja`; Qwen3 with thinking disabled); at most 512 new tokens per answer (256 for GSM8K and XSTest). XSTest uses a string-match refusal classifier, no LLM judge.
+
+The zero-shot mean is an unweighted average shown for orientation only; comparisons use the per-task numbers.
+
 ## 4. Data provenance of this report
 
 | file | sha256 (12) |
@@ -458,6 +520,30 @@ E-mail addresses redacted in 181,283 documents. `keep_fraction` drops only bound
 | `runs/20261011T173054Z-data-prepare-1f005bc/mix_manifest.json` | 7032846cc792 |
 | `runs/20261011T173054Z-data-prepare-1f005bc/data_stats.json` | bef6c3c17cea |
 | `runs/20261011T143457Z-data-tokenizer-train-076712e/tokenizer_report.json` | a1c6be80004e |
+| `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/run.json` | 388602a95b1a |
+| `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/eval/summary.json` | ee07c0946208 |
+| `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/run.json` | 1766efd83ec0 |
+| `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/eval/summary.json` | 70411aa5d559 |
+| `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/run.json` | 3d647d142762 |
+| `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/eval/summary.json` | fcba4586f865 |
+| `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/run.json` | 0fde8b28d405 |
+| `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/eval/summary.json` | 7f6e1e3743c4 |
+| `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/run.json` | 7ffb5e44ecdd |
+| `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/eval/summary.json` | 39b29616a600 |
+| `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/run.json` | 5914be5545c7 |
+| `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/eval/summary.json` | de2783c25b47 |
+| `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/run.json` | 81721dcac48c |
+| `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/eval/summary.json` | 580c3d39a108 |
+| `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/run.json` | b549121cb4ee |
+| `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/eval/summary.json` | da40b3a9a058 |
+| `runs/20261012T030635Z-eval-base-gpt2-b096d66/run.json` | 1504f9224982 |
+| `runs/20261012T030635Z-eval-base-gpt2-b096d66/eval/summary.json` | bb3d89f6d0c9 |
+| `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/run.json` | 9b0da7eef302 |
+| `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/eval/summary.json` | 2d72736fe060 |
+| `runs/20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97/run.json` | d961636e077d |
+| `runs/20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97/eval/summary.json` | 459b52653805 |
+| `runs/20261012T155507Z-eval-xstest-LiteGPT-Instruct-298e547/run.json` | 1853cf07c176 |
+| `runs/20261012T155507Z-eval-xstest-LiteGPT-Instruct-298e547/eval/xstest.json` | ac1914865e52 |
 
 ## 5. Reproduce
 
