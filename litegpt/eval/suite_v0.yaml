@@ -1,6 +1,6 @@
 # LiteGPT evaluation suite v0 (EXP-M1B-SUITE). Frozen before the first baseline score; changing anything here needs a new
 # suite version (litegpt/eval/SUITE_VERSION) and a registry entry.
-suite_version: "0.1.0"
+suite_version: "0.1.1"       # 0.1.1: code_chat uses corrected task copies (litegpt/eval/tasks/code_chat); every other group is identical to 0.1.0
 harness: {name: lm-evaluation-harness, version: "0.4.13"}
 protocol:
   seed: 1234                  # random / numpy / torch / fewshot seeds
@@ -23,10 +23,10 @@ base:                         # all base models (and instruct models for referen
 instruct:                     # instruct / chat models, each with its own chat template
   - {name: ifeval, tasks: [ifeval], num_fewshot: 0, chat: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}   # registered instruct cap (EXP-M1B-SUITE)
   - {name: gsm8k_chat, tasks: [gsm8k_cot_zeroshot], num_fewshot: 0, chat: true, gen_kwargs: {max_gen_toks: 256, max_new_tokens: 256}}
-  - {name: code_chat, tasks: [humaneval_instruct, mbpp_instruct], num_fewshot: 0, chat: true, unsafe_code: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}
+  - {name: code_chat, tasks: [humaneval_instruct_litegpt, mbpp_instruct_litegpt], num_fewshot: 0, chat: true, unsafe_code: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}
   - {name: xstest, native: xstest, chat: true, max_new_tokens: 256}
 
-headline_metrics:             # metric reported per task in the comparison table
+headline_metrics:             # metric reported per task in the comparison table (metric or metric,filter)
   hellaswag: acc_norm
   arc_easy: acc
   arc_challenge: acc_norm
@@ -38,10 +38,10 @@ headline_metrics:             # metric reported per task in the comparison table
   truthfulqa_mc1: acc
   truthfulqa_mc2: acc
   triviaqa: exact_match
-  gsm8k: exact_match
+  gsm8k: exact_match,strict-match              # metric,filter: 5-shot answers follow the '#### N' format of the shots
   humaneval: pass@1
   mbpp: pass_at_1
   ifeval: prompt_level_strict_acc
-  gsm8k_cot_zeroshot: exact_match
-  humaneval_instruct: pass@1
-  mbpp_instruct: pass_at_1
+  gsm8k_cot_zeroshot: exact_match,flexible-extract  # last number; strict-match needs 'The answer is N', which the chat prompt never asks for
+  humaneval_instruct_litegpt: pass@1
+  mbpp_instruct_litegpt: pass_at_1

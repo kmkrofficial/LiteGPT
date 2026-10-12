@@ -1,0 +1,39 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "suite_version": "0.1.0",
+  "task_dataset_revisions": {
+    "google/IFEval": "966cd89545d6b6acfd7638bc708b98261ca58e84",
+    "openai/gsm8k": "740312add88f781978c0658806c59bc2815b9866",
+    "google-research-datasets/mbpp": "4bb6404fdc6cacfda99d4ac4205087b89d32030c",
+    "openai/openai_humaneval": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544"
+  },
+  "headline": {
+    "ifeval": {
+      "metric": "prompt_level_strict_acc",
+      "value": 0.2199630314232902,
+      "stderr": 0.01782524719221706
+    },
+    "gsm8k_cot_zeroshot": {
+      "metric": "exact_match",
+      "value": 0.0,
+      "stderr": 0.0
+    },
+    "humaneval_instruct": {
+      "metric": "pass@1",
+      "value": 0.0,
+      "stderr": 0.0
+    },
+    "mbpp_instruct": {
+      "metric": "pass_at_1",
+      "value": 0.0,
+      "stderr": 0.0
+    }
+  },
+  "comparable": true
+}

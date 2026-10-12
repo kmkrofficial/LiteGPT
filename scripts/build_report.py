@@ -368,35 +368,50 @@ def data_section(A, out: Path) -> list:
 ZERO_SHOT = ["hellaswag", "arc_easy", "arc_challenge", "piqa", "openbookqa", "commonsense_qa", "winogrande",
              "mmlu_continuation", "truthfulqa_mc1", "truthfulqa_mc2"]
 GENERATIVE = ["triviaqa", "gsm8k", "humaneval", "mbpp"]
-INSTRUCT_TASKS = ["ifeval", "gsm8k_cot_zeroshot", "humaneval_instruct", "mbpp_instruct"]
+INSTRUCT_TASKS = ["ifeval", "gsm8k_cot_zeroshot", "humaneval_instruct_litegpt", "mbpp_instruct_litegpt"]
 EVAL_DIR = REPO_ROOT / "litegpt" / "eval"
 
 
 def load_eval_records() -> dict:
-    """Latest complete, comparable record per (kind, model repo); kind is base | instruct | xstest | efficiency | bpb.
-    A suite record counts only when it ran every non-native group of its suite and wrote eval/summary.json."""
+    """Records per (kind, model repo); kind is base | instruct | xstest | efficiency | bpb.
+
+    Native tasks: the latest record with its result file. Suites: only completed, comparable runs (eval/summary.json written)
+    count; each group is taken from the latest such run that contains it (a later run may re-run one group, e.g. code_chat
+    under suite 0.1.1), and headlines are computed from the group results with the suite's current metric choice."""
     import yaml
+    from litegpt.eval.run import headline
     suite = yaml.safe_load((EVAL_DIR / "suite_v0.yaml").read_text(encoding="utf-8"))
-    out = {}
+    out, groups = {}, {}
     for run_json in sorted(RUNS_DIR.glob("*-eval-*/run.json")):
         run = json.loads(run_json.read_text(encoding="utf-8"))
         cfg = run.get("config", {})
         repo = cfg.get("model", {}).get("repo")
+        ev = run_json.parent / "eval"
         if cfg.get("suite") in ("base", "instruct"):
-            kind, res = cfg["suite"], run_json.parent / "eval" / "summary.json"
-            need = {g["name"] for g in suite[kind] if not g.get("native")}
-            if not cfg.get("comparable") or not need <= set(cfg.get("groups", [])):
+            if not repo or not cfg.get("comparable") or not (ev / "summary.json").exists():
                 continue
         elif cfg.get("task") in ("xstest", "efficiency", "bpb"):
-            kind, res = cfg["task"], run_json.parent / "eval" / f"{cfg['task']}.json"
+            if not repo or not (ev / f"{cfg['task']}.json").exists():
+                continue
         else:
-            continue
-        if not repo or not res.exists():
             continue
         problems = validate_run_record(run)
         if problems:
             raise ValueError(f"{run_json.parent.name}: invalid run record: {problems}")
-        out[(kind, repo)] = {"run": run, "result": json.loads(res.read_text(encoding="utf-8")), "files": [run_json, res]}
+        if cfg.get("task"):
+            res = ev / f"{cfg['task']}.json"
+            out[(cfg["task"], repo)] = {"run": run, "result": json.loads(res.read_text(encoding="utf-8")), "files": [run_json, res]}
+            continue
+        for g in suite[cfg["suite"]]:
+            f = ev / f"{g['name']}.json"
+            if not g.get("native") and g["name"] in cfg.get("groups", []) and f.exists():
+                groups[(cfg["suite"], repo, g["name"])] = (run, run_json, f)
+    for (kind, repo) in sorted({(k, r) for k, r, _ in groups}):
+        parts = [v for (k, r, _), v in sorted(groups.items()) if (k, r) == (kind, repo)]
+        tasks = {t: m for _, _, f in parts for t, m in json.loads(f.read_text(encoding="utf-8"))["results"].items()}
+        files = sorted({p for _, rj, f in parts for p in (rj, f)})
+        latest = max((run for run, _, _ in parts), key=lambda r: r["run_id"])
+        out[(kind, repo)] = {"run": latest, "result": {"headline": headline(tasks, suite["headline_metrics"])}, "files": files}
     return out
 
 
@@ -507,7 +522,7 @@ def baselines_section(A, out: Path) -> list:
         A(md_table(["model"] + [f"{t} ({head[t]})" for t in INSTRUCT_TASKS]
                    + ["XSTest unsafe refused (higher is safer)", "XSTest safe refused (lower is better)"], rows))
         A("\nEach model's own chat template (V1-Instruct: its Alpaca template, `litegpt/eval/templates/alpaca_v1.jinja`; Qwen3 with "
-          "thinking disabled); at most 512 new tokens per answer (256 for GSM8K and XSTest). XSTest uses a string-match refusal "
+          "thinking disabled); at most 512 new tokens per answer (256 for GSM8K and XSTest). GSM8K chat is scored on the last number in the answer (flexible-extract). Chat code tasks are lm-eval's humaneval_instruct / mbpp_instruct with corrected stops and code extraction (suite 0.1.1, `litegpt/eval/tasks/code_chat`). XSTest uses a string-match refusal "
           "classifier, no LLM judge.\n")
     bpb = [r for r in repos if get("bpb", r)]
     domains = sorted({d for r in bpb for d in get("bpb", r)["result"]["domains"]})

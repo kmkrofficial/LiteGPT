@@ -1,0 +1,39 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "google/gemma-3-270m-it",
+    "revision": "ac82b4e820549b854eebf28ce6dedaf9fdfa17b3",
+    "gated": "manual",
+    "license": "gemma"
+  },
+  "suite_version": "0.1.0",
+  "task_dataset_revisions": {
+    "google/IFEval": "966cd89545d6b6acfd7638bc708b98261ca58e84",
+    "openai/gsm8k": "740312add88f781978c0658806c59bc2815b9866",
+    "google-research-datasets/mbpp": "4bb6404fdc6cacfda99d4ac4205087b89d32030c",
+    "openai/openai_humaneval": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544"
+  },
+  "headline": {
+    "ifeval": {
+      "metric": "prompt_level_strict_acc",
+      "value": 0.2513863216266174,
+      "stderr": 0.018668216152240437
+    },
+    "gsm8k_cot_zeroshot": {
+      "metric": "exact_match",
+      "value": 0.0,
+      "stderr": 0.0
+    },
+    "humaneval_instruct": {
+      "metric": "pass@1",
+      "value": 0.12804878048780488,
+      "stderr": 0.02617218707128652
+    },
+    "mbpp_instruct": {
+      "metric": "pass_at_1",
+      "value": 0.17,
+      "stderr": 0.01681563353139342
+    }
+  },
+  "comparable": true
+}

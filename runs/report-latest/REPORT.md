@@ -414,7 +414,7 @@ E-mail addresses redacted in 181,283 documents. `keep_fraction` drops only bound
 
 ## 3d. Baselines (M1b)
 
-Suite v0.1.0 (lm-evaluation-harness 0.4.13), seed 1234, greedy, bf16; one record per model and part (the latest complete, comparable run). Parameters are counted from the loaded weights (efficiency records); training tokens are the publishers' figures (`litegpt/eval/baseline_context.yaml`), shown as published, not measured.
+Suite v0.1.1 (lm-evaluation-harness 0.4.13), seed 1234, greedy, bf16; one record per model and part (the latest complete, comparable run). Parameters are counted from the loaded weights (efficiency records); training tokens are the publishers' figures (`litegpt/eval/baseline_context.yaml`), shown as published, not measured.
 
 ### Models
 
@@ -424,10 +424,13 @@ Suite v0.1.0 (lm-evaluation-harness 0.4.13), seed 1234, greedy, bf16; one record
 | LiteGPT V1 Instruct | V1 | `koganrath/LiteGPT-Instruct` | `a9fe728b9f2e` | – | – | – | 10B | apache-2.0 |
 | GPT-2 | same class | `openai-community/gpt2` | `607a30d783df` | – | – | – | not published | mit |
 | SmolLM2-135M | same class | `HuggingFaceTB/SmolLM2-135M` | `93efa2f097d5` | – | – | – | 2T | apache-2.0 |
+| SmolLM2-135M-Instruct | same class | `HuggingFaceTB/SmolLM2-135M-Instruct` | `12fd25f77366` | – | – | – | 2T | apache-2.0 |
 | Pythia-160M | same class | `EleutherAI/pythia-160m` | `50f5173d932e` | – | – | – | 300B | apache-2.0 |
 | Gemma 3 270M | same class | `google/gemma-3-270m` | `9b0cfec892e2` | – | – | – | 6T | gemma |
+| Gemma 3 270M-it | same class | `google/gemma-3-270m-it` | `ac82b4e82054` | – | – | – | 6T | gemma |
 | GPT-2 Medium | same class | `openai-community/gpt2-medium` | `6dcaa7a952f7` | – | – | – | not published | mit |
 | SmolLM2-360M | same class | `HuggingFaceTB/SmolLM2-360M` | `f8027fd0eaee` | – | – | – | 4T | apache-2.0 |
+| SmolLM2-360M-Instruct | same class | `HuggingFaceTB/SmolLM2-360M-Instruct` | `a10cc1512eab` | – | – | – | 4T | apache-2.0 |
 | Pythia-410M | same class | `EleutherAI/pythia-410m` | `9879c9b5f8be` | – | – | – | 300B | apache-2.0 |
 | Qwen2.5-0.5B | reference | `Qwen/Qwen2.5-0.5B` | `060db6499f32` | – | – | – | up to 18T | apache-2.0 |
 | Qwen3-0.6B-Base | reference | `Qwen/Qwen3-0.6B-Base` | `da87bfb608c1` | – | – | – | 36T | apache-2.0 |
@@ -449,7 +452,7 @@ Suite v0.1.0 (lm-evaluation-harness 0.4.13), seed 1234, greedy, bf16; one record
 
 ### Base suite: generative (higher is better; ± standard error)
 
-| model | triviaqa (exact_match) | gsm8k (exact_match) | humaneval (pass@1) | mbpp (pass_at_1) |
+| model | triviaqa (exact_match) | gsm8k (exact_match,strict-match) | humaneval (pass@1) | mbpp (pass_at_1) |
 |---|---|---|---|---|
 | LiteGPT V1 Base | 0.029 ± 0.004 | 0.002 ± 0.001 | 0.000 ± 0.000 | 0.000 ± 0.000 |
 | GPT-2 | 0.017 ± 0.003 | 0.006 ± 0.002 | 0.000 ± 0.000 | 0.000 ± 0.000 |
@@ -466,11 +469,14 @@ TriviaQA: the registered 2,000-question subset (5-shot); GSM8K 5-shot; HumanEval
 
 ### Instruct suite and XSTest
 
-| model | ifeval (prompt_level_strict_acc) | gsm8k_cot_zeroshot (exact_match) | humaneval_instruct (pass@1) | mbpp_instruct (pass_at_1) | XSTest unsafe refused (higher is safer) | XSTest safe refused (lower is better) |
+| model | ifeval (prompt_level_strict_acc) | gsm8k_cot_zeroshot (exact_match,flexible-extract) | humaneval_instruct_litegpt (pass@1) | mbpp_instruct_litegpt (pass_at_1) | XSTest unsafe refused (higher is safer) | XSTest safe refused (lower is better) |
 |---|---|---|---|---|---|---|
-| LiteGPT V1 Instruct | 0.083 | 0.000 | 0.000 | 0.000 | 0.0% | 0.0% |
+| LiteGPT V1 Instruct | 0.083 | 0.021 | – | – | 0.0% | 0.0% |
+| SmolLM2-135M-Instruct | 0.220 | 0.021 | – | – | 11.5% | 6.0% |
+| Gemma 3 270M-it | 0.251 | 0.099 | – | – | 44.5% | 6.0% |
+| SmolLM2-360M-Instruct | 0.329 | 0.064 | – | – | 40.0% | 14.0% |
 
-Each model's own chat template (V1-Instruct: its Alpaca template, `litegpt/eval/templates/alpaca_v1.jinja`; Qwen3 with thinking disabled); at most 512 new tokens per answer (256 for GSM8K and XSTest). XSTest uses a string-match refusal classifier, no LLM judge.
+Each model's own chat template (V1-Instruct: its Alpaca template, `litegpt/eval/templates/alpaca_v1.jinja`; Qwen3 with thinking disabled); at most 512 new tokens per answer (256 for GSM8K and XSTest). GSM8K chat is scored on the last number in the answer (flexible-extract). Chat code tasks are lm-eval's humaneval_instruct / mbpp_instruct with corrected stops and code extraction (suite 0.1.1, `litegpt/eval/tasks/code_chat`). XSTest uses a string-match refusal classifier, no LLM judge.
 
 The zero-shot mean is an unweighted average shown for orientation only; comparisons use the per-task numbers.
 
@@ -520,28 +526,88 @@ The zero-shot mean is an unweighted average shown for orientation only; comparis
 | `runs/20261011T173054Z-data-prepare-1f005bc/mix_manifest.json` | 7032846cc792 |
 | `runs/20261011T173054Z-data-prepare-1f005bc/data_stats.json` | bef6c3c17cea |
 | `runs/20261011T143457Z-data-tokenizer-train-076712e/tokenizer_report.json` | a1c6be80004e |
+| `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/eval/code.json` | d7d285dad377 |
+| `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/eval/gsm8k.json` | 52a5987d99bc |
+| `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/eval/mbpp.json` | 324d8cb64311 |
+| `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/eval/triviaqa.json` | b7eb4c6f1f29 |
+| `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/eval/zero_shot_lm.json` | a1d73ace0524 |
 | `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/run.json` | 388602a95b1a |
-| `runs/20261012T042519Z-eval-base-pythia-160m-44361ab/eval/summary.json` | ee07c0946208 |
+| `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/eval/code.json` | fd3dc1b9853b |
+| `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/eval/gsm8k.json` | 8371ce83fccb |
+| `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/eval/mbpp.json` | caa3268583d7 |
+| `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/eval/triviaqa.json` | 3c7edaa09947 |
+| `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/eval/zero_shot_lm.json` | 9e5022eb9946 |
 | `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/run.json` | 1766efd83ec0 |
-| `runs/20261012T061342Z-eval-base-pythia-410m-44361ab/eval/summary.json` | 70411aa5d559 |
+| `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/eval/code.json` | 3d9e8eb95140 |
+| `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/eval/gsm8k.json` | c3315b9bc794 |
+| `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/eval/mbpp.json` | f699ed2986c4 |
+| `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/eval/triviaqa.json` | 0225404dc9b9 |
+| `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/eval/zero_shot_lm.json` | 7ad703560f74 |
 | `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/run.json` | 3d647d142762 |
-| `runs/20261012T032335Z-eval-base-SmolLM2-135M-b096d66/eval/summary.json` | fcba4586f865 |
+| `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/eval/code.json` | 44e33d38a135 |
+| `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/eval/gsm8k.json` | fbf429096408 |
+| `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/eval/mbpp.json` | 6f72ae9cc3ef |
+| `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/eval/triviaqa.json` | 3345b4fdaac8 |
+| `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/eval/zero_shot_lm.json` | 872c47030260 |
 | `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/run.json` | 0fde8b28d405 |
-| `runs/20261012T054432Z-eval-base-SmolLM2-360M-44361ab/eval/summary.json` | 7f6e1e3743c4 |
+| `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/eval/code.json` | d31a42706fe2 |
+| `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/eval/gsm8k.json` | c4d679567691 |
+| `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/eval/mbpp.json` | 3d92d5562ba3 |
+| `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/eval/triviaqa.json` | f96e2f5c5335 |
+| `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/eval/zero_shot_lm.json` | 03cf5d33910f |
 | `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/run.json` | 7ffb5e44ecdd |
-| `runs/20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908/eval/summary.json` | 39b29616a600 |
+| `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/eval/code.json` | dd1555480615 |
+| `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/eval/gsm8k.json` | dcb7c5e65160 |
+| `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/eval/mbpp.json` | 2d178011a281 |
+| `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/eval/triviaqa.json` | d1df6b83d357 |
+| `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/eval/zero_shot_lm.json` | 0fc676793151 |
 | `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/run.json` | 5914be5545c7 |
-| `runs/20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178/eval/summary.json` | de2783c25b47 |
+| `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/eval/code.json` | b67b17a055d8 |
+| `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/eval/gsm8k.json` | 18e015d97987 |
+| `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/eval/mbpp.json` | ea7c1aaaa6fa |
+| `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/eval/triviaqa.json` | e38b3b4ab33d |
+| `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/eval/zero_shot_lm.json` | dde89a472d3d |
 | `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/run.json` | 81721dcac48c |
-| `runs/20261012T044301Z-eval-base-gemma-3-270m-44361ab/eval/summary.json` | 580c3d39a108 |
+| `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/eval/code.json` | 6ee14a7835d7 |
+| `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/eval/gsm8k.json` | 0e3314573bda |
+| `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/eval/mbpp.json` | 6fe5d1d99f82 |
+| `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/eval/triviaqa.json` | 11a06ff3b9c1 |
+| `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/eval/zero_shot_lm.json` | 14253910b505 |
 | `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/run.json` | b549121cb4ee |
-| `runs/20261012T040931Z-eval-base-LiteGPT-Base-44361ab/eval/summary.json` | da40b3a9a058 |
+| `runs/20261012T030635Z-eval-base-gpt2-b096d66/eval/code.json` | c496ede3bb16 |
+| `runs/20261012T030635Z-eval-base-gpt2-b096d66/eval/gsm8k.json` | 25632de60311 |
+| `runs/20261012T030635Z-eval-base-gpt2-b096d66/eval/mbpp.json` | 340538a01141 |
+| `runs/20261012T030635Z-eval-base-gpt2-b096d66/eval/triviaqa.json` | dddcdcaa037e |
+| `runs/20261012T030635Z-eval-base-gpt2-b096d66/eval/zero_shot_lm.json` | 1c5fdadf93c0 |
 | `runs/20261012T030635Z-eval-base-gpt2-b096d66/run.json` | 1504f9224982 |
-| `runs/20261012T030635Z-eval-base-gpt2-b096d66/eval/summary.json` | bb3d89f6d0c9 |
+| `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/eval/code.json` | a8b9abc64714 |
+| `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/eval/gsm8k.json` | 1b35bfd02812 |
+| `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/eval/mbpp.json` | f17f2599671b |
+| `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/eval/triviaqa.json` | 797e90069224 |
+| `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/eval/zero_shot_lm.json` | f6ef19119995 |
 | `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/run.json` | 9b0da7eef302 |
-| `runs/20261012T051842Z-eval-base-gpt2-medium-44361ab/eval/summary.json` | 2d72736fe060 |
+| `runs/20261012T153948Z-eval-instruct-SmolLM2-135M-Instruct-3afbe97/eval/code_chat.json` | 6b4587df089a |
+| `runs/20261012T153948Z-eval-instruct-SmolLM2-135M-Instruct-3afbe97/eval/gsm8k_chat.json` | 2950b66dbf53 |
+| `runs/20261012T153948Z-eval-instruct-SmolLM2-135M-Instruct-3afbe97/eval/ifeval.json` | 6effb0b3fe6c |
+| `runs/20261012T153948Z-eval-instruct-SmolLM2-135M-Instruct-3afbe97/run.json` | 2ed18a6ddef7 |
+| `runs/20261012T160535Z-eval-instruct-SmolLM2-360M-Instruct-298e547/eval/code_chat.json` | 82b16d107b2e |
+| `runs/20261012T160535Z-eval-instruct-SmolLM2-360M-Instruct-298e547/eval/gsm8k_chat.json` | 5147ad94c6f6 |
+| `runs/20261012T160535Z-eval-instruct-SmolLM2-360M-Instruct-298e547/eval/ifeval.json` | c0620397d5ad |
+| `runs/20261012T160535Z-eval-instruct-SmolLM2-360M-Instruct-298e547/run.json` | 56bca26d8032 |
+| `runs/20261012T163133Z-eval-instruct-gemma-3-270m-it-298e547/eval/code_chat.json` | e77dd82617c6 |
+| `runs/20261012T163133Z-eval-instruct-gemma-3-270m-it-298e547/eval/gsm8k_chat.json` | 0e42211fa410 |
+| `runs/20261012T163133Z-eval-instruct-gemma-3-270m-it-298e547/eval/ifeval.json` | 081f0a4f9112 |
+| `runs/20261012T163133Z-eval-instruct-gemma-3-270m-it-298e547/run.json` | e5930d580407 |
+| `runs/20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97/eval/code_chat.json` | 1dbfb8038df9 |
+| `runs/20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97/eval/gsm8k_chat.json` | 0239650d40a7 |
+| `runs/20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97/eval/ifeval.json` | 77b9572600ed |
 | `runs/20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97/run.json` | d961636e077d |
-| `runs/20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97/eval/summary.json` | 459b52653805 |
+| `runs/20261012T160247Z-eval-xstest-SmolLM2-135M-Instruct-298e547/run.json` | 698623cdf881 |
+| `runs/20261012T160247Z-eval-xstest-SmolLM2-135M-Instruct-298e547/eval/xstest.json` | 66f20c0fbf95 |
+| `runs/20261012T162831Z-eval-xstest-SmolLM2-360M-Instruct-298e547/run.json` | 4a0b3f7d4586 |
+| `runs/20261012T162831Z-eval-xstest-SmolLM2-360M-Instruct-298e547/eval/xstest.json` | f6e1ecd635cd |
+| `runs/20261012T165636Z-eval-xstest-gemma-3-270m-it-298e547/run.json` | 5baad04fb321 |
+| `runs/20261012T165636Z-eval-xstest-gemma-3-270m-it-298e547/eval/xstest.json` | f28370d2b4dd |
 | `runs/20261012T155507Z-eval-xstest-LiteGPT-Instruct-298e547/run.json` | 1853cf07c176 |
 | `runs/20261012T155507Z-eval-xstest-LiteGPT-Instruct-298e547/eval/xstest.json` | ac1914865e52 |
 

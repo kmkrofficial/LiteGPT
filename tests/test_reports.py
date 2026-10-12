@@ -173,16 +173,43 @@ def _fake_eval(runs_dir: Path, name: str, config: dict, path: str, result: dict)
     return rec.path
 
 
+def _group_results(values: dict) -> dict:
+    """lm-eval style results for each task, keyed by the suite's headline metric (and filter)."""
+    from litegpt.eval.run import load_suite
+    head = load_suite()["headline_metrics"]
+    out = {}
+    for t, v in values.items():
+        m = head[t]
+        name, filt = (m.split(",") + ["none"])[:2]
+        out[t] = {f"{name},{filt}": v, f"{name}_stderr,{filt}": 0.01}
+    return {"results": out}
+
+
+def _fake_suite_run(runs_dir, name, config, values_by_group):
+    rec = records.create_run("eval", name, root=runs_dir, config=config)
+    for g, values in values_by_group.items():
+        rec.write_json(f"eval/{g}.json", _group_results(values))
+    rec.write_json("eval/summary.json", {"headline": {}})
+    return rec.path
+
+
 def test_baselines_section_renders_from_records(sandbox, tmp_path):
-    from scripts.build_report import GENERATIVE, ZERO_SHOT
+    from scripts.build_report import ZERO_SHOT
     gpt2 = {"repo": "openai-community/gpt2", "revision": "a" * 40, "license": "mit"}
     v1 = {"repo": "koganrath/LiteGPT-Instruct", "revision": "b" * 40, "license": "apache-2.0"}
     groups = ["zero_shot_lm", "triviaqa", "gsm8k", "code", "mbpp"]
-    head = {t: {"metric": "acc", "value": 0.25, "stderr": 0.01} for t in ZERO_SHOT + GENERATIVE}
-    _fake_eval(sandbox, "base-gpt2", {"suite": "base", "model": gpt2, "comparable": True, "groups": groups},
-               "eval/summary.json", {"headline": dict(head, hellaswag={"metric": "acc_norm", "value": 0.313, "stderr": 0.005})})
-    _fake_eval(sandbox, "base-gpt2-smoke", {"suite": "base", "model": gpt2, "comparable": False, "groups": groups},  # ignored
-               "eval/summary.json", {"headline": dict(head, hellaswag={"metric": "acc_norm", "value": 0.999})})
+    zs = dict({t: 0.25 for t in ZERO_SHOT}, hellaswag=0.313)
+    _fake_suite_run(sandbox, "base-gpt2", {"suite": "base", "model": gpt2, "comparable": True, "groups": groups},
+                    {"zero_shot_lm": zs, "triviaqa": {"triviaqa": 0.017}, "gsm8k": {"gsm8k": 0.006}, "code": {"humaneval": 0.0},
+                     "mbpp": {"mbpp": 0.0}})
+    _fake_suite_run(sandbox, "base-gpt2-smoke", {"suite": "base", "model": gpt2, "comparable": False, "groups": groups},  # ignored
+                    {"zero_shot_lm": dict(zs, hellaswag=0.999)})
+    inst = {"suite": "instruct", "model": v1, "comparable": True}
+    _fake_suite_run(sandbox, "instruct-LiteGPT-Instruct", dict(inst, groups=["ifeval", "gsm8k_chat", "code_chat", "xstest"]),
+                    {"ifeval": {"ifeval": 0.083}, "gsm8k_chat": {"gsm8k_cot_zeroshot": 0.021},
+                     "code_chat": {"humaneval_instruct_litegpt": 0.777, "mbpp_instruct_litegpt": 0.0}})
+    _fake_suite_run(sandbox, "instruct-LiteGPT-Instruct-rerun", dict(inst, groups=["code_chat"]),   # later re-run of one group
+                    {"code_chat": {"humaneval_instruct_litegpt": 0.0123, "mbpp_instruct_litegpt": 0.0456}})
     _fake_eval(sandbox, "efficiency-gpt2", {"task": "efficiency", "model": gpt2}, "eval/efficiency.json",
                {"rows": [{"prompt_tokens": 512, "batch": b, "prefill_tok_s": 9000.0, "ttft_s": 0.02, "decode_tok_s": 150.0 * b,
                           "decode_bytes_s": 600.0, "peak_vram_GiB": 0.7} for b in (1, 8)], "gpu_power_limit_w": 175.0,
@@ -196,6 +223,7 @@ def test_baselines_section_renders_from_records(sandbox, tmp_path):
     text = (out / "REPORT.md").read_text(encoding="utf-8")
     assert "## 3d. Baselines (M1b)" in text
     assert "0.313" in text and "0.999" not in text                  # latest COMPLETE, COMPARABLE record only
+    assert "0.083" in text and "0.012" in text and "0.046" in text and "0.777" not in text   # group re-run supersedes
     assert "124.4M" in text and "85.1M" in text and "50,257" in text  # counted parameters from the efficiency record
     assert "not published" in text and "300B" not in text            # GPT-2 tokens: published context, not invented
     assert "1.111" in text and "2.222" in text and "4.0%" in text and "1,200" in text

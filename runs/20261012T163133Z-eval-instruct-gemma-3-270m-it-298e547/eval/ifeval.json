@@ -1,0 +1,49 @@
+{
+  "batch_size": 16,
+  "results": {
+    "ifeval": {
+      "name": "ifeval",
+      "alias": "ifeval",
+      "sample_len": 541,
+      "prompt_level_strict_acc,none": 0.2513863216266174,
+      "prompt_level_strict_acc_stderr,none": 0.018668216152240437,
+      "inst_level_strict_acc,none": 0.37050359712230213,
+      "inst_level_strict_acc_stderr,none": "N/A",
+      "prompt_level_loose_acc,none": 0.2587800369685767,
+      "prompt_level_loose_acc_stderr,none": 0.018846992560712525,
+      "inst_level_loose_acc,none": 0.3824940047961631,
+      "inst_level_loose_acc_stderr,none": "N/A"
+    }
+  },
+  "n_samples": {
+    "ifeval": {
+      "original": 541,
+      "effective": 541
+    }
+  },
+  "versions": {
+    "ifeval": 4.0
+  },
+  "configs": {
+    "ifeval": {
+      "task": "ifeval",
+      "dataset_path": "google/IFEval",
+      "test_split": "train",
+      "doc_to_text": "prompt",
+      "doc_to_target": "0",
+      "unsafe_code": "False",
+      "process_results": "def process_results(doc, results):\n    inp = InputExample(\n        key=doc[\"key\"],\n        instruction_id_list=doc[\"instruction_id_list\"],\n        prompt=doc[\"prompt\"],\n        kwargs=doc[\"kwargs\"],\n    )\n    response = results[0]\n\n    out_strict = test_instruction_following_strict(inp, response)\n    out_loose = test_instruction_following_loose(inp, response)\n\n    return {\n        \"prompt_level_strict_acc\": out_strict.follow_all_instructions,\n        \"inst_level_strict_acc\": out_strict.follow_instruction_list,\n        \"prompt_level_loose_acc\": out_loose.follow_all_instructions,\n        \"inst_level_loose_acc\": out_loose.follow_instruction_list,\n    }\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": "{'sampler': 'default', 'split': None, 'process_docs': None, 'fewshot_indices': None, 'samples': None, 'doc_to_text': 'prompt', 'doc_to_choice': None, 'doc_to_target': 0, 'gen_prefix': None, 'fewshot_delimiter': '\\n\\n', 'target_delimiter': ' '}",
+      "num_fewshot": "0",
+      "metric_list": "[{'metric': 'prompt_level_strict_acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'inst_level_strict_acc', 'aggregation': 'def agg_inst_level_acc(items):\\n    flat_items = [item for sublist in items for item in sublist]\\n    inst_level_acc = sum(flat_items) / len(flat_items)\\n    return inst_level_acc\\n', 'higher_is_better': True}, {'metric': 'prompt_level_loose_acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'inst_level_loose_acc', 'aggregation': 'def agg_inst_level_acc(items):\\n    flat_items = [item for sublist in items for item in sublist]\\n    inst_level_acc = sum(flat_items) / len(flat_items)\\n    return inst_level_acc\\n', 'higher_is_better': True}]",
+      "output_type": "generate_until",
+      "generation_kwargs": "{'until': [], 'do_sample': False, 'temperature': 0.0, 'max_gen_toks': 512, 'max_new_tokens': 512}",
+      "repeats": "1",
+      "should_decontaminate": "False",
+      "metadata": "{'version': 4.0, 'pretrained': 'google/gemma-3-270m-it', 'revision': 'ac82b4e820549b854eebf28ce6dedaf9fdfa17b3', 'dtype': 'bfloat16', 'trust_remote_code': False, 'config_source': '/home/kogan/LiteGPT/.venv/lib/python3.12/site-packages/lm_eval/tasks/ifeval/ifeval.yaml'}"
+    }
+  }
+}

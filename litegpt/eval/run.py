@@ -22,6 +22,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 SUITE = Path(__file__).resolve().parent / "suite_v0.yaml"
+TASKS_DIR = Path(__file__).resolve().parent / "tasks"   # corrected task copies (suite 0.1.1)
 
 
 def load_suite() -> dict:
@@ -73,12 +74,30 @@ def local_copy(model: dict, template_file: str | None = None) -> tuple[str, dict
     return str(dest), removed
 
 
+def headline(results: dict, head: dict) -> dict:
+    """Headline score per task from lm-eval results ({task: {"metric,filter": value}}). `head` maps a task to "metric" (its
+    first filter) or "metric,filter" (that filter exactly). Used by run.py and the report, so every record is read the same way."""
+    out = {}
+    for task, metrics in results.items():
+        m = head.get(task)
+        if not m:
+            continue
+        name = m.split(",")[0]
+        if "," in m:
+            key = m if m in metrics else None
+        else:
+            key = next((k for k in metrics if k.startswith(name + ",")), None)
+        if key:
+            out[task] = {"metric": m, "key": key, "value": metrics[key], "stderr": metrics.get(key.replace(name + ",", name + "_stderr,", 1))}
+    return out
+
+
 def task_dataset_revisions(task_names: list[str]) -> dict:
     """Resolved Hub commit of each task's dataset (recorded; compared with the decontamination pins)."""
     from huggingface_hub import HfApi
     from lm_eval.tasks import TaskManager, get_task_dict
     api, out = HfApi(), {}
-    tasks = get_task_dict(task_names, TaskManager())
+    tasks = get_task_dict(task_names, TaskManager(include_path=str(TASKS_DIR)))
 
     def walk(d):
         for k, v in d.items():
@@ -118,6 +137,7 @@ def main() -> int:
 
     import lm_eval
     import torch
+    from lm_eval.tasks import TaskManager
     from litegpt.records import create_run
     if torch.cuda.is_available():                 # fail instead of silently spilling into shared memory (WDDM, also in WSL2)
         free, total = torch.cuda.mem_get_info()
@@ -161,7 +181,8 @@ def main() -> int:
                     model="hf", model_args=model_args, tasks=g["tasks"], num_fewshot=g["num_fewshot"], batch_size=bs,
                     device="cuda", limit=args.limit, samples=samples, log_samples=True, apply_chat_template=bool(g.get("chat")),
                     random_seed=seed, numpy_random_seed=seed, torch_random_seed=seed, fewshot_random_seed=seed,
-                    confirm_run_unsafe_code=bool(g.get("unsafe_code")), gen_kwargs=g.get("gen_kwargs"))
+                    confirm_run_unsafe_code=bool(g.get("unsafe_code")), gen_kwargs=g.get("gen_kwargs"),
+                    task_manager=TaskManager(include_path=str(TASKS_DIR)))
                 break
             except torch.OutOfMemoryError:
                 if bs == 1:
@@ -178,15 +199,7 @@ def main() -> int:
             with open(rec.path / "eval" / f"{task}.samples.jsonl", "w", encoding="utf-8") as f:
                 for s in samples_list:
                     f.write(json.dumps(s, default=str, ensure_ascii=False) + "\n")
-    head = suite["headline_metrics"]
-    summary = {}
-    for gname, r in results.items():
-        for task, metrics in r["results"].items():
-            m = head.get(task)
-            if m:
-                key = next((k for k in metrics if k.startswith(m + ",")), None)
-                if key:
-                    summary[task] = {"metric": m, "value": metrics[key], "stderr": metrics.get(key.replace(m + ",", m + "_stderr,"))}
+    summary = headline({t: m for r in results.values() for t, m in r["results"].items()}, suite["headline_metrics"])
     rec.write_json("eval/summary.json", {"model": model, "suite_version": suite["suite_version"], "task_dataset_revisions": revisions,
                                          "headline": summary, "comparable": args.limit is None})
     print(json.dumps(summary, indent=1))
