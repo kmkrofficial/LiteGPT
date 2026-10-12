@@ -10,18 +10,20 @@ protocol:
   trust_remote_code: false
   code_execution: "WSL2 only, separate process, timeout, no network (lm-eval confirm_run_unsafe_code)"
   dataset_revisions: "resolved at run time and recorded per task; compared with docs/spec/data_sources.yaml decontamination pins"
+  generation_length: "every generative group passes max_new_tokens explicitly (= lm-eval's effective max_gen_toks), so a model's own generation_config cannot override it"
+  vram_cap: "allocator capped at free VRAM minus 1 GiB at start, so an overflow fails instead of spilling into shared memory"
 
 base:                         # all base models (and instruct models for reference rows)
   - {name: zero_shot_lm, tasks: [hellaswag, arc_easy, arc_challenge, piqa, openbookqa, commonsense_qa, winogrande, mmlu_continuation, truthfulqa_mc1, truthfulqa_mc2], num_fewshot: 0}
-  - {name: triviaqa, tasks: [triviaqa], num_fewshot: 5, subset: {size: 2000, seed: 1234}}
-  - {name: gsm8k, tasks: [gsm8k], num_fewshot: 5}
-  - {name: code, tasks: [humaneval], num_fewshot: 0, unsafe_code: true, gen_kwargs: {max_gen_toks: 512}}
-  - {name: mbpp, tasks: [mbpp], num_fewshot: 3, unsafe_code: true, gen_kwargs: {max_gen_toks: 512}}
+  - {name: triviaqa, tasks: [triviaqa], num_fewshot: 5, subset: {size: 2000, seed: 1234}, gen_kwargs: {max_gen_toks: 256, max_new_tokens: 256}}
+  - {name: gsm8k, tasks: [gsm8k], num_fewshot: 5, gen_kwargs: {max_gen_toks: 256, max_new_tokens: 256}}
+  - {name: code, tasks: [humaneval], num_fewshot: 0, unsafe_code: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}
+  - {name: mbpp, tasks: [mbpp], num_fewshot: 3, unsafe_code: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}
 
 instruct:                     # instruct / chat models, each with its own chat template
-  - {name: ifeval, tasks: [ifeval], num_fewshot: 0, chat: true}
-  - {name: gsm8k_chat, tasks: [gsm8k_cot_zeroshot], num_fewshot: 0, chat: true}
-  - {name: code_chat, tasks: [humaneval_instruct, mbpp_instruct], num_fewshot: 0, chat: true, unsafe_code: true, gen_kwargs: {max_gen_toks: 512}}
+  - {name: ifeval, tasks: [ifeval], num_fewshot: 0, chat: true, gen_kwargs: {max_gen_toks: 1280, max_new_tokens: 1280}}
+  - {name: gsm8k_chat, tasks: [gsm8k_cot_zeroshot], num_fewshot: 0, chat: true, gen_kwargs: {max_gen_toks: 256, max_new_tokens: 256}}
+  - {name: code_chat, tasks: [humaneval_instruct, mbpp_instruct], num_fewshot: 0, chat: true, unsafe_code: true, gen_kwargs: {max_gen_toks: 512, max_new_tokens: 512}}
   - {name: xstest, native: xstest, chat: true, max_new_tokens: 256}
 
 headline_metrics:             # metric reported per task in the comparison table

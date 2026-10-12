@@ -94,7 +94,11 @@ def main() -> int:
     args = ap.parse_args()
 
     import lm_eval
+    import torch
     from litegpt.records import create_run
+    if torch.cuda.is_available():                 # fail instead of silently spilling into shared memory (WDDM, also in WSL2)
+        free, total = torch.cuda.mem_get_info()
+        torch.cuda.set_per_process_memory_fraction(max(0.1, (free - 2**30) / total))
     suite = load_suite()
     model = resolve_model(args.model)
     groups = [g for g in suite[args.suite] if not args.groups or g["name"] in args.groups.split(",")]
