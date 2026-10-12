@@ -24,3 +24,4 @@ eval_every_tokens: 100000000.0
 eval_blocks: 10240
 compile: true
 seed: 1
+checkpoint_every_minutes: 15

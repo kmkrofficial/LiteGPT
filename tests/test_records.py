@@ -96,3 +96,28 @@ def test_read_jsonl_keeps_unicode_line_separators(tmp_path):
     p = tmp_path / "x.jsonl"
     p.write_text("".join(_json.dumps(r, ensure_ascii=False) + chr(10) for r in rows), encoding="utf-8")
     assert read_jsonl(p) == rows
+
+
+def test_read_jsonl_tolerates_a_truncated_last_line(tmp_path):
+    import json as _json
+    import pytest as _pytest
+    from litegpt.records import read_jsonl
+    p = tmp_path / "m.jsonl"
+    p.write_text(_json.dumps({"a": 1}) + chr(10) + _json.dumps({"b": 2}) + chr(10) + '{"c": 3, "d"', encoding="utf-8")
+    assert read_jsonl(p) == [{"a": 1}, {"b": 2}]
+    p.write_text('{"broken": }' + chr(10) + _json.dumps({"b": 2}) + chr(10), encoding="utf-8")
+    with _pytest.raises(_json.JSONDecodeError):
+        read_jsonl(p)
+
+
+def test_log_after_truncated_line_starts_a_new_line(tmp_path):
+    import json as _json
+    from litegpt.records import RunRecord, read_jsonl
+    rec = RunRecord(tmp_path, {"run_id": "x"})
+    rec.log("metrics", step=1)
+    with open(tmp_path / "metrics.jsonl", "a", encoding="utf-8") as f:
+        f.write('{"step": 2, "lo')                      # power cut mid-write
+    rec.log("metrics", step=3)
+    lines = (tmp_path / "metrics.jsonl").read_text(encoding="utf-8").split(chr(10))
+    assert _json.loads(lines[0])["step"] == 1 and _json.loads(lines[2])["step"] == 3 and lines[1].startswith('{"step": 2')
+    assert [r["step"] for r in read_jsonl(tmp_path / "metrics.jsonl")] == [1, 3]

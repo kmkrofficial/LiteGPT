@@ -111,7 +111,15 @@ def cmd_efficiency(args, model_info) -> dict:
                          "decode_tok_s": batch * new.shape[1] / decode, "decode_bytes_s": out_bytes / decode,
                          "peak_vram_GiB": torch.cuda.max_memory_allocated() / 2 ** 30})
             print(rows[-1], flush=True)
-    return {"dtype": "bfloat16", "rows": rows, "note": "HF transformers generate with KV cache; decode = total - one prefill"}
+    limit = None
+    try:
+        import pynvml
+        pynvml.nvmlInit()
+        limit = pynvml.nvmlDeviceGetEnforcedPowerLimit(pynvml.nvmlDeviceGetHandleByIndex(0)) / 1000.0
+    except Exception:
+        pass
+    return {"dtype": "bfloat16", "rows": rows, "gpu_power_limit_w": limit,
+            "note": "HF transformers generate with KV cache; decode = total - one prefill"}
 
 
 @torch.no_grad()

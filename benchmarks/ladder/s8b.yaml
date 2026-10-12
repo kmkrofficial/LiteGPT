@@ -26,3 +26,4 @@ eval_blocks: 512
 compile: true
 data_run: runs/20261011T173054Z-data-prepare-1f005bc
 seed: 1
+checkpoint_every_minutes: 15

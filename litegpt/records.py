@@ -158,8 +158,15 @@ class RunRecord:
 
     def log(self, stream: str, **fields) -> None:
         """Append one JSON line to <run>/<stream>.jsonl (e.g. stream='metrics' or 'telemetry')."""
-        with open(self.path / f"{stream}.jsonl", "a", encoding="utf-8") as f:
-            f.write(json.dumps({"t": time.time(), **fields}, default=_json_default) + "\n")
+        p = self.path / f"{stream}.jsonl"
+        line = json.dumps({"t": time.time(), **fields}, default=_json_default)
+        with open(p, "ab") as f:
+            if f.tell() > 0:                       # after a power cut the last line may be unterminated: start a new one
+                with open(p, "rb") as r:
+                    r.seek(-1, 2)
+                    if r.read(1) != bytes([10]):
+                        line = chr(10) + line
+            f.write((line + chr(10)).encode("utf-8"))
 
     def write_json(self, relpath: str, obj) -> Path:
         """Atomically write <run>/<relpath> (e.g. 'bench/train_mem.json', 'gate/extension_gate.json')."""
@@ -230,5 +237,16 @@ def read_jsonl(path: Path) -> list[dict]:
     p = Path(path)
     if not p.exists():
         return []
-    # split on newline only: json.dumps(ensure_ascii=False) leaves U+2028 / U+0085 unescaped and str.splitlines() splits on them
-    return [json.loads(line) for line in p.read_text(encoding="utf-8").split(chr(10)) if line.strip()]
+    # split on newline only: json.dumps(ensure_ascii=False) leaves U+2028 / U+0085 unescaped and str.splitlines() splits on them.
+    # A power cut can leave a line half-written (and later appends continue on a new line): an unparseable line that does
+    # not end with '}' is such a truncated write and is skipped; any other unparseable line is an error.
+    out = []
+    for line in p.read_text(encoding="utf-8", errors="replace").split(chr(10)):
+        if not line.strip():
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            if line.rstrip().endswith("}"):
+                raise
+    return out
