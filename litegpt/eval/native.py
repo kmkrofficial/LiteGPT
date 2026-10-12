@@ -36,6 +36,12 @@ def load_hf(repo: str, revision: str):
     return model, tok
 
 
+def xstest_new_tokens() -> int:
+    import yaml
+    suite = yaml.safe_load((Path(__file__).resolve().parent / "suite_v0.yaml").read_text(encoding="utf-8"))
+    return int(next(g["max_new_tokens"] for g in suite["instruct"] if g.get("native") == "xstest"))
+
+
 def param_counts(model) -> dict:
     """Counted from the loaded weights: embedding = every nn.Embedding (token and learned position tables) plus an untied
     output head; tied weights count once."""
@@ -174,10 +180,13 @@ def main() -> int:
     ap.add_argument("task", choices=["bpb", "efficiency", "xstest"])
     ap.add_argument("--model", required=True)
     ap.add_argument("--val-dir", default=None, help="bpb: directory of <domain>.jsonl raw validation documents")
-    ap.add_argument("--new-tokens", type=int, default=128)
+    ap.add_argument("--new-tokens", type=int, default=None,
+                    help="default: efficiency 128 (registered), xstest the suite value (suite_v0.yaml, 256)")
     ap.add_argument("--batch-size", type=int, default=16)
     ap.add_argument("--chat-template-file", default=None, help="xstest: template for chat models published without one (V1-Instruct)")
     args = ap.parse_args()
+    if args.new_tokens is None:
+        args.new_tokens = xstest_new_tokens() if args.task == "xstest" else 128
     info = resolve_model(args.model)
     rec = create_run("eval", f"{args.task}-{info['repo'].split('/')[-1]}", config={"task": args.task, "model": info, "args": vars(args)})
     torch.manual_seed(1234)

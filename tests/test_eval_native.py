@@ -22,3 +22,8 @@ def test_untied_head_counts_as_embedding():
                                      vocab_size=100, tie_word_embeddings=False)
     c = param_counts(transformers.GPTNeoXForCausalLM(cfg))
     assert not c["tied_output"] and c["embedding"] == 2 * 100 * 32
+
+
+def test_xstest_generation_length_comes_from_the_suite():
+    from litegpt.eval.native import xstest_new_tokens
+    assert xstest_new_tokens() == 256
