@@ -44,10 +44,11 @@ GEN_LENGTH_KEYS = ("max_new_tokens", "max_length")
 def generation_length_override(model: dict) -> dict:
     """Length keys in the model's generation_config.json; transformers lets them override lm-eval's generation limit."""
     from huggingface_hub import hf_hub_download
+    from huggingface_hub.errors import EntryNotFoundError
     try:
         p = hf_hub_download(model["repo"], "generation_config.json", revision=model["revision"])
-    except Exception:
-        return {}
+    except EntryNotFoundError:                 # no generation_config.json: nothing can override the limit
+        return {}                              # any other error propagates: the run fails and is retried
     cfg = json.loads(Path(p).read_text(encoding="utf-8"))
     return {k: cfg[k] for k in GEN_LENGTH_KEYS if cfg.get(k) is not None}
 
@@ -141,7 +142,7 @@ def main() -> int:
     if args.chat_template_file or override:
         path, removed = local_copy(model, args.chat_template_file)
         pretrained = f"pretrained={path}"
-    rec.update(generation_config_removed=removed)            # recorded in run.json (protocol correction, EXP-M1B-SUITE)
+    rec.update(generation_config_override=override, evaluated_from_local_copy=bool(args.chat_template_file or override))   # EXP-M1B-SUITE correction
     model_args = f"{pretrained},dtype=bfloat16,trust_remote_code=False" + (f",{args.extra_model_args}" if args.extra_model_args else "")
     results, revisions = {}, {}
     for g in groups:
