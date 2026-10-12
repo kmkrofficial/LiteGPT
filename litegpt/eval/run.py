@@ -127,12 +127,24 @@ def main() -> int:
             samples = {t: triviaqa_subset(g["subset"]["size"], g["subset"]["seed"]) for t in g["tasks"]}
         revisions.update(task_dataset_revisions(g["tasks"]))
         print(f"[{g['name']}] {g['tasks']} shots={g['num_fewshot']}", flush=True)
-        out = lm_eval.simple_evaluate(
-            model="hf", model_args=model_args, tasks=g["tasks"], num_fewshot=g["num_fewshot"], batch_size=args.batch_size,
-            device="cuda", limit=args.limit, samples=samples, log_samples=True, apply_chat_template=bool(g.get("chat")),
-            random_seed=seed, numpy_random_seed=seed, torch_random_seed=seed, fewshot_random_seed=seed,
-            confirm_run_unsafe_code=bool(g.get("unsafe_code")), gen_kwargs=g.get("gen_kwargs"))
-        results[g["name"]] = {"results": out["results"], "n_samples": out.get("n-samples"), "versions": out.get("versions"),
+        bs = int(args.batch_size)
+        while True:                                # batch 16; halved only if it exceeds the VRAM cap (large vocabularies)
+            try:
+                out = lm_eval.simple_evaluate(
+                    model="hf", model_args=model_args, tasks=g["tasks"], num_fewshot=g["num_fewshot"], batch_size=bs,
+                    device="cuda", limit=args.limit, samples=samples, log_samples=True, apply_chat_template=bool(g.get("chat")),
+                    random_seed=seed, numpy_random_seed=seed, torch_random_seed=seed, fewshot_random_seed=seed,
+                    confirm_run_unsafe_code=bool(g.get("unsafe_code")), gen_kwargs=g.get("gen_kwargs"))
+                break
+            except torch.OutOfMemoryError:
+                if bs == 1:
+                    raise
+                import gc
+                gc.collect()
+                torch.cuda.empty_cache()
+                bs //= 2
+                print(f"[{g['name']}] out of memory: retrying with batch size {bs}", flush=True)
+        results[g["name"]] = {"batch_size": bs, "results": out["results"], "n_samples": out.get("n-samples"), "versions": out.get("versions"),
                               "configs": {k: {kk: str(vv) for kk, vv in v.items()} for k, v in out.get("configs", {}).items()}}
         rec.write_json(f"eval/{g['name']}.json", results[g["name"]])
         for task, samples_list in (out.get("samples") or {}).items():
