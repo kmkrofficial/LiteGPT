@@ -367,6 +367,8 @@ experiments:
       adoption: "not automatic: results are evidence for ADR-005; a step that hurts is returned to the owner with the numbers"
       validity: "invalid if training diverges (non-finite loss, or a spike > 10% above the running minimum that does not recover within 1% of the run), throttles thermally for > 5% of its time, or deviates from the shared configuration"
       proxy_lr: "sweep 1e-3, 2e-3, 4e-3 on s1 seed 1 for 0.25B tokens each (same schedule shape); lowest val_text/web BPB wins, ties within 0.002 go to the lower LR; the winner is used for every ladder step"
+    clarifications:   # recorded 2026-10-12 BEFORE any ladder result (the first smoke run produced no step)
+      - "Micro-batch: 16 x 2048 with the GPT-2 vocabulary (50,304) does not fit in the 16 GiB laptop GPU next to the AdamW state; the first smoke run spilled into shared memory (WDDM, also under WSL2) and was stopped before its first step. The loop now caps the CUDA allocator (free VRAM minus 1 GiB) and probes one forward/backward at the configured micro-batch before training, halving it and doubling the accumulation until it fits (s1: 8 x 2048 x 16 accumulation, probe peak 7.55 GiB). Tokens per step (262,144), block order, optimizer and schedule are unchanged (accumulation equals the large batch: tests/test_training.py); the micro-batch actually used and the probe are recorded in each run (run.json micro_batch_probe / micro_batch_used, train_summary.json)."
     conclusion: null
   - id: EXP-M2-M3LR
     milestone: M2

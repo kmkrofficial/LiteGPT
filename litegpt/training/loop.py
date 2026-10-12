@@ -7,6 +7,7 @@ with a temperature abort, and every number written to the run record.
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 import math
 import time
@@ -55,6 +56,49 @@ def evaluate(model, cfg: TrainConfig, val_loader, byte_lengths, encoder, val_doc
     return res
 
 
+def _is_oom(e: BaseException) -> bool:
+    return isinstance(e, torch.OutOfMemoryError) or "out of memory" in str(e).lower()
+
+
+def fit_micro_batch(fwd, model, cfg: TrainConfig, device) -> tuple[int, int, dict]:
+    """CUDA only. Cap the allocator so an overflow raises instead of spilling into shared memory (WDDM, also under WSL2), then
+    probe one forward/backward at the configured micro-batch; on out-of-memory halve it and double `accum`. Tokens per step
+    and the block order are unchanged (micro_batch * accum is constant; accumulation equals the large batch). The probe
+    reserves room for the AdamW state (2 fp32 tensors per parameter) and leaves parameters, grads and RNG untouched."""
+    mb, accum = cfg.micro_batch, cfg.accum
+    if device.type != "cuda":
+        return mb, accum, {}
+    free, total = torch.cuda.mem_get_info()
+    opt_bytes = 8 * sum(p.numel() for p in model.parameters())
+    cap = max(0.1, (free - 2**30) / total)
+    torch.cuda.set_per_process_memory_fraction(max(0.05, (free - 2**30 - opt_bytes) / total))
+    gen = torch.Generator().manual_seed(0)
+    tried = []
+    while True:
+        try:
+            x = torch.randint(0, cfg.vocab_size, (mb, cfg.block_len), generator=gen).to(device)
+            y = torch.randint(0, cfg.vocab_size, (mb, cfg.block_len), generator=gen).to(device)
+            torch.cuda.reset_peak_memory_stats()
+            with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+                _, loss = fwd(x, y)
+            loss.backward()
+            peak = torch.cuda.max_memory_allocated()
+            tried.append({"micro_batch": mb, "fits": True, "peak_GiB": round(peak / 2**30, 2)})
+            break
+        except Exception as e:  # noqa: BLE001 - only out-of-memory is handled
+            if not _is_oom(e) or mb == 1 or (mb // 2) * 2 != mb:
+                raise
+            tried.append({"micro_batch": mb, "fits": False})
+            mb, accum = mb // 2, accum * 2
+        finally:
+            model.zero_grad(set_to_none=True)
+            x = y = loss = None
+            torch.cuda.empty_cache()
+    torch.cuda.set_per_process_memory_fraction(cap)
+    return mb, accum, {"free_GiB": round(free / 2**30, 2), "cap_fraction": round(cap, 4), "optimizer_reserve_GiB": round(opt_bytes / 2**30, 2),
+                       "tried": tried}
+
+
 def train(cfg: TrainConfig, resume: str | None = None, runs_root: str | Path | None = None, max_steps: int | None = None) -> dict:
     """Run (or resume) a training run. `max_steps` stops early (smoke tests); the schedule still uses the full length."""
     device = torch.device(cfg.device)
@@ -69,6 +113,13 @@ def train(cfg: TrainConfig, resume: str | None = None, runs_root: str | Path | N
     model = build_model(cfg).to(device)
     model_cfg = model.config.to_dict()
     opt = model.configure_optimizers(cfg.weight_decay, cfg.lr, tuple(cfg.betas), device.type)
+    fwd = torch.compile(model) if cfg.compile else model
+    mb, accum, probe = fit_micro_batch(fwd, model, cfg, device)
+    if probe:
+        rec.update(micro_batch_probe=probe, micro_batch_used=mb, accum_used=accum)
+        if (mb, accum) != (cfg.micro_batch, cfg.accum):
+            rec.log("events", event="micro_batch_halved", configured=cfg.micro_batch, used=mb, accum_used=accum)
+            cfg = dataclasses.replace(cfg, micro_batch=mb, accum=accum)
     train_loader = _loader(cfg, cfg.train_index, cfg.micro_batch)
     val_loader = _loader(cfg, cfg.val_index, cfg.micro_batch)
     ckpt = CheckpointManager(rec.path / "checkpoints", keep_last=cfg.keep_last, spec_sha256=spec_sha256())
@@ -84,7 +135,6 @@ def train(cfg: TrainConfig, resume: str | None = None, runs_root: str | Path | N
     decay = round(total * cfg.decay_frac)
     if len(train_loader.src) < total * cfg.micro_batch * cfg.accum:
         raise ValueError(f"index {cfg.train_index} has {len(train_loader.src)} blocks; the run needs {total * cfg.micro_batch * cfg.accum}")
-    fwd = torch.compile(model) if cfg.compile else model
     byte_lengths = token_byte_lengths(cfg.tokenizer, cfg.vocab_size)
     encoder = TextEncoder(cfg.tokenizer) if cfg.val_text_dir else None
     val_docs = _val_text(cfg)
@@ -160,6 +210,7 @@ def train(cfg: TrainConfig, resume: str | None = None, runs_root: str | Path | N
     evals = read_jsonl(rec.path / "eval.jsonl")
     summary = {"status": status, "step": step, "total_steps": total, "tokens": tokens, "skipped_steps": skipped, "loss_spikes": spikes,
                "final_eval": evals[-1] if evals else None, "mean_tok_per_s": float(np.mean([m["tok_per_s"] for m in metrics[1:]])) if len(metrics) > 1 else None,
-               "params": model.num_params(), "params_non_embedding": model.num_params(non_embedding=True), "telemetry": tel}
+               "params": model.num_params(), "params_non_embedding": model.num_params(non_embedding=True), "telemetry": tel,
+               "micro_batch_used": cfg.micro_batch, "accum_used": cfg.accum}
     rec.write_json("train_summary.json", summary)
     return summary
