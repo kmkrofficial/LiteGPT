@@ -5,3 +5,5 @@ litegpt/assets/** binary
 runs/**/litegpt-32k.json binary
 *.npz binary
 *.bin binary
+*.jinja text eol=lf
+*.sh text eol=lf
