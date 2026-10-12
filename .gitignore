@@ -45,6 +45,7 @@ hugging_face_export/
 /PLAN.md
 /PLAN_M1.md
 /PLAN_M1b.md
+/M1_RESULTS.md
 
 # large deterministic data artefacts (rebuilt from manifests; hashes recorded in the spec)
 runs/**/*.npz
