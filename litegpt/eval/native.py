@@ -36,6 +36,19 @@ def load_hf(repo: str, revision: str):
     return model, tok
 
 
+def param_counts(model) -> dict:
+    """Counted from the loaded weights: embedding = every nn.Embedding (token and learned position tables) plus an untied
+    output head; tied weights count once."""
+    emb = {id(m.weight): m.weight.numel() for m in model.modules() if isinstance(m, torch.nn.Embedding)}
+    head, inp = model.get_output_embeddings(), model.get_input_embeddings()
+    tied = head is not None and head.weight is inp.weight
+    if head is not None and not tied:
+        emb[id(head.weight)] = head.weight.numel()
+    total = sum(p.numel() for p in model.parameters())
+    return {"total": total, "embedding": sum(emb.values()), "non_embedding": total - sum(emb.values()), "tied_output": tied,
+            "vocab_size": inp.weight.shape[0]}
+
+
 def context_length(model, tok) -> int:
     n = getattr(model.config, "max_position_embeddings", None) or getattr(model.config, "n_positions", None) or 2048
     return int(min(n, 2048))
@@ -118,7 +131,7 @@ def cmd_efficiency(args, model_info) -> dict:
         limit = pynvml.nvmlDeviceGetEnforcedPowerLimit(pynvml.nvmlDeviceGetHandleByIndex(0)) / 1000.0
     except Exception:
         pass
-    return {"dtype": "bfloat16", "rows": rows, "gpu_power_limit_w": limit,
+    return {"dtype": "bfloat16", "rows": rows, "gpu_power_limit_w": limit, "params": param_counts(model),
             "note": "HF transformers generate with KV cache; decode = total - one prefill"}
 
 
