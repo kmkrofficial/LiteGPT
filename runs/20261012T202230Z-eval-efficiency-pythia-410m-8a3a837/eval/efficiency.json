@@ -1,0 +1,69 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "EleutherAI/pythia-410m",
+    "revision": "9879c9b5f8bea9051dcb0e68dff21493d67e9d4f",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "dtype": "bfloat16",
+  "rows": [
+    {
+      "prompt_tokens": 128,
+      "prompt_bytes": 736,
+      "batch": 1,
+      "new_tokens": 128,
+      "prefill_s": 0.015152834000218718,
+      "prefill_tok_s": 8447.264716168107,
+      "ttft_s": 0.027051663070530196,
+      "decode_tok_s": 84.04188295259063,
+      "decode_bytes_s": 489.8065990830672,
+      "peak_vram_GiB": 0.7877373695373535
+    },
+    {
+      "prompt_tokens": 128,
+      "prompt_bytes": 736,
+      "batch": 8,
+      "new_tokens": 128,
+      "prefill_s": 0.019844060999275825,
+      "prefill_tok_s": 51602.340873542424,
+      "ttft_s": 0.031499018218035246,
+      "decode_tok_s": 686.4032059357089,
+      "decode_bytes_s": 4000.4436845940536,
+      "peak_vram_GiB": 0.9609451293945312
+    },
+    {
+      "prompt_tokens": 512,
+      "prompt_bytes": 2960,
+      "batch": 1,
+      "new_tokens": 128,
+      "prefill_s": 0.012447627999790711,
+      "prefill_tok_s": 41132.33461094825,
+      "ttft_s": 0.023418265999787025,
+      "decode_tok_s": 91.15240152854702,
+      "decode_bytes_s": 533.3839745693884,
+      "peak_vram_GiB": 0.8587732315063477
+    },
+    {
+      "prompt_tokens": 512,
+      "prompt_bytes": 2960,
+      "batch": 8,
+      "new_tokens": 128,
+      "prefill_s": 0.062053379999269964,
+      "prefill_tok_s": 66007.68564175212,
+      "ttft_s": 0.07411904807739944,
+      "decode_tok_s": 663.0382957824768,
+      "decode_bytes_s": 3879.810027664649,
+      "peak_vram_GiB": 1.5305423736572266
+    }
+  ],
+  "gpu_power_limit_w": 147.777,
+  "params": {
+    "total": 405334016,
+    "embedding": 103022592,
+    "non_embedding": 302311424,
+    "tied_output": false,
+    "vocab_size": 50304
+  },
+  "note": "HF transformers generate with KV cache; decode = total - one prefill"
+}

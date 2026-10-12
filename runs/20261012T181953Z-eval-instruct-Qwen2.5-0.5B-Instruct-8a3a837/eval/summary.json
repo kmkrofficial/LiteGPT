@@ -1,0 +1,43 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "suite_version": "0.1.1",
+  "task_dataset_revisions": {
+    "google/IFEval": "966cd89545d6b6acfd7638bc708b98261ca58e84",
+    "openai/gsm8k": "740312add88f781978c0658806c59bc2815b9866",
+    "google-research-datasets/mbpp": "4bb6404fdc6cacfda99d4ac4205087b89d32030c",
+    "openai/openai_humaneval": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544"
+  },
+  "headline": {
+    "ifeval": {
+      "metric": "prompt_level_strict_acc",
+      "key": "prompt_level_strict_acc,none",
+      "value": 0.2680221811460259,
+      "stderr": 0.019060638691630338
+    },
+    "gsm8k_cot_zeroshot": {
+      "metric": "exact_match,flexible-extract",
+      "key": "exact_match,flexible-extract",
+      "value": 0.25701288855193327,
+      "stderr": 0.012036781757428686
+    },
+    "humaneval_instruct_litegpt": {
+      "metric": "pass@1",
+      "key": "pass@1,create_test",
+      "value": 0.2865853658536585,
+      "stderr": 0.03541638332993503
+    },
+    "mbpp_instruct_litegpt": {
+      "metric": "pass_at_1",
+      "key": "pass_at_1,extract_code",
+      "value": 0.262,
+      "stderr": 0.019684688820194706
+    }
+  },
+  "comparable": true
+}

@@ -278,7 +278,7 @@ experiments:
     hypothesis: "Evaluation suite v0 (lm-evaluation-harness 0.4.13 + native bits-per-byte and efficiency) gives deterministic, harness-sane scores that serve as the fixed yardstick for V1, competitors and every later V2 result."
     config: litegpt/eval/suite_v0.yaml + litegpt/eval/SUITE_VERSION (0.1.0)
     parent: null
-    status: harness-validated
+    status: final (suite 0.1.1)
     runs:
       - 20261011T170523Z-eval-base-gpt2-203de2f   # GPT-2 run A: zero-shot, TriviaQA, GSM8K (stopped at HumanEval: 1,024-token default)
       - 20261011T172039Z-eval-base-gpt2-203de2f   # GPT-2 run B: same groups (determinism)
@@ -321,14 +321,72 @@ experiments:
       - "MMLU is scored with lm-eval's mmlu_continuation (cloze) group; the code tasks are humaneval (0-shot) and mbpp (3-shot) for base models, humaneval_instruct / mbpp_instruct for chat models; gsm8k_cot_zeroshot is the chat GSM8K task; XSTest is scored natively (not in lm-eval 0.4.13)."
       - "TriviaQA subset: 2,000 document indices drawn with random.Random(1234).sample over the task's evaluation split, passed to lm-eval as `samples`."
       - "Code tasks (humaneval, mbpp, humaneval_instruct, mbpp_instruct) generate at most 512 new tokens for every model (lm-eval default 1,024 equals GPT-2's whole context and aborted the first GPT-2 run before any code score was produced; recorded 2026-10-11 before any code-task score)."
-    conclusion: "HARNESS VALIDATED (2026-10-11, Checkpoint C). Sanity rule PASS: GPT-2 124M HellaSwag acc_norm 0.3130 (range 0.29-0.33), PIQA acc 0.6246 (range 0.61-0.65); other GPT-2 scores: ARC-Easy 0.4407, ARC-Challenge acc_norm 0.2210, OpenBookQA acc_norm 0.268, CommonsenseQA 0.1957, Winogrande 0.5083, MMLU (continuation) 0.2535, TruthfulQA MC1 0.2301 / MC2 0.4068, TriviaQA (2,000) 0.017, GSM8K strict 0.0061, HumanEval pass@1 0.0, MBPP pass@1 0.0. Determinism rule PASS: two independent runs give identical results for every task, and identical per-sample outputs for HumanEval (164) and MBPP (500). Adapter rule PASS (tests/test_eval_adapter.py). Fixes before the baselines: code tasks capped at 512 new tokens (recorded clarification); task dataset revisions were not being recorded (a falsy TaskConfig check), fixed and verified (humaneval 7dce6050, hellaswag 218ec52e: equal to the decontamination pins). GPT-2 is re-run as a single complete record in the baseline set."
+    conclusion: "HARNESS VALIDATED (2026-10-11, Checkpoint C). Sanity rule PASS: GPT-2 124M HellaSwag acc_norm 0.3130 (range 0.29-0.33), PIQA acc 0.6246 (range 0.61-0.65); other GPT-2 scores: ARC-Easy 0.4407, ARC-Challenge acc_norm 0.2210, OpenBookQA acc_norm 0.268, CommonsenseQA 0.1957, Winogrande 0.5083, MMLU (continuation) 0.2535, TruthfulQA MC1 0.2301 / MC2 0.4068, TriviaQA (2,000) 0.017, GSM8K strict 0.0061, HumanEval pass@1 0.0, MBPP pass@1 0.0. Determinism rule PASS: two independent runs give identical results for every task, and identical per-sample outputs for HumanEval (164) and MBPP (500). Adapter rule PASS (tests/test_eval_adapter.py). Fixes before the baselines: code tasks capped at 512 new tokens (recorded clarification); task dataset revisions were not being recorded (a falsy TaskConfig check), fixed and verified (humaneval 7dce6050, hellaswag 218ec52e: equal to the decontamination pins). GPT-2 is re-run as a single complete record in the baseline set. FINAL (2026-10-13): suite 0.1.1 after the protocol corrections above, each recorded before the affected scores were final; base groups are identical to 0.1.0, so every base record stands. Baseline results: EXP-M1B-BASELINES."
   - id: EXP-M1B-BASELINES
     milestone: M1b
     hypothesis: "V1 and same-class / reference competitors measured with suite v0 on this machine define the comparison table for V2."
     config: litegpt/eval/run.py
     parent: EXP-M1B-SUITE
-    status: pre-registered
-    runs: []
+    status: done
+    runs:   # every record the report reads (runs/report-latest/REPORT.md sections 3d and 4)
+      - 20261012T030635Z-eval-base-gpt2-b096d66
+      - 20261012T032335Z-eval-base-SmolLM2-135M-b096d66
+      - 20261012T040931Z-eval-base-LiteGPT-Base-44361ab
+      - 20261012T042519Z-eval-base-pythia-160m-44361ab
+      - 20261012T044301Z-eval-base-gemma-3-270m-44361ab
+      - 20261012T051842Z-eval-base-gpt2-medium-44361ab
+      - 20261012T054432Z-eval-base-SmolLM2-360M-44361ab
+      - 20261012T061342Z-eval-base-pythia-410m-44361ab
+      - 20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908
+      - 20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178
+      - 20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97
+      - 20261012T153948Z-eval-instruct-SmolLM2-135M-Instruct-3afbe97
+      - 20261012T155507Z-eval-xstest-LiteGPT-Instruct-298e547
+      - 20261012T160247Z-eval-xstest-SmolLM2-135M-Instruct-298e547
+      - 20261012T160535Z-eval-instruct-SmolLM2-360M-Instruct-298e547
+      - 20261012T162831Z-eval-xstest-SmolLM2-360M-Instruct-298e547
+      - 20261012T163133Z-eval-instruct-gemma-3-270m-it-298e547
+      - 20261012T165636Z-eval-xstest-gemma-3-270m-it-298e547
+      - 20261012T181953Z-eval-instruct-Qwen2.5-0.5B-Instruct-8a3a837
+      - 20261012T183903Z-eval-xstest-Qwen2.5-0.5B-Instruct-8a3a837
+      - 20261012T184129Z-eval-instruct-Qwen3-0.6B-8a3a837
+      - 20261012T190920Z-eval-xstest-Qwen3-0.6B-8a3a837
+      - 20261012T191248Z-eval-instruct-LiteGPT-Instruct-8a3a837
+      - 20261012T191613Z-eval-instruct-SmolLM2-135M-Instruct-8a3a837
+      - 20261012T192502Z-eval-instruct-SmolLM2-360M-Instruct-8a3a837
+      - 20261012T193352Z-eval-instruct-gemma-3-270m-it-8a3a837
+      - 20261012T194315Z-eval-efficiency-gpt2-8a3a837
+      - 20261012T194325Z-eval-bpb-gpt2-8a3a837
+      - 20261012T194426Z-eval-efficiency-LiteGPT-Base-8a3a837
+      - 20261012T194436Z-eval-bpb-LiteGPT-Base-8a3a837
+      - 20261012T194540Z-eval-efficiency-SmolLM2-135M-8a3a837
+      - 20261012T194559Z-eval-bpb-SmolLM2-135M-8a3a837
+      - 20261012T194741Z-eval-efficiency-pythia-160m-8a3a837
+      - 20261012T194752Z-eval-bpb-pythia-160m-8a3a837
+      - 20261012T194845Z-eval-efficiency-gemma-3-270m-8a3a837
+      - 20261012T194906Z-eval-bpb-gemma-3-270m-8a3a837
+      - 20261012T201732Z-eval-efficiency-gpt2-medium-8a3a837
+      - 20261012T201745Z-eval-bpb-gpt2-medium-8a3a837
+      - 20261012T201950Z-eval-efficiency-SmolLM2-360M-8a3a837
+      - 20261012T202009Z-eval-bpb-SmolLM2-360M-8a3a837
+      - 20261012T202230Z-eval-efficiency-pythia-410m-8a3a837
+      - 20261012T202244Z-eval-bpb-pythia-410m-8a3a837
+      - 20261012T202426Z-eval-efficiency-Qwen2.5-0.5B-8a3a837
+      - 20261012T202446Z-eval-bpb-Qwen2.5-0.5B-8a3a837
+      - 20261012T202709Z-eval-efficiency-Qwen3-0.6B-Base-8a3a837
+      - 20261012T202811Z-eval-bpb-Qwen3-0.6B-Base-8a3a837
+      - 20261012T203121Z-eval-efficiency-LiteGPT-Instruct-8a3a837
+      - 20261012T203131Z-eval-bpb-LiteGPT-Instruct-8a3a837
+      - 20261012T203235Z-eval-efficiency-SmolLM2-135M-Instruct-8a3a837
+      - 20261012T203252Z-eval-bpb-SmolLM2-135M-Instruct-8a3a837
+      - 20261012T203440Z-eval-efficiency-SmolLM2-360M-Instruct-8a3a837
+      - 20261012T203458Z-eval-bpb-SmolLM2-360M-Instruct-8a3a837
+      - 20261012T203714Z-eval-efficiency-gemma-3-270m-it-8a3a837
+      - 20261012T203737Z-eval-bpb-gemma-3-270m-it-8a3a837
+      - 20261012T210501Z-eval-efficiency-Qwen2.5-0.5B-Instruct-8a3a837
+      - 20261012T210518Z-eval-bpb-Qwen2.5-0.5B-Instruct-8a3a837
+      - 20261012T210736Z-eval-efficiency-Qwen3-0.6B-8a3a837
+      - 20261012T210801Z-eval-bpb-Qwen3-0.6B-8a3a837
     decisions:
       base_models: [koganrath/LiteGPT-Base, HuggingFaceTB/SmolLM2-135M, HuggingFaceTB/SmolLM2-360M, google/gemma-3-270m, EleutherAI/pythia-160m, EleutherAI/pythia-410m, openai-community/gpt2, openai-community/gpt2-medium, Qwen/Qwen2.5-0.5B, Qwen/Qwen3-0.6B-Base]
       instruct_models: [koganrath/LiteGPT-Instruct, HuggingFaceTB/SmolLM2-135M-Instruct, HuggingFaceTB/SmolLM2-360M-Instruct, google/gemma-3-270m-it, Qwen/Qwen2.5-0.5B-Instruct, Qwen/Qwen3-0.6B]
@@ -339,7 +397,7 @@ experiments:
       - "V1-Instruct (koganrath/LiteGPT-Instruct) is published without a chat template; it is scored with V1's own inference prompt as a template (litegpt/eval/templates/alpaca_v1.jinja, sha256 8c0747d2debaf278..., verified to reproduce scripts/legacy_v1/hugging_face_inference/inference_instruct.py exactly), applied to a local copy of the pinned snapshot. The template text is stored in each run record."
       - "Qwen3-0.6B (hybrid thinking model) is scored with thinking disabled (lm-eval enable_thinking=False; XSTest: enable_thinking=False in the chat template), so every instruct model answers directly."
       - "Base suite batch size 16 for every model; efficiency runs are executed only when no other GPU job is running."
-    conclusion: null
+    conclusion: "DONE (2026-10-13), suite 0.1.1, one record per model and part (16 models: 10 base, 6 instruct), revisions pinned in each record. Exclusion: MobileLLM-125M/350M are gated (manual approval, licence 'other'); access was never requested and no terms were accepted, so they are not evaluated. V1-Base: zero-shot mean 0.371 vs GPT-2 0.346 and Pythia-160M 0.344, higher than GPT-2 on all 10 zero-shot tasks and level with GPT-2 Medium (355M, 0.373); modern small models are ahead (SmolLM2-135M 0.403, Gemma 3 270M 0.393, SmolLM2-360M 0.442, Qwen2.5-0.5B 0.463, Qwen3-0.6B-Base 0.489). Generative: V1-Base TriviaQA 0.029, GSM8K 0.002, HumanEval / MBPP 0.000. Bits per byte (val_text): V1-Base web 0.946 (GPT-2 1.023, GPT-2 Medium 0.942, SmolLM2-135M 0.865), code 1.612 (highest of all 16; GPT-2 1.213, SmolLM2-135M 0.559), math 1.374, chat 0.963, synthetic 0.819; V1 saw only FineWeb-Edu, and code / math / chat are where V2's mixture differs. V1 and GPT-2 are scored with their 1,024-token context (window 1024 / stride 512), the others with 2,048. Instruct: V1-Instruct IFEval 0.083 (SmolLM2-135M-Instruct 0.220, Qwen3-0.6B 0.564), GSM8K chat 0.021, chat code 0.000 / 0.000, XSTest 0% unsafe refused and 0% safe refused (identical at 128 and 256 new tokens). Efficiency (HF generate, bf16, prompt 512, batch 1): V1 213 decode tok/s, the fastest with GPT-2 (206); 30-layer SmolLM2 and Gemma decode at 46-54 tok/s, Qwen3 at 39; batch-1 decode here is dominated by per-layer overhead, so depth costs speed. Qwen2.5-0.5B base (d1d7908) ran from the length-cleaned local copy; its record shows generation_config_removed {} because the previous attempt had already cleaned the copy, and the run logged zero generation-length override warnings (verified). Corrections applied before the affected scores were final: IFEval at the registered 512 tokens, ifeval extra installed, XSTest at 256, GSM8K chat scored with flexible-extract, chat code tasks corrected (suite 0.1.1, owner-approved); see EXP-M1B-SUITE."
   - id: EXP-M2-LADDER
     milestone: M2
     hypothesis: "Each V2 architecture change (ADR-005) improves or does not hurt bits-per-byte at proxy scale when applied one at a time; the 32k tokenizer and the code+math mixture have measurable, reported per-domain effects."

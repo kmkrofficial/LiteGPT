@@ -4,6 +4,15 @@ Format: newest first. Spec changes are recorded with their ADR (docs/decisions/)
 
 ## Unreleased (V2 development)
 
+### 2026-10-13
+- **M1b done** (EXP-M1B-SUITE final at suite 0.1.1, EXP-M1B-BASELINES): 16 models (10 base, 6 instruct) measured on this laptop;
+  report section 3d with counted parameters, published context, base / instruct / XSTest / bits-per-byte / efficiency tables.
+  V1-Base beats GPT-2 on all 10 zero-shot tasks (mean 0.371 vs 0.346) and is weakest of all 16 on code bits-per-byte.
+- Suite corrections before the affected scores were final: IFEval at the registered 512 tokens (lm-eval's ifeval extra added to
+  the eval group), XSTest at 256, GSM8K chat scored with flexible-extract, corrected chat code tasks (suite 0.1.1).
+- M2 training probes the micro-batch under a VRAM cap and halves it (doubling accumulation) until one step fits; tokens per step
+  unchanged.
+
 ### 2026-10-11
 - **Tokenizer frozen** (owner, M1 Checkpoint B): `litegpt/assets/tokenizer/litegpt-32k.json`, sha256 `2f208b58085074d9...` in spec
   `tokenizer.sha256`. 32,768 entries; web 0.966x GPT-2 bytes/token, Python/JS/TS/Shell/SQL 1.2-1.7x better (EXP-M1-TOKENIZER).

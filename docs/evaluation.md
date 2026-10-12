@@ -1,21 +1,28 @@
 # Evaluation
 
-**Status: suite v0 built and harness-validated (M1b); baselines in progress.** Registry: `EXP-M1B-SUITE`, `EXP-M1B-BASELINES`.
+**Status: suite v0 final at 0.1.1; baselines done for 16 models (M1b, report section 3d).** Registry: `EXP-M1B-SUITE`,
+`EXP-M1B-BASELINES`.
 
 ## What is measured
 
-Suite v0 (`litegpt/eval/suite_v0.yaml`, `litegpt/eval/SUITE_VERSION` = 0.1.0) was frozen before the first model was scored.
+Suite v0 (`litegpt/eval/suite_v0.yaml`, `litegpt/eval/SUITE_VERSION`) was frozen at 0.1.0 before the first model was scored and
+corrected to 0.1.1 before the affected scores were final (every correction is in the registry): the chat code tasks are
+corrected copies of lm-eval's (`litegpt/eval/tasks/code_chat`: lm-eval 0.4.13 cut restated functions at `
+def` and deleted a
+leading `def` in MBPP answers). The base groups are identical in both versions.
 
 | Suite | Tasks | How |
 |---|---|---|
 | Base (all models) | HellaSwag, ARC-Easy/Challenge, PIQA, OpenBookQA, CommonsenseQA, Winogrande, MMLU (continuation / cloze form), TruthfulQA MC1/MC2 (0-shot); TriviaQA (fixed seeded 2,000-question subset) and GSM8K (5-shot); HumanEval (0-shot) and MBPP (3-shot), pass@1 greedy | lm-evaluation-harness 0.4.13 |
-| Instruct (chat models) | IFEval, GSM8K chain-of-thought 0-shot, HumanEval / MBPP instruct, XSTest | lm-eval with each model's own chat template; XSTest native |
+| Instruct (chat models) | IFEval (prompt-level strict), GSM8K chain-of-thought 0-shot (last number in the answer), HumanEval / MBPP instruct (corrected copies), XSTest | lm-eval with each model's own chat template, at most 512 new tokens (GSM8K, XSTest 256); XSTest native |
 | Language modelling | Bits per byte on `val_core` and the domain sets (web, synthetic, code, math, chat), each model with its own tokenizer | native (`litegpt/eval/native.py bpb`) |
 | Efficiency | Prefill / decode tok/s, **bytes/s**, time to first token, peak VRAM at prompt 128/512 x output 128 x batch 1/8 | native (`litegpt/eval/native.py efficiency`) |
 
 Fixed protocol: seed 1234 everywhere, greedy decoding, bf16, sample-level outputs saved, model revision pinned to the commit
 resolved at start, task dataset revisions resolved and recorded per run, code tasks capped at 512 new tokens, no
-`trust_remote_code`. Generated code runs only in WSL2.
+`trust_remote_code`. Generated code runs only in WSL2. The allocator is capped at free VRAM minus 1 GiB so an overflow fails
+instead of spilling into shared memory; a group that does not fit is retried with the batch halved (recorded). Models whose
+`generation_config.json` sets a generation length are evaluated from a local copy with those keys removed (recorded).
 
 ## Comparing models with different tokenizers
 

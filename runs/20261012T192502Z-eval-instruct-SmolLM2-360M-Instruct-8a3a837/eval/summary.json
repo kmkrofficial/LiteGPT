@@ -1,0 +1,29 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "HuggingFaceTB/SmolLM2-360M-Instruct",
+    "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "suite_version": "0.1.1",
+  "task_dataset_revisions": {
+    "google-research-datasets/mbpp": "4bb6404fdc6cacfda99d4ac4205087b89d32030c",
+    "openai/openai_humaneval": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544"
+  },
+  "headline": {
+    "humaneval_instruct_litegpt": {
+      "metric": "pass@1",
+      "key": "pass@1,create_test",
+      "value": 0.15853658536585366,
+      "stderr": 0.028608070471683643
+    },
+    "mbpp_instruct_litegpt": {
+      "metric": "pass_at_1",
+      "key": "pass_at_1,extract_code",
+      "value": 0.242,
+      "stderr": 0.019173085678337157
+    }
+  },
+  "comparable": true
+}
