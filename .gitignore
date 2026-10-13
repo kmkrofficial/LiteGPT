@@ -41,12 +41,8 @@ scripts/legacy_v1/data/*/*.json
 export_to_hub.py
 hugging_face_export/
 
-# private working plan (local only)
-/PLAN.md
-/PLAN_M1.md
-/PLAN_M1b.md
-/M1_RESULTS.md
-/PLAN_M2.md
+# private working plans, results and the full progress report (local only)
+/docs/private/
 
 # large deterministic data artefacts (rebuilt from manifests; hashes recorded in the spec)
 runs/**/*.npz
