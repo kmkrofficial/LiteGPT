@@ -77,6 +77,12 @@ def val_text_bpb(model, encoder: TextEncoder, docs: list[str], window: int, devi
     return {"bpb": nll / math.log(2) / max(nbytes, 1), "bytes": nbytes, "docs": len(docs)}
 
 
+def token_nll(logits: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """Per-token NLL (float32) of a (B, T, V) batch, flattened to (B*T,). Computed one sequence at a time: identical values to
+    one batched call, but the float32 copy of the logits is T x V instead of B x T x V (3 GiB at 8 x 2048 x 50k)."""
+    return torch.cat([F.cross_entropy(logits[i].float(), y[i], reduction="none") for i in range(logits.size(0))])
+
+
 @torch.no_grad()
 def token_val(model, loader, n_batches: int, byte_lengths: np.ndarray, device) -> dict:
     """Mean loss and BPB over the first `n_batches` batches of a validation index (special tokens excluded from BPB)."""
@@ -92,7 +98,7 @@ def token_val(model, loader, n_batches: int, byte_lengths: np.ndarray, device) -
         x, y = x.to(device), y.to(device)
         with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=device.type == "cuda"):
             logits, _ = model(x, logits_all=True)
-        nll = F.cross_entropy(logits.float().view(-1, logits.size(-1)), y.view(-1), reduction="none")
+        nll = token_nll(logits, y)
         b = nb_t[y.view(-1)]
         loss_sum += float(nll.sum())
         n_tok += nll.numel()

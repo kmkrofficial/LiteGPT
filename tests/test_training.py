@@ -89,3 +89,13 @@ def test_resume_is_bit_exact(data_run, tmp_path):
     assert step == 12
     for k in ref:
         assert torch.equal(ref[k], got[k]), k
+
+
+def test_token_nll_row_by_row_equals_batched():
+    from torch.nn import functional as F
+    from litegpt.training.bpb import token_nll
+    g = torch.Generator().manual_seed(0)
+    logits = torch.randn(3, 17, 101, generator=g).to(torch.bfloat16)
+    y = torch.randint(0, 101, (3, 17), generator=g)
+    ref = F.cross_entropy(logits.float().view(-1, 101), y.view(-1), reduction="none")
+    assert torch.equal(token_nll(logits, y), ref)
