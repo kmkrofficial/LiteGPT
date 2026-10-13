@@ -99,3 +99,16 @@ def test_token_nll_row_by_row_equals_batched():
     y = torch.randint(0, 101, (3, 17), generator=g)
     ref = F.cross_entropy(logits.float().view(-1, 101), y.view(-1), reduction="none")
     assert torch.equal(token_nll(logits, y), ref)
+
+
+def test_grad_norm_divergence_rule():
+    from litegpt.training.stability import grad_norm_divergence
+    stable = [{"step": s, "grad_norm": 0.3 + 0.05 * ((s // 10) % 3)} for s in range(10, 1001, 10)]
+    assert not grad_norm_divergence(stable, 1000, warmup_steps=10)["diverged"]
+    blip = [dict(m, grad_norm=5.0) if m["step"] == 500 else m for m in stable]          # one 10-step blip = 1.0%: not > 1%
+    assert not grad_norm_divergence(blip, 1000, warmup_steps=10)["diverged"]
+    bad = [dict(m, grad_norm=8.0) if m["step"] >= 900 else m for m in stable]           # sustained 10% of the run
+    r = grad_norm_divergence(bad, 1000, warmup_steps=10)
+    assert r["diverged"] and r["first_flagged_step"] == 900 and r["max_ratio_to_running_median"] > 10
+    warm = [{"step": 10, "grad_norm": 9.0}] + stable[1:]                                  # high warmup values are ignored
+    assert not grad_norm_divergence(warm, 1000, warmup_steps=10)["diverged"]
