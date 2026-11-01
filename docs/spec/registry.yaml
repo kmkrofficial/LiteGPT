@@ -552,12 +552,13 @@ experiments:
     hypothesis: "RoPE theta 100k from the first step, with no switch at the context extension, trains as well at the approved peak LR 2.4e-3 as theta 10k did, so that LR stays valid."
     config: benchmarks/ladder/m3lr-theta100k.yaml (benchmarks/ladder/m3lr.yaml with lr 2.4e-3 and rope_theta 100000)
     parent: EXP-M2-M3LR
-    status: pre-registered
-    runs: []
+    status: stopped by the owner
+    runs:
+      - 20261101T122010Z-train-m3lr-theta100k-e2283f9   # interrupted at step 97 of 381
     decisions:   # PRE-REGISTERED 2026-11-01 before the run
       owner: "Owner 2026-11-01: the final model uses theta 100k and a 4,096 context. Measured reason to avoid switching at the extension: the same weights lost 0.036 val BPB when theta changed from 10k to 100k (EXP-M3-OPT interim_results). Theta therefore becomes 100k from step 0, and the extension only lengthens the context. Goes into ADR-009 / spec 2.0.0-spec.7 with this result; M2 ladder results stay evidence at theta 10k and are reported as such."
       comparison: "same model, data order, seed (1), 200M tokens and schedule as 20261101T042856Z-train-m3lr-2.4e-3-b81bbb8 (val_core BPB 1.6505, web 1.6520, code 1.9196, math 2.0802); only theta differs"
     thresholds:
       rule: "val_core BPB after the decay <= 1.6505 + 0.005 and not diverged: 2.4e-3 stays the M3 LR. Otherwise the numbers go to the owner; the next candidate is 1.2e-3 at theta 100k. Single seed, so differences inside 0.005 are ties."
-    conclusion: null
+    conclusion: "STOPPED 2026-11-01 by the owner at step 97 of 381 (50.9M of 200M tokens), so the rule was not applied: no validation result exists and nothing here compares theta values. Logged single-batch training loss averaged 0.070 above the theta 10k run at the same steps (noisy, early, not evidence). OWNER DECISION: theta stays 10k from start to finish and the final context is 4,096, so the extension only lengthens the context; there is no theta switch (the switch cost +0.036 val BPB, EXP-M3-OPT interim_results). All M2 evidence, including LR 2.4e-3, was measured at theta 10k. Spec training.pretraining.context_extension.rope_theta changes from 100000 to 10000 in spec 2.0.0-spec.7 (ADR-009)."
 
