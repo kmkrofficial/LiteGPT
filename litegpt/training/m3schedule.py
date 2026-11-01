@@ -20,6 +20,7 @@ class Schedule:
         self.extension_steps = self.steps(s["extension"]["tokens"])
         self.gate_step = self.steps(s["stable_end_tokens"])
         self.stable_end_step = self.gate_step
+        self.max_stable_step = None
         self.decided = False
         if self.extension_steps > self.decay_steps:
             raise ValueError("the context extension must fit inside the decay")
@@ -47,8 +48,14 @@ class Schedule:
     def lr(self, step: int, peak: float, final_frac: float) -> float:
         return wsd_lr(step, self.total_steps, peak, self.warmup_steps, self.decay_steps, final_frac)
 
+    def limit_stable(self, max_steps: int) -> None:
+        """The last whole step the stable index can feed: its 14.0B tokens end a fraction of a step short of steps(14.0B)."""
+        self.max_stable_step = max_steps
+        self.stable_end_step = min(self.stable_end_step, max_steps)
+
     def apply_gate(self, record: dict) -> None:
-        self.stable_end_step = self.steps(record["stable_end_tokens"])
+        end = self.steps(record["stable_end_tokens"])
+        self.stable_end_step = min(end, self.max_stable_step) if self.max_stable_step else end
         self.decided = True
 
 

@@ -90,6 +90,16 @@ def budget(rented_hours_ago, cap=2400.0):
     return {"price_usd_h": 0.60, "inr_per_usd": 98.40, "gate_budget_inr": cap, "rented_at_unix": 1e6 - rented_hours_ago * 3600}
 
 
+def test_stable_phase_is_limited_to_whole_steps_of_the_index():
+    s = Schedule(spec(), 524288)
+    assert s.steps(14 * G) == 26703                 # 14.0B needs 6,835,968 blocks at 256 per step ...
+    s.limit_stable(6835937 // 256)                  # ... and the index holds 6,835,937
+    assert s.max_stable_step == 26702
+    assert s.stable_end_step == s.gate_step         # 9.0B is not affected
+    s.apply_gate({"stable_end_tokens": 14 * G})
+    assert s.stable_end_step == 26702 and s.total_steps == 26702 + s.decay_steps
+
+
 def test_budget_without_a_rental_time_fails_at_the_start():
     bud = {"price_usd_h": 0.6, "inr_per_usd": 98.4, "gate_budget_inr": 2400.0}
     with pytest.raises(ValueError, match="rented"):

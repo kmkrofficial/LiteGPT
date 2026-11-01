@@ -168,9 +168,16 @@ def train(cfg: TrainConfig, resume: str | None = None, runs_root: str | Path | N
     warmup = sched.warmup_steps if sched else max(1, round(total * cfg.warmup_frac))
     decay = sched.decay_steps if sched else round(total * cfg.decay_frac)
     if sched:
-        need = max(sched.steps(cfg.schedule["gate"]["max_stable_end_tokens"]), sched.stable_end_step) * cfg.micro_batch * cfg.accum
-        if len(train_loader.src) < need:
-            raise ValueError(f"index {cfg.train_index} has {len(train_loader.src)} blocks; the largest stable phase needs {need}")
+        blocks_per_step = cfg.micro_batch * cfg.accum
+        sched.limit_stable(len(train_loader.src) // blocks_per_step)
+        total = sched.total_steps
+        top = sched.steps(cfg.schedule["gate"]["max_stable_end_tokens"])
+        if top - sched.max_stable_step > 1:    # more than rounding: the index really is too short for the largest stable phase
+            raise ValueError(f"index {cfg.train_index} feeds {sched.max_stable_step} steps; the largest stable phase needs {top}")
+        ext = cfg.schedule["extension"]
+        need = (sched.decay_steps - sched.extension_steps) * blocks_per_step + sched.extension_steps * ext["micro_batch"] * ext["accum"]
+        if len(decay_loader.src) < need:
+            raise ValueError(f"index {cfg.schedule['decay_index']} has {len(decay_loader.src)} blocks; the decay needs {need}")
     elif len(train_loader.src) < total * cfg.micro_batch * cfg.accum:
         raise ValueError(f"index {cfg.train_index} has {len(train_loader.src)} blocks; the run needs {total * cfg.micro_batch * cfg.accum}")
     loader, accum, phase = train_loader, cfg.accum, "stable"

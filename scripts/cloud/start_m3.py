@@ -40,9 +40,12 @@ def main() -> int:
     ap.add_argument("--eval-micro-batch", type=int, default=None)
     ap.add_argument("--backup-repo", default="kmkrworks/litegpt-v2-m3-runs")
     ap.add_argument("--ntfy-topic", default=None)
+    ap.add_argument("--part", choices=["train", "guard"], required=True,
+                    help="start training first; start the guard once it is healthy, so a start-up bug cannot trip the crash-loop stop")
     a = ap.parse_args()
-    if subprocess.run(["pgrep", "-f", "scripts/(train|cloud/m3_guard)[.]py"], capture_output=True).stdout:
-        raise SystemExit("a trainer or the guard is already running")
+    already = "^[^ ]*python[^ ]* scripts/train[.]py" if a.part == "train" else "scripts/cloud/m3_guard[.]py"
+    if subprocess.run(["pgrep", "-f", already], capture_output=True).stdout:
+        raise SystemExit(f"{a.part} is already running")
     if 256 % a.micro_batch:
         raise SystemExit("micro-batch must divide 256")
     env = pid1_env()
@@ -60,7 +63,8 @@ def main() -> int:
         cfg["eval_micro_batch"] = a.eval_micro_batch
     cfg["schedule"]["budget"]["price_usd_h"] = a.price_usd_h
     run_cfg = ROOT / "benchmarks" / "m3" / "m3_run.yaml"
-    run_cfg.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
+    if a.part == "train":
+        run_cfg.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
 
     home = Path.home()
     py = str(ROOT / ".venv" / "bin" / "python")
@@ -75,9 +79,8 @@ def main() -> int:
     keyfile.touch(mode=0o600)
     keyfile.write_text("".join(f"export {k}={shlex.quote(v)}\n" for k, v in env.items()), encoding="utf-8")
     guard = f". {keyfile} && {guard}"
-    subprocess.run(["tmux", "new-session", "-d", "-s", "m3", train], check=True)
-    subprocess.run(["tmux", "new-session", "-d", "-s", "guard", guard], check=True)
-    print("started: tmux sessions m3, guard; settings", {k: cfg[k] for k in ("micro_batch", "accum", "compile_mode", "eval_fast")}, cfg["model"]["attention_backend"])
+    subprocess.run(["tmux", "new-session", "-d", "-s", "m3" if a.part == "train" else "guard", train if a.part == "train" else guard], check=True)
+    print("started", a.part, {k: cfg[k] for k in ("micro_batch", "accum", "compile_mode", "eval_fast")}, cfg["model"]["attention_backend"])
     return 0
 
 
