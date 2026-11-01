@@ -4,7 +4,7 @@
 # Token counts below are estimates with the GPT-2 tokenizer as a proxy; checkpoint B (tokenizer freeze) re-derives file lists
 # with the real tokenizer (EXP-M1-PREFLIGHT, C9). YAML note: floats are plain decimals or signed exponents.
 data_sources_version: "1.0.0"
-spec_version: "2.0.0-spec.6"
+spec_version: "2.0.0-spec.7"
 status: approved   # owner decisions 2026-10-07 (Wikipedia excluded, Apache-2.0 SmolTalk subsets only) and 2026-10-11 (focused code mix; C5 clause not treated as a blocker)
 
 partitioning:
@@ -96,25 +96,25 @@ sources:
 
 mixture:
   stable:
-    fineweb_edu: 0.645833
-    cosmopedia_v2: 0.104167
-    math: 0.125
-    code_python: 0.078750
-    code_javascript: 0.017500
-    code_typescript: 0.017500
-    code_sql: 0.005000
-    code_shell: 0.006250
+    fineweb_edu: 0.72
+    cosmopedia_v2: 0.13
+    math: 0.075
+    code_python: 0.047250
+    code_javascript: 0.010500
+    code_typescript: 0.010500
+    code_sql: 0.003000
+    code_shell: 0.003750
   decay:
-    fineweb_edu: 0.431818
-    cosmopedia_v2: 0.129545
-    math: 0.215909
-    code_python: 0.108818
-    code_javascript: 0.024182
-    code_typescript: 0.024182
-    code_sql: 0.006909
-    code_shell: 0.008636
+    fineweb_edu: 0.50
+    cosmopedia_v2: 0.20
+    math: 0.13
+    code_python: 0.075600
+    code_javascript: 0.016800
+    code_typescript: 0.016800
+    code_sql: 0.004800
+    code_shell: 0.006000
     instruction_style: 0.050000
-  derivation: "Wikipedia (4% stable / 7% decay) removed and redistributed proportionally; instruction slice fixed at 5% of decay; code split by F1 weights"
+  derivation: "ADR-009 (text-to-data use case, 2026-11-01): code + math 15% in stable, 25% in decay, indexes stable_v2 / decay_v2 over the shards prepared in M1 (which used the ADR-008 mixture, kept as indexes stable / decay); code split by F1 weights"
   stable_tokens: 14.0e+9
   decay_tokens: 1.0e+9
   prepared_margin: 1.03

@@ -30,8 +30,9 @@ def test_deviation_is_reported():
     assert any(p.startswith("n_layer") for p in problems)
 
 
-def test_rope_theta_extension_allowed():
-    assert validate_model_config(get_config("litegpt-v2-28l", rope_theta=100000.0)) == []
+def test_rope_theta_stays_at_the_spec_value():
+    assert validate_model_config(get_config("litegpt-v2-28l", rope_theta=10000.0)) == []
+    assert validate_model_config(get_config("litegpt-v2-28l", rope_theta=100000.0)) != []      # ADR-009: no theta switch
     assert validate_model_config(get_config("litegpt-v2-28l", rope_theta=12345.0)) != []
 
 

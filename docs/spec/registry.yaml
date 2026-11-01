@@ -1,7 +1,7 @@
 # Experiment registry: one entry per experiment. The report is built from this index plus run records.
 # Pre-registered thresholds live here (and in docs/spec/v2.yaml) BEFORE the corresponding runs start.
 registry_version: 1
-spec_version: "2.0.0-spec.6"
+spec_version: "2.0.0-spec.7"
 experiments:
   - id: EXP-M0-ENV
     milestone: M0

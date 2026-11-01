@@ -1,6 +1,6 @@
 # ADR-009: M3 on a rented GPU, budget cap, context extension without a theta switch, and the text-to-data mixture
 
-Status: **Proposed, awaiting owner approval** (the spec becomes 2.0.0-spec.7 on approval, before M3 starts)
+Status: Accepted (owner, 2026-11-01); spec 2.0.0-spec.7, applied before M3 started
 Date: 2026-11-01
 Amends: ADR-001 (budget in the gate), ADR-002 / ADR-006 (environment), ADR-005 (theta at the extension), ADR-008 (mixture)
 Spec fields: `model.rope_theta` (unchanged), `training.pretraining.context_extension`, `training.extension_gate`, `data.mixture`,

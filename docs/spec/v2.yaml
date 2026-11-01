@@ -5,7 +5,7 @@
 # Changing any field requires a new ADR in docs/decisions/ and a bumped spec_version.
 # Fields marked `frozen_before: M3` must not change once the initial pretraining run (M3) has started.
 
-spec_version: "2.0.0-spec.6"   # spec.2: toolchain update (ADR-006); spec.3: flash-attn adopted for attention_backend=auto (ADR-006 evidence, EXP-M0-FLASH); spec.4: repository restructure, path pointers only, no value changes (ADR-007); spec.5: torch.compile adopted for production training on WSL2 (ADR-006 evidence, EXP-M0-COMPILE); spec.6: M1 data decisions (ADR-008): Wikipedia removed from the mixture and redistributed, focused code mix (Python/JS/TS/SQL/Shell), decontamination filters pretraining, tokenizer and val_core hashes pending, data_sources.yaml added
+spec_version: "2.0.0-spec.7"   # spec.2: toolchain update (ADR-006); spec.3: flash-attn adopted for attention_backend=auto (ADR-006 evidence, EXP-M0-FLASH); spec.4: repository restructure, path pointers only, no value changes (ADR-007); spec.5: torch.compile adopted for production training on WSL2 (ADR-006 evidence, EXP-M0-COMPILE); spec.6: M1 data decisions (ADR-008): Wikipedia removed from the mixture and redistributed, focused code mix (Python/JS/TS/SQL/Shell), decontamination filters pretraining, tokenizer and val_core hashes pending, data_sources.yaml added; spec.7: ADR-009: M3 on a rented A100 with a budget cap, peak LR 2.4e-3, theta 10k throughout with a 4,096 context, text-to-data mixture
 approved: 2026-10-06
 decision_records: docs/decisions/
 status: approved
@@ -23,7 +23,7 @@ model:
   norm_eps: 1.0e-6
   qk_norm: true                  # per-head RMSNorm over head_dim, applied before RoPE (Qwen3-compatible layout)
   positional: rope
-  rope_theta: 10000              # pretraining; raised for 4096 extension (see training.context_extension)
+  rope_theta: 10000              # from start to finish; the 4096 extension does not change it (ADR-009)
   vocab_size: 32768
   tie_embeddings: true
   bias: false
@@ -101,15 +101,16 @@ data:
   raw_sources: streamed           # never stored in full on disk
   disk_budget_gb: "50-70"
   mixture:                        # Wikipedia removed (owner 2026-10-11); its 4% / 7% redistributed proportionally
-    stable:      {fineweb_edu: 0.645833, cosmopedia_v2: 0.104167, code: 0.125, math: 0.125}
-    decay:       {fineweb_edu: 0.431818, cosmopedia_v2: 0.129545, code: 0.172727, math: 0.215909, instruction_style: 0.05}
+    stable:      {fineweb_edu: 0.72, cosmopedia_v2: 0.13, code: 0.075, math: 0.075}     # ADR-009 (index stable_v2); was 0.645833 / 0.104167 / 0.125 / 0.125
+    decay:       {fineweb_edu: 0.50, cosmopedia_v2: 0.20, code: 0.12, math: 0.13, instruction_style: 0.05}     # ADR-009 (index decay_v2); was 0.431818 / 0.129545 / 0.172727 / 0.215909 / 0.05
+    indexes: {stable: stable_v2, decay: decay_v2}
     code_languages: {Python: 0.63, JavaScript: 0.14, TypeScript: 0.14, SQL: 0.04, Shell: 0.05}   # share of code tokens, stable and decay
     tuning: "single ablation only (with vs without code+math share); defaults follow published small-model recipes"
   code_source: "codeparrot/github-code-clean, permissive per-file licences only, files 0-222, filters in litegpt/datafilters.py (smollm-corpus python-edu and stack-edu rejected: blob ids only)"
   validation:
     val_core: {source: "held-out slice of data.mixture.stable", min_tokens: 20.0e+6, frozen_at: M1, record_sha256: true, sha256: "e1244de24bed0b6a91663ae6833db0f15276ff1fbd3b9888a5b244442b55f83c"}   # FROZEN 2026-10-12 (token content, 20,971,520 tokens)
     val_domains: [web, synthetic, code, math, chat]
-    data_order_sha256: "0e01795c45d2291d7270fa294a0c6bdd4b15539ee9aca2d74342437f65c7421c"   # FROZEN 2026-10-12: stable + decay index hashes
+    data_order_sha256: "648d27409ecfaa23f2dd8504f32981c790bc5f813360bab76709eaa0f262a629"   # ADR-009 2026-11-01: stable_v2 + decay_v2 index hashes (supersedes 0e01795c... frozen 2026-10-12)
     frozen_from_run: 20261011T173054Z-data-prepare-1f005bc
   decontamination: {method: 13-gram-overlap, applies_to: [pretraining_filter, sft, reasoning, dpo], pretraining: filter}
 
@@ -128,13 +129,16 @@ training:
     tokens_per_step: 0.5e+6
     seq_len: 2048
     schedule: wsd
+    peak_lr: 2.4e-3                  # EXP-M2-M3LR, owner-approved
+    warmup_tokens: 1.0e+8
+    final_lr_fraction: 0.1
     budget_initial_tokens: 10.0e+9   # D1
     budget_max_tokens: 15.0e+9
     target_wall_clock_days: 7
     required_sustained_tok_per_s: 16500   # 10B / 7 days
     stable_phase_end_tokens: 9.0e+9      # gate is evaluated here (stable LR -> comparable points)
     decay_tokens: 1.0e+9
-    context_extension: {seq_len: 4096, rope_theta: 100000, tokens: "last 0.3-0.5e9 of decay phase"}
+    context_extension: {seq_len: 4096, rope_theta: 10000, tokens: 4.0e+8}   # last 0.4B of the decay, contiguous reads; theta unchanged (ADR-009)
     eval_interval_tokens: 0.25e+9
     checkpoint: {atomic: true, every_minutes: 30, keep_last: 3, milestones: [stable_end, decay_end], sigint_save: true}
   extension_gate:                   # ADR-001 — PRE-REGISTERED, frozen_before: M3
@@ -148,6 +152,7 @@ training:
     decision:
       delta_ge_threshold: "extend: continue stable phase to 14.0e9, then 1.0e9 decay (total 15.0e9)"
       delta_lt_threshold: "stop: decay from 9.0e9 to 10.0e9 (total 10.0e9)"
+    budget: {cap_inr: 2500, gate_projection_inr: 2400, guard_stop_inr: 2450, step_tokens: 5.0e+8}   # ADR-009: largest affordable stable end if 14.0e9 does not fit
     invalidation: "divergence/rollback or config/data change inside either window -> decision = stop (no extension)"
     overrides: "only via a new ADR recorded as a protocol deviation; reports display the deviation"
     automation: "decision computed by script from metrics records and written as a gate record"

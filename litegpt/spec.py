@@ -39,7 +39,7 @@ _MODEL_FIELDS = {
 
 def validate_model_config(cfg: ModelConfig, spec: dict | None = None) -> list[str]:
     """Return a list of deviations between `cfg` and the spec's model section (empty list = conforms).
-    rope_theta is allowed to differ during the 4096 context extension (spec: training.pretraining.context_extension)."""
+    rope_theta may equal the context extension's value; since ADR-009 that is the same theta (training.pretraining.context_extension)."""
     spec = spec or load_spec()
     m = spec["model"]
     problems = []

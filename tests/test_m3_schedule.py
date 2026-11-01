@@ -108,6 +108,23 @@ def test_real_m3_config_has_the_decided_schedule():
     assert cfg.schedule["decay_index"] == "decay_v2" and "rope_theta" not in cfg.model
 
 
+def test_m3_config_matches_the_spec():
+    from litegpt.spec import load_spec
+    from litegpt.training import load_config
+    spec, cfg = load_spec(), load_config(Path(__file__).resolve().parents[1] / "benchmarks" / "m3" / "m3.yaml")
+    t, s = spec["training"]["pretraining"], cfg.schedule
+    assert cfg.lr == t["peak_lr"] and cfg.final_lr_frac == t["final_lr_fraction"] and s["warmup_tokens"] == t["warmup_tokens"]
+    assert s["stable_end_tokens"] == t["stable_phase_end_tokens"] and s["decay_tokens"] == t["decay_tokens"]
+    ext = t["context_extension"]
+    assert (s["extension"]["seq_len"], s["extension"]["rope_theta"], s["extension"]["tokens"]) == (ext["seq_len"], ext["rope_theta"], ext["tokens"])
+    assert spec["model"]["rope_theta"] == ext["rope_theta"], "the extension must not switch theta"
+    g, sg = spec["training"]["extension_gate"], s["gate"]
+    assert sg["threshold_bpb"] == g["threshold_bpb"] and sg["window_a"] == g["bpb_window_a"] and sg["window_b"] == g["bpb_window_b"]
+    assert s["budget"]["gate_budget_inr"] == g["budget"]["gate_projection_inr"] and sg["step_tokens"] == g["budget"]["step_tokens"]
+    idx = spec["data"]["mixture"]["indexes"]
+    assert cfg.train_index == idx["stable"] and s["decay_index"] == idx["decay"] and cfg.eval_every_tokens == t["eval_interval_tokens"]
+
+
 def test_budget_keeps_the_full_extension_when_it_fits():
     s = Schedule(spec(budget=budget(10)), 524288)
     r = decide_gate(s, evals(), metrics(), 1e6)

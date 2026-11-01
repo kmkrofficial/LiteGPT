@@ -54,8 +54,6 @@ def run_single(config: str, micro_batch: int, seq_len: int, backend: str, compil
     res = {"config": config, "micro_batch": micro_batch, "seq_len": seq_len, "backend": backend, "compile": compile_,
            "compile_mode": compile_mode, "grad_accum": grad_accum, "data": "synthetic-random", "status": "ok"}
     overrides = {"attention_backend": backend, "block_size": seq_len}
-    if seq_len > 2048:
-        overrides["rope_theta"] = 100000.0  # 4096 context-extension setting (spec training.pretraining.context_extension)
     cfg = get_config(config, **overrides)
     torch.manual_seed(0)
     # Windows (WDDM) silently spills VRAM overflow into shared system memory, which makes a too-large config run
