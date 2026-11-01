@@ -7,7 +7,7 @@ with the real recipe (fp32 master weights, bf16 autocast, fused AdamW, clipping)
 (accumulation = 256 / micro-batch). Stages:
   1 screen   micro-batch x {sdpa, flash}, default compile mode, a few steps each
   2 autotune the best screened setting with compile mode max-autotune-no-cudagraphs
-  3 confirm  the two fastest settings alternating, >= 2 rounds x >= 3 minutes each (the pre-registered speed rule)
+  3 confirm  the two fastest settings alternating, 2 rounds x >= 3 minutes each (the pre-registered speed rule); its time is reserved first
 Selection (pre-registered): highest confirmed mean tok/s with peak VRAM <= 90% of the card; ties within 2% go to the simpler
 setting (SDPA before flash, default before max-autotune, smaller micro-batch). Correctness of flash is checked separately with
 benchmarks.compile_check --backend flash before its numbers count. Writes a run record (kind bench, bench/tune.json).
@@ -97,23 +97,20 @@ def main(argv=None) -> int:
     if best is None:
         print("no screened setting ran; stopping", flush=True)
     else:
-        # 2 autotune on the best screened setting
-        if left() > a.budget_minutes * 60 * 18 / 45:
-            rec["autotune"].append(measure(best["micro_batch"], best["backend"], AUTOTUNE, steps=3, warmup=2,
-                                           timeout=max(120, min(1200, left() - a.budget_minutes * 60 * 15 / 45))))
-        # 3 confirm: the two fastest distinct settings, alternating rounds
+        # 2 autotune on the best screened setting, only with the time that two confirmation rounds do not need: it can compile for a
+        # long time, and the pre-registered rule needs both rounds
+        reserve = 2 * 2 * (a.confirm_seconds + 120)
+        if left() - reserve > 120:
+            rec["autotune"].append(measure(best["micro_batch"], best["backend"], AUTOTUNE, steps=3, warmup=2, timeout=min(1200, left() - reserve)))
+        # 3 confirm: the two fastest distinct settings, alternating, exactly two rounds
         cands = sorted([r for r in rec["screen"] + rec["autotune"] if r.get("status") == "ok" and r.get("tok_per_s_measured")],
                        key=lambda r: -r["tok_per_s_measured"])[:2]
-        rnd = 0
-        while cands and left() > len(cands) * (a.confirm_seconds + 120):
-            rnd += 1
+        for rnd in (1, 2):
             for c in cands:
                 r = measure(c["micro_batch"], c["backend"], None if c["compile_mode"] == "default" else c["compile_mode"],
                             steps=1, warmup=2, sustained=a.confirm_seconds)
                 r["round"] = rnd
                 rec["confirm"].append(r)
-            if rnd >= 2 and left() < len(cands) * (a.confirm_seconds + 120) * 2:
-                break
         groups = {}
         for r in rec["confirm"]:
             if r.get("status") == "ok" and r.get("tok_per_s_measured"):
