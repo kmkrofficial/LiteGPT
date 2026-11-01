@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from litegpt.eval.run import headline, load_suite  # noqa: E402
+from litegpt.eval.run import headline, load_suite, model_label  # noqa: E402
 
 RESULTS = {
     "gsm8k_cot_zeroshot": {"alias": "gsm8k_cot_zeroshot", "exact_match,strict-match": 0.0, "exact_match_stderr,strict-match": 0.0,
@@ -25,3 +25,9 @@ def test_missing_filter_gives_no_headline_instead_of_another_filter():
 def test_suite_reads_gsm8k_chat_with_flexible_extract():
     head = load_suite()["headline_metrics"]
     assert head["gsm8k_cot_zeroshot"] == "exact_match,flexible-extract" and head["gsm8k"] == "exact_match,strict-match"
+
+
+def test_model_label_adds_the_requested_ref():
+    base = {"kind": "hf", "repo": "EleutherAI/pythia-160m", "revision": "50f5173d932e8e61f858120bcb800b97af589f46"}
+    assert model_label(base) == "pythia-160m"
+    assert model_label({**base, "ref": "step5000"}) == "pythia-160m-step5000"

@@ -174,7 +174,7 @@ def cmd_xstest(args, model_info) -> dict:
 
 
 def main() -> int:
-    from litegpt.eval.run import resolve_model
+    from litegpt.eval.run import model_label, resolve_model
     from litegpt.records import create_run
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("task", choices=["bpb", "efficiency", "xstest"])
@@ -188,7 +188,7 @@ def main() -> int:
     if args.new_tokens is None:
         args.new_tokens = xstest_new_tokens() if args.task == "xstest" else 128
     info = resolve_model(args.model)
-    rec = create_run("eval", f"{args.task}-{info['repo'].split('/')[-1]}", config={"task": args.task, "model": info, "args": vars(args)})
+    rec = create_run("eval", f"{args.task}-{model_label(info)}", config={"task": args.task, "model": info, "args": vars(args)})
     torch.manual_seed(1234)
     res = {"bpb": cmd_bpb, "efficiency": cmd_efficiency, "xstest": cmd_xstest}[args.task](args, info)
     if args.task == "xstest":

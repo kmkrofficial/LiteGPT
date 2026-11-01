@@ -30,13 +30,23 @@ def load_suite() -> dict:
 
 
 def resolve_model(spec: str) -> dict:
+    """`hf:<repo>` (latest commit) or `hf:<repo>@<ref>` (a branch or tag, e.g. Pythia's `step5000`), pinned to the resolved commit."""
     kind, _, name = spec.partition(":")
     if kind != "hf":
         raise SystemExit("only hf:<repo> models are supported until the first LiteGPT checkpoint exists (M2)")
+    name, _, ref = name.partition("@")
     from huggingface_hub import HfApi
-    info = HfApi().model_info(name)
-    return {"kind": "hf", "repo": name, "revision": info.sha, "gated": info.gated,
-            "license": (info.card_data.to_dict() if info.card_data else {}).get("license")}
+    info = HfApi().model_info(name, revision=ref or None)
+    out = {"kind": "hf", "repo": name, "revision": info.sha, "gated": info.gated,
+           "license": (info.card_data.to_dict() if info.card_data else {}).get("license")}
+    if ref:
+        out["ref"] = ref
+    return out
+
+
+def model_label(model: dict) -> str:
+    """Short name used in run ids: the repo name, plus the requested ref when one was given."""
+    return model["repo"].split("/")[-1] + (f"-{model['ref']}" if model.get("ref") else "")
 
 
 GEN_LENGTH_KEYS = ("max_new_tokens", "max_length")
@@ -125,7 +135,7 @@ def triviaqa_subset(size: int, seed: int) -> list[int]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--model", required=True, help="hf:<repo>")
+    ap.add_argument("--model", required=True, help="hf:<repo> or hf:<repo>@<ref>")
     ap.add_argument("--suite", choices=["base", "instruct"], required=True)
     ap.add_argument("--batch-size", default="16")
     ap.add_argument("--groups", default=None, help="comma-separated subset of suite groups (default: all)")
@@ -150,7 +160,7 @@ def main() -> int:
         raise SystemExit("code-execution tasks run only in WSL2 (Linux); use --groups to skip them on Windows")
     if unsafe:
         os.environ["HF_ALLOW_CODE_EVAL"] = "1"
-    rec = create_run("eval", f"{args.suite}-{model['repo'].split('/')[-1]}", config={
+    rec = create_run("eval", f"{args.suite}-{model_label(model)}", config={
         "suite_version": suite["suite_version"], "suite": args.suite, "groups": [g["name"] for g in groups], "model": model,
         "batch_size": args.batch_size, "limit": args.limit, "comparable": args.limit is None,
         "extra_model_args": args.extra_model_args,

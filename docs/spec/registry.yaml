@@ -112,6 +112,11 @@ experiments:
     status: pre-registered
     runs: []
     thresholds: {metric: val_bpb, windows_tokens_b: [[6.5, 6.75, 7.0], [8.5, 8.75, 9.0]], delta_ge_bpb_extend: 0.010}
+    owner_decisions:   # recorded 2026-11-01, before M3 and before any M3 measurement
+      - date: 2026-11-01
+        decision: "M3 runs on one rented A100 PCIe (Vast.ai). Budget approved with a hard cap of INR 2,500 on all M3 cloud spend (instance hours including setup, the throughput benchmark and any evaluation there; storage and transfer). At the current estimate (~$0.424/h, ~85-95k tok/s) 10B costs ~INR 1,550 and 15B ~INR 2,330, so the cap binds only if the measured rate or price is worse."
+        gate_rule_with_cap: "The BPB rule above is unchanged. If delta >= 0.010 at the 9.0B checkpoint, the projected total = M3 spend so far + the stable phase to 14.0B + the 1.0B decay, at the tok/s measured over the last 1.0B stable tokens and the instance's actual hourly price. If the projection is <= INR 2,500: extend as registered (15.0B). Otherwise the stable phase runs to the largest T in 0.5B steps (9.5B <= T < 14.0B) whose projection is <= INR 2,500, then the 1.0B decay (total T + 1.0B); if no such T exists: stop (decay from 9.0B, total 10.0B). The gate script computes and records the projection."
+        status: "to be written into the M3 environment ADR (ADR-009) and the spec (training.extension_gate, spec 2.0.0-spec.7) at the M3 freeze, before M3 starts"
     conclusion: null
   - id: EXP-M1-CODE
     milestone: M1
@@ -403,8 +408,23 @@ experiments:
     hypothesis: "Each V2 architecture change (ADR-005) improves or does not hurt bits-per-byte at proxy scale when applied one at a time; the 32k tokenizer and the code+math mixture have measurable, reported per-domain effects."
     config: benchmarks/ablation.py + litegpt/training/ + benchmarks/ladder/*.yaml
     parent: null
-    status: pre-registered
-    runs: []
+    status: done
+    runs:
+      - 20261012T212115Z-train-ladder-smoke-437c36f        # smoke (30 steps)
+      - 20261012T212446Z-train-ladder-lrsweep-1e-3-437c36f
+      - 20261012T223607Z-train-ladder-lrsweep-2e-3-437c36f
+      - 20261012T234625Z-train-ladder-lrsweep-4e-3-437c36f
+      - 20261013T011719Z-train-ladder-s1-seed1-25f66de
+      - 20261013T121110Z-train-ladder-s1-seed2-25f54ba     # diverged (stability result, not a noise sample)
+      - 20261013T185112Z-train-ladder-s1-seed3-0ae0112
+      - 20261013T153152Z-train-ladder-s2-9a4c575
+      - 20261013T220631Z-train-ladder-s3-0ae0112
+      - 20261014T020420Z-train-ladder-s4-cd84a4f
+      - 20261031T072647Z-train-ladder-s5-4778f1b
+      - 20261031T104118Z-train-ladder-s6-4778f1b
+      - 20261031T150559Z-train-ladder-s7-b81bbb8
+      - 20261031T180536Z-train-ladder-s8a-b81bbb8
+      - 20261031T210545Z-train-ladder-s8b-b81bbb8
     decisions:   # PRE-REGISTERED 2026-10-12 before any ladder run (owner-approved PLAN_M2.md rev 1)
       proxy: "about 32M non-embedding parameters (held within +-3% of step 1 by MLP width), context 2048, 1.0B tokens per run, identical optimizer / schedule / batch / data order for every step"
       steps:
@@ -433,16 +453,51 @@ experiments:
       - date: 2026-10-13
         finding: "s1 seed 2 diverged during the learning-rate decay: gradient norms rose from ~0.4 to 7-20 from step ~3,440 and stayed there, training loss rose from 3.67 to 3.95, and the final web BPB (1.2035) was worse than its own 900M-token value (1.1532); seed 1 finished at 1.1089 with a maximum post-warmup gradient norm of 0.61. The pre-registered spike rule (loss > 10% above its running minimum) did not trigger (+7.8%). Taken as seed noise, the noise floor would be s = 0.0946 and the effect threshold 0.189, which no plausible architecture step can pass; the noise-floor rule assumed two stable runs. (Resume after the WSL restart at step 327 reproduced the 100M-token evaluation to within 0.0002 web BPB, so the resume is not implicated.)"
         correction: "Divergence rule for every M2 run: a run has diverged if its logged gradient norm exceeds 10x the median of its earlier post-warmup logged values for logged points covering more than 1% of its steps (litegpt/training/stability.py, tested). Applied to all finished runs: s1 seed 2 diverged (8.5% of steps, max 51x), proxy LR sweep 4e-3 diverged (3.2%, max 48x; it was not selected), all others stable (max <= 2.6x). A diverged run is reported as a stability result, not used as a noise sample. s1 seed 3 is added (same configuration, seed 3) and the noise floor is s = |web BPB(s1 seed 1) - web BPB(s1 seed 3)|; if seed 3 also diverges, the owner decides before any step is judged. Each step's divergence result is reported next to its BPB (the steps without QK-norm, s1 and s2, are where attention-logit growth would show)."
-    conclusion: null
+    protocol_deviations:   # recorded AFTER the affected runs (a deviation, not a pre-recorded correction); owner-approved 2026-11-01
+      - date: 2026-11-01
+        rule: "validity: 'invalid if ... throttles thermally for > 5% of its time'"
+        affected: "proxy LR sweep 1e-3 / 2e-3 / 4e-3 (95.1% / 95.1% / 95.0% of busy seconds), s1 seed 1 (82.3%), s4 (20.8%, all of it in a 50-minute battery segment where the driver limits the GPU and reports a thermal clock event); every other M2 run 0-2.7%"
+        decision: "The runs stand. Thermal throttling lowers the clock, not the values a run computes (same kernels, data order and optimizer state), so the rule is applied as a reported health check rather than an invalidity condition; throttle shares stay in the report next to each run."
+    conclusion: "DONE (2026-11-01). Proxy LR: 2e-3 (web BPB at 0.25B: 1e-3 1.5672, 2e-3 1.4542, 4e-3 1.9922 and diverged). Noise floor s = |1.1089 - 1.1102| = 0.0013 (s1 seeds 1 and 3; seed 2 diverged, 1.2035), effect threshold 0.005. Web BPB per step, change vs the previous step: s1 1.1096 (mean of seeds 1 and 3); s2 +RoPE 1.0750 (-0.0346, helps); s3 +RMSNorm/QK-norm 1.0640 (-0.0110, helps); s4 +SwiGLU 1.0609 (-0.0031, no measurable effect); s5 +GQA 1.0593 (-0.0016, no measurable effect); s6 +deep-thin 1.0599 (+0.0007, no measurable effect; micro-batch 1 x 128, results comparable); s7 +32k tokenizer 1.0632 (web +0.0033, no measurable effect; synthetic +0.058, code +0.125, math +0.116, chat +0.067 vs s6: hurts; FineWeb-Edu only, so the code/math vocabulary was barely trained); s8a +full mixture vs s7 (web 1.0958 +0.0326 hurts; synthetic 0.7457 -0.262, code 0.7123 -1.183, math 1.1550 -0.439, chat 1.0295 -0.105: help); s8b mixture without code and math (web 1.0674, +0.0042 vs s7: no measurable effect), so s8a's web cost is code and math taking token budget (web share 65% vs 86%), not the textbooks. Stability: every run s2-s8b stable (max gradient-norm ratio <= 2.87x); the V1 architecture (s1) diverged in 1 of 3 seeds. OWNER DECISIONS (2026-11-01): (1) adopt the full mixture (s8a); goal: balanced with a code specialisation, judged on numbers: core BPB (registered val_core weights) s8a 1.0188 / s8b 1.1057 / s7 1.2278, equal-weight five-domain mean 0.948 / 1.108 / 1.339, worst domain vs the best of the three +4.5% synthetic / +91% code / +166% code; (2) keep the LiteGPT 32k tokenizer (frozen in M1; owner decision 2026-11-01 to stay at 32k); (3) the GQA code watch item (s5 code +0.081) is closed: not seen again in s6 or s8a; (4) the thermal-rule deviation above. Evidence for ADR-005."
   - id: EXP-M2-M3LR
     milestone: M2
     hypothesis: "A short sweep on the real 28-layer model identifies the M3 peak learning rate."
     config: litegpt/training/ (litegpt-v2-28l, stable index, micro-batch 4 x 2048 x 64 accumulation = 524,288 tokens per step)
     parent: EXP-M2-LADDER
-    status: pre-registered
-    runs: []
+    status: running
+    runs:
+      - 20261012T212301Z-train-m3lr-smoke-437c36f    # smoke (3 steps)
+      - 20261101T000620Z-train-m3lr-6e-4-b81bbb8     # val_core BPB 1.6917
     thresholds:   # PRE-REGISTERED 2026-10-12
       grid: "peak LR 6e-4, 1.2e-3, 2.4e-3; 0.2B tokens each; WSD with 2% warmup and the last 25% as decay; same data order (stable index prefix)"
       rule: "lowest val_core BPB after the decay wins; if the winner is an end point of the grid, one more point (x0.5 or x2) is run before deciding; ties within 0.003 BPB go to the lower LR"
       adoption: "the proposed M3 LR goes into the spec only with the owner's approval (M3 freeze)"
+    conclusion: null
+  - id: EXP-M2-PYTHIA-STEP5000
+    milestone: M2
+    hypothesis: "Pythia-160M's own intermediate checkpoint at ~10.5B training tokens gives a same-training-budget reference next to the 300B-token final model, as context for the V2 comparison (headline claims compare results; the positioning document defines them)."
+    config: litegpt/eval/run.py + litegpt/eval/native.py (hf:EleutherAI/pythia-160m@step5000)
+    parent: EXP-M1B-BASELINES
+    status: pre-registered
+    runs: []
+    decisions:   # PRE-REGISTERED 2026-11-01 before the checkpoint was scored (owner-approved)
+      model: "EleutherAI/pythia-160m, ref step5000, resolved 2026-11-01 to commit 37f757103d785d3a314240c71e57cbe2408113e5 (re-resolved and recorded at run time); 5,000 steps x 1,024 sequences x 2,048 tokens = 10.49B tokens"
+      suite: "base suite 0.1.1 (all base groups) and bits-per-byte on val_text, exactly as the M1b baselines (batch 16, seed 1234, same machine); efficiency is not re-measured (same architecture as the final pythia-160m record)"
+      caveat: "step 5000 is an intermediate checkpoint of a 143,000-step cosine schedule, so its learning rate is still ~99.9% of peak: it is not annealed, unlike V2 at the end of M3. It is reported as such, next to the final Pythia-160M, never instead of it."
+      schedule: "on the laptop after the M3 LR sweep (pipeline job after 'M2 GPU work complete')"
+    conclusion: null
+  - id: EXP-M3-CHECKPOINT-EVAL
+    milestone: M3
+    hypothesis: "Scoring intermediate M3 checkpoints with the M1b base suite shows whether downstream skills improve during pretraining, without influencing the run."
+    config: litegpt/eval/run.py (litegpt:<checkpoint>, native adapter) + litegpt/eval/native.py bpb
+    parent: EXP-M1B-SUITE
+    status: pre-registered
+    runs: []
+    decisions:   # PRE-REGISTERED 2026-11-01 before M3 (owner-approved)
+      checkpoints: "stable-phase checkpoints at 2.5B, 5.0B and 9.0B tokens (9.0B is the G1 gate checkpoint, before any decay); the final model is scored anyway as the M3 result"
+      suite: "base suite 0.1.1 (all base groups) + bits-per-byte on val_text, same protocol as EXP-M1B-BASELINES; efficiency on the final model only"
+      where: "a weights-only copy is downloaded from the cloud machine and scored on the laptop (RTX 4090 Laptop, WSL2), the machine every baseline was scored on, so training is never paused and the checks use no cloud time; if the laptop is unavailable they run on the cloud GPU (~INR 15-25 each, inside the M3 cap) and the record says so"
+      prerequisite: "litegpt.eval.run accepts litegpt:<checkpoint> through litegpt.eval.lm_adapter, validated before M3 by the EXP-M1B-SUITE adapter rule (litegpt-tiny, abs diff <= 1e-4 in fp32)"
+      use: "monitoring and reporting only (learning curves next to the baselines). The results cannot change M3: the G1 gate stays bits-per-byte only (ADR-001 rejects benchmark accuracy as a gate)."
+      flag: "a task whose score falls by more than twice its reported standard error between consecutive checkpoints is flagged in the report for the owner; no automatic action"
     conclusion: null
