@@ -468,6 +468,8 @@ experiments:
     runs:
       - 20261012T212301Z-train-m3lr-smoke-437c36f    # smoke (3 steps)
       - 20261101T000620Z-train-m3lr-6e-4-b81bbb8     # val_core BPB 1.6917
+      - 20261101T021741Z-train-m3lr-1.2e-3-b81bbb8   # 1.6776
+      - 20261101T042856Z-train-m3lr-2.4e-3-b81bbb8   # 1.6505 (grid end -> extra point 4.8e-3 by the rule)
     thresholds:   # PRE-REGISTERED 2026-10-12
       grid: "peak LR 6e-4, 1.2e-3, 2.4e-3; 0.2B tokens each; WSD with 2% warmup and the last 25% as decay; same data order (stable index prefix)"
       rule: "lowest val_core BPB after the decay wins; if the winner is an end point of the grid, one more point (x0.5 or x2) is run before deciding; ties within 0.003 BPB go to the lower LR"
