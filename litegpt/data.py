@@ -143,9 +143,12 @@ def load_index(path):
 class MixtureLoader:
     """Deterministic batches from an index. `position` counts blocks consumed and is the whole resumable state."""
 
-    def __init__(self, src, blk, names, shards: dict, batch_size: int, block_len: int = BLOCK_TOKENS, position: int = 0):
+    def __init__(self, src, blk, names, shards: dict, batch_size: int, block_len: int = BLOCK_TOKENS, position: int = 0,
+                 seq_len: int | None = None):
+        """`seq_len` longer than the index's `block_len`: each index entry starts a contiguous read of that length from its own
+        source (the context extension), so long documents stay whole across block boundaries."""
         self.src, self.blk, self.names, self.shards = src, blk, names, shards
-        self.batch_size, self.block_len, self.position = batch_size, block_len, position
+        self.batch_size, self.block_len, self.position, self.seq_len = batch_size, block_len, position, seq_len
 
     def state_dict(self) -> dict:
         return {"position": self.position, "block_len": self.block_len, "batch_size": self.batch_size}
@@ -158,7 +161,9 @@ class MixtureLoader:
     def block(self, i: int) -> np.ndarray:
         s = self.names[int(self.src[i])]
         b = int(self.blk[i])
-        return self.shards[s].read(b * self.block_len, self.block_len + 1)
+        if self.seq_len is None:
+            return self.shards[s].read(b * self.block_len, self.block_len + 1)
+        return self.shards[s].read(min(b * self.block_len, len(self.shards[s]) - self.seq_len - 1), self.seq_len + 1)
 
     def next_batch(self):
         import torch

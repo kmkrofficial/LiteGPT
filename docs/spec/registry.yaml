@@ -529,5 +529,12 @@ experiments:
       speed: "adopt if the same-session alternating A/B (>= 2 rounds per arm, >= 3 minutes each after warm-up) gives >= +2% mean tok/s on the machine it targets; eval_fast is adopted if evaluation wall time drops by >= 25%; otherwise the current setting stays"
       selection_on_a100: "micro-batch x attention x compile mode: the combination with the highest mean tok/s among those passing correctness, peak VRAM <= 90% of the card; ties within 2% go to the simpler setting (SDPA, default compile mode, smaller micro-batch)"
       cost_cap: "the A100 tuning session takes <= 45 minutes of the rental (~INR 45), counted in the INR 2,500 M3 cap"
+    interim_results:
+      - date: 2026-11-01
+        candidate: eval_fast
+        machine: "laptop (RTX 4090 Laptop, 125 W), M3 LR 2.4e-3 final checkpoint, one eval per arm; the data upload ran at the same time"
+        correctness: "PASS: max absolute difference 0.000006 vs the current path (limit 0.001), batch 8 and batch 16"
+        speed: "current 392.7 s; batch 8 311.7 s (-20.6%); batch 16 313.1 s (-20.3%). FAILS the pre-registered >= 25% on this machine; batch size does not help, so evaluation is bound by GPU compute here, not overhead."
+        consequence: "eval_fast stays off on this evidence. The A100 is the machine it targets (speed rule), so it is measured there once during the tuning session, same rule; it is adopted only if that shows >= 25%. The threshold is unchanged. Recorded before any A100 measurement."
     conclusion: null
 

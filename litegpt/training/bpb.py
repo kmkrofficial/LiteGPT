@@ -67,14 +67,43 @@ def doc_nll(model, ids: list[int], window: int, device) -> float:
     return total
 
 
+def doc_windows(ids: list[int], window: int) -> list[tuple[list[int], list[int]]]:
+    """The windows doc_nll scores, as (inputs, targets) with -1 for targets scored by an earlier window."""
+    stride = max(window // 2, 1)
+    out, scored, n = [], 1, len(ids)
+    while scored < n:
+        end = min(n, scored + stride)
+        start = max(0, end - window - 1)
+        chunk = ids[start:end]
+        skip = scored - start - 1
+        out.append((chunk[:-1], [-1] * skip + chunk[1 + skip:]))
+        scored = end
+    return out
+
+
 @torch.no_grad()
-def val_text_bpb(model, encoder: TextEncoder, docs: list[str], window: int, device) -> dict:
-    nll = 0.0
-    nbytes = 0
-    for text in docs:
-        nll += doc_nll(model, encoder.encode(text), window, device)
-        nbytes += len(text.encode("utf-8"))
-    return {"bpb": nll / math.log(2) / max(nbytes, 1), "bytes": nbytes, "docs": len(docs)}
+def val_text_bpb(model, encoder: TextEncoder, docs: list[str], window: int, device, batch_size: int = 0) -> dict:
+    """batch_size 0: one window at a time (doc_nll). Otherwise the same windows of every document, right-padded to `window`
+    and scored `batch_size` rows at a time at one fixed shape (compile-friendly); padding is causal-invisible and ignored."""
+    nbytes = sum(len(text.encode("utf-8")) for text in docs)
+    if not batch_size:
+        nll = sum(doc_nll(model, encoder.encode(text), window, device) for text in docs)
+        return {"bpb": nll / math.log(2) / max(nbytes, 1), "bytes": nbytes, "docs": len(docs)}
+    rows = [w for text in docs for w in doc_windows(encoder.encode(text), window)]
+    rows += [([0], [-1])] * (-len(rows) % batch_size)                 # fill the last batch: same shape, nothing scored
+    nll = torch.zeros((), dtype=torch.float64, device=device)
+    for i in range(0, len(rows), batch_size):
+        x = torch.zeros(batch_size, window, dtype=torch.long)
+        y = torch.full((batch_size, window), -1, dtype=torch.long)
+        for r, (inp, tgt) in enumerate(rows[i:i + batch_size]):
+            x[r, :len(inp)] = torch.tensor(inp)
+            y[r, :len(tgt)] = torch.tensor(tgt)
+        x, y = x.to(device, non_blocking=True), y.to(device, non_blocking=True)
+        with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=device.type == "cuda"):
+            logits, _ = model(x, logits_all=True)
+        for r in range(batch_size):                                    # float32 logits one row at a time (see token_nll)
+            nll += F.cross_entropy(logits[r].float(), y[r], ignore_index=-1, reduction="sum").double()
+    return {"bpb": float(nll) / math.log(2) / max(nbytes, 1), "bytes": nbytes, "docs": len(docs)}
 
 
 def token_nll(logits: torch.Tensor, y: torch.Tensor) -> torch.Tensor:

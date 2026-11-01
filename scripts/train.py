@@ -25,6 +25,7 @@ def main() -> int:
     ap.add_argument("--lr", type=float)
     ap.add_argument("--tokens", type=float)
     ap.add_argument("--max-steps", type=int, help="smoke runs only: stop early (the schedule keeps its full length)")
+    ap.add_argument("--rented-at", type=float, help="M3: unix time the instance started billing (the gate's budget projection)")
     args = ap.parse_args()
     if args.resume:
         run = json.loads((Path(args.resume) / "run.json").read_text(encoding="utf-8"))
@@ -33,6 +34,8 @@ def main() -> int:
     else:
         cfg = load_config(args.config, data_run=args.data_run, val_text_dir=args.val_text_dir, name=args.name, seed=args.seed,
                           lr=args.lr, tokens=args.tokens)
+        if args.rented_at is not None:
+            cfg.schedule["budget"]["rented_at_unix"] = args.rented_at
         summary = train(cfg, max_steps=args.max_steps)
     print(json.dumps({k: v for k, v in summary.items() if k != "telemetry"}, indent=1, default=str))
     return 0 if summary["status"] == "completed" else 1

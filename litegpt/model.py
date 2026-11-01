@@ -14,6 +14,7 @@ the tensors are on CUDA in bf16/fp16 and no KV cache is used; everything else (C
 
 from __future__ import annotations
 
+import dataclasses
 import inspect
 import math
 from functools import lru_cache
@@ -228,6 +229,14 @@ class LiteGPT(nn.Module):
         for name, p in self.named_parameters():
             if name.endswith("o_proj.weight") or name.endswith("down_proj.weight"):
                 nn.init.normal_(p, mean=0.0, std=config.init_std / math.sqrt(2 * config.n_layer))
+
+    def set_context(self, block_size: int, rope_theta: float) -> None:
+        """The context extension: new RoPE tables and limits. Parameters are untouched (RoPE has none), so optimizer state stays
+        valid; a compiled wrapper must be rebuilt by the caller."""
+        self.config = dataclasses.replace(self.config, block_size=block_size, rope_theta=rope_theta)
+        cos, sin = build_rope_cache(self.config.head_dim, block_size, rope_theta, device=self.rope_cos.device)
+        self.register_buffer("rope_cos", cos, persistent=False)
+        self.register_buffer("rope_sin", sin, persistent=False)
 
     def _init_weights(self, module):
         if isinstance(module, (nn.Linear, nn.Embedding)):

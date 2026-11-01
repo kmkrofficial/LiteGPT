@@ -45,14 +45,14 @@ def matmul_ceiling_tflops(n: int = 8192, iters: int = 100) -> dict:
 
 def run_single(config: str, micro_batch: int, seq_len: int, backend: str, compile_: bool, steps: int, warmup: int,
                sustained_seconds: float = 0.0, grad_accum: int = 1, window_seconds: float = 60.0,
-               windows_jsonl: str | None = None, fresh_batches: bool = False) -> dict:
+               windows_jsonl: str | None = None, fresh_batches: bool = False, compile_mode: str | None = None) -> dict:
     import torch
     from benchmarks.telemetry import TelemetrySampler
     from litegpt.config import get_config
     from litegpt.model import LiteGPT
 
     res = {"config": config, "micro_batch": micro_batch, "seq_len": seq_len, "backend": backend, "compile": compile_,
-           "grad_accum": grad_accum, "data": "synthetic-random", "status": "ok"}
+           "compile_mode": compile_mode, "grad_accum": grad_accum, "data": "synthetic-random", "status": "ok"}
     overrides = {"attention_backend": backend, "block_size": seq_len}
     if seq_len > 2048:
         overrides["rope_theta"] = 100000.0  # 4096 context-extension setting (spec training.pretraining.context_extension)
@@ -73,7 +73,7 @@ def run_single(config: str, micro_batch: int, seq_len: int, backend: str, compil
         opt = model.configure_optimizers(0.1, 6e-4, (0.9, 0.95), "cuda")
         res.update(params=model.num_params(), flops_per_token_full=model.flops_per_token(seq_len, "full"),
                    flops_per_token_causal=model.flops_per_token(seq_len, "causal"))
-        run_model = torch.compile(model) if compile_ else model
+        run_model = torch.compile(model, mode=compile_mode) if compile_ else model
         x = torch.randint(0, cfg.vocab_size, (micro_batch, seq_len), device="cuda")
         y = torch.roll(x, -1, 1)
         gen = torch.Generator(device="cuda").manual_seed(0)
@@ -283,6 +283,7 @@ def main(argv=None):
     s.add_argument("--seq-len", type=int, default=2048)
     s.add_argument("--backend", default="sdpa", choices=["sdpa", "flash"])
     s.add_argument("--compile", type=int, default=0)
+    s.add_argument("--compile-mode", default=None, help="torch.compile mode, e.g. max-autotune-no-cudagraphs (EXP-M3-OPT)")
     s.add_argument("--steps", type=int, default=20)
     s.add_argument("--warmup", type=int, default=5)
     s.add_argument("--grad-accum", type=int, default=1)
@@ -318,7 +319,7 @@ def main(argv=None):
     elif a.cmd == "single":
         r = run_single(a.config, a.micro_batch, a.seq_len, a.backend, bool(a.compile), a.steps, a.warmup,
                        a.sustained_seconds, a.grad_accum, a.window_seconds, a.windows_jsonl,
-                       a.fresh_batches)
+                       a.fresh_batches, a.compile_mode)
         if a.json_out:
             Path(a.json_out).write_text(json.dumps(r))
         if a.record:

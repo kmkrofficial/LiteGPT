@@ -1,0 +1,46 @@
+# EXP-M3-OPT / pre-rental check: every M3 phase transition on the real 28-layer model, scaled down to ~20 minutes on the laptop.
+# Not a result: only the mechanics are under test (compile across the context change, 2 x 4096 memory, gate record, resume).
+name: m3-phase-test
+model_kind: litegpt
+model:
+  preset: litegpt-v2-28l
+  attention_backend: sdpa
+tokenizer: litegpt
+data_run: runs/20261011T173054Z-data-prepare-1f005bc
+train_index: stable
+val_index: val_core
+tokens: 21000000.0
+micro_batch: 4
+accum: 64
+lr: 0.0024
+val_text_dir: runs/20261011T173054Z-data-prepare-1f005bc/shards/val_text
+val_text_domains:
+- code
+final_lr_frac: 0.1
+eval_every_tokens: 5000000.0
+eval_blocks: 256
+eval_micro_batch: 8
+eval_fast: true
+compile: true
+seed: 1
+checkpoint_every_minutes: 3
+keep_last: 3
+schedule:
+  warmup_tokens: 2000000.0
+  stable_end_tokens: 10000000.0
+  decay_tokens: 6000000.0
+  decay_index: decay
+  extension:
+    seq_len: 4096
+    rope_theta: 100000.0
+    tokens: 5000000.0
+    micro_batch: 2
+    accum: 64
+  gate:
+    window_a: [5000000.0]
+    window_b: [10000000.0]
+    threshold_bpb: -1000000.0     # always "extend" here, so the extension path runs
+    max_stable_end_tokens: 15000000.0
+    step_tokens: 5000000.0
+    speed_window_tokens: 5000000.0
+  milestone_tokens: [5000000.0]

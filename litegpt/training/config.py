@@ -37,10 +37,14 @@ class TrainConfig:
     checkpoint_every_minutes: float = 30.0
     keep_last: int = 2
     compile: bool = True
+    compile_mode: str | None = None       # torch.compile mode (EXP-M3-OPT); None = default
+    eval_micro_batch: int | None = None   # evaluation batch; None = micro_batch (M2 behaviour)
+    eval_fast: bool = False               # EXP-M3-OPT: evaluate with the compiled model, val_text windows batched
     device: str = "cuda"
     telemetry: bool = True
     abort_temp_c: float = 90.0
     block_len: int = 2048
+    schedule: dict | None = None          # M3 schedule (litegpt/training/m3schedule.py); None = fraction-based WSD on one index (M2)
 
     @property
     def vocab_size(self) -> int:

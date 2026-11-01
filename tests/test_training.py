@@ -91,6 +91,30 @@ def test_resume_is_bit_exact(data_run, tmp_path):
         assert torch.equal(ref[k], got[k]), k
 
 
+def test_batched_val_text_equals_per_document():
+    from litegpt.config import ModelConfig, get_config
+    from litegpt.model import LiteGPT
+    from litegpt.training.bpb import TextEncoder, val_text_bpb
+    torch.manual_seed(0)
+    model = LiteGPT(ModelConfig.from_dict({**get_config("litegpt-tiny").to_dict(), "block_size": BL, "vocab_size": 32768, "attention_backend": "sdpa"})).eval()
+    enc = TextEncoder("litegpt")
+    docs = ["The cat sat on the mat. " * 9, "def f(x):\n    return x * 2\n" * 3, "1 + 1 = 2", ""]   # multi-window, short, empty
+    ref = val_text_bpb(model, enc, docs, BL, torch.device("cpu"))
+    for bs in (1, 3, 8):
+        got = val_text_bpb(model, enc, docs, BL, torch.device("cpu"), batch_size=bs)
+        assert got["bytes"] == ref["bytes"] and got["docs"] == ref["docs"]
+        assert got["bpb"] == pytest.approx(ref["bpb"], rel=1e-5), bs
+
+
+def test_eval_fast_reports_the_same_evaluation(data_run, tmp_path):
+    a = train(cfg(data_run, tokens=BL * 4 * 6), runs_root=tmp_path / "a")["final_eval"]
+    b = train(cfg(data_run, tokens=BL * 4 * 6, eval_fast=True, eval_micro_batch=8), runs_root=tmp_path / "b")["final_eval"]
+    assert b["val"]["tokens"] == a["val"]["tokens"]
+    for k in ("val", "text_web"):
+        assert b[k]["bpb"] == pytest.approx(a[k]["bpb"], rel=1e-5), k
+    assert b["val"]["loss"] == pytest.approx(a["val"]["loss"], rel=1e-5)
+
+
 def test_token_nll_row_by_row_equals_batched():
     from torch.nn import functional as F
     from litegpt.training.bpb import token_nll
