@@ -38,6 +38,11 @@ uv run python -m benchmarks.train_mem sweep --preset m0 --compile
 Notes:
 - `torch.compile` fails without a C compiler (`Failed to find C compiler`): Triton builds a small CUDA driver stub on first use.
 - The Windows flash-attn wheel does not apply on Linux; on WSL2 the model uses SDPA unless a Linux flash-attn wheel is installed.
+- **Never build flash-attn from source: the wheel build fails on this stack.** Always install a prebuilt wheel from
+  [mjun0812/flash-attention-prebuild-wheels](https://github.com/mjun0812/flash-attention-prebuild-wheels) (searchable at
+  <https://mjunya.com/flash-attention-prebuild-wheels/>). `uv.lock` pins the exact wheels by hash, so `uv sync --locked --group flash`
+  installs one without compiling. Do not run `pip install flash-attn`, and do not replace the pinned URLs with the PyPI package. If the
+  download fails, retry it; SDPA is the fallback, not a source build.
 - WSL2 exposes about half of the machine's RAM by default; raise it in `%UserProfile%\.wslconfig` if data preparation needs more.
 
 ## Verify
