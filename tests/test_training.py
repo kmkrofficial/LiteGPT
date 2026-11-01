@@ -125,6 +125,18 @@ def test_token_nll_row_by_row_equals_batched():
     assert torch.equal(token_nll(logits, y), ref)
 
 
+def test_open_file_limit_is_raised_to_the_hard_limit():
+    resource = pytest.importorskip("resource")
+    from litegpt.training.loop import _raise_open_file_limit
+    soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+    try:
+        resource.setrlimit(resource.RLIMIT_NOFILE, (min(256, hard), hard))
+        _raise_open_file_limit()
+        assert resource.getrlimit(resource.RLIMIT_NOFILE)[0] == hard
+    finally:
+        resource.setrlimit(resource.RLIMIT_NOFILE, (soft, hard))
+
+
 def test_grad_norm_divergence_rule():
     from litegpt.training.stability import grad_norm_divergence
     stable = [{"step": s, "grad_norm": 0.3 + 0.05 * ((s // 10) % 3)} for s in range(10, 1001, 10)]

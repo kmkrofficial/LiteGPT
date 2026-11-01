@@ -28,7 +28,19 @@ from litegpt.training.m3schedule import Schedule, decide_gate
 from litegpt.training.schedule import wsd_lr
 
 
+def _raise_open_file_limit() -> None:
+    """Every shard stays memory-mapped, which holds one file descriptor: thousands, above the common default of 1,024."""
+    try:
+        import resource
+    except ImportError:          # Windows
+        return
+    soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+    if soft != hard:
+        resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
+
+
 def _loader(cfg: TrainConfig, index_name: str, batch_size: int, seq_len: int | None = None) -> D.MixtureLoader:
+    _raise_open_file_limit()
     shards_dir = Path(cfg.data_run) / "shards"
     src, blk, names, meta = D.load_index(shards_dir / "indexes" / f"{index_name}.npz")
     part = meta["part"]
