@@ -504,3 +504,28 @@ experiments:
       use: "monitoring and reporting only (learning curves next to the baselines). The results cannot change M3: the G1 gate stays bits-per-byte only (ADR-001 rejects benchmark accuracy as a gate)."
       flag: "a task whose score falls by more than twice its reported standard error between consecutive checkpoints is flagged in the report for the owner; no automatic action"
     conclusion: null
+  - id: EXP-M3-OPT
+    milestone: M3
+    hypothesis: "Throughput changes that leave the training computation unchanged (same model, data order, global batch of 524,288 tokens, optimizer, LR 2.4e-3 and schedule) raise M3 tokens per paid hour on the rented A100; each is adopted only if it passes the correctness rule and the speed rule below."
+    config: litegpt/training/ + benchmarks/train_mem.py (A100 tuning session) + litegpt/training/bpb.py (evaluation)
+    parent: EXP-M2-M3LR
+    status: pre-registered
+    runs: []
+    context: "Owner 2026-11-01: the A100 costs ~$14.24/day (~$0.593/h, 40% above the $0.424/h planning rate). At the planning estimate (~37 h for 10B) 10B costs ~INR 2,160 and 15B ~INR 3,210, above the INR 2,500 cap; 15B fits the cap only at >= ~97k tok/s sustained including evaluation and checkpoints. Measured on the laptop (M3 LR sweep): each evaluation takes ~387 s, i.e. ~21 training steps (eager model; raw-text BPB scored one document at a time)."
+    decisions:   # PRE-REGISTERED 2026-11-01 before any optimisation measurement (owner request 2026-11-01)
+      candidates:
+        eval_fast: "evaluation with the compiled model at a fixed shape, a larger evaluation batch, and val_text windows batched across documents (right-padded, padding ignored); the same blocks, windows, targets and byte counts as now"
+        micro_batch: "largest-throughput micro-batch at 524,288 tokens per step (accumulation adjusted); measured on the A100 only"
+        attention: "flash-attn 2.8.3 (pinned wheel) vs SDPA, same-session alternating A/B on the A100 (the comparison EXP-M0-FLASH-LINUX could not attribute)"
+        compile_mode: "torch.compile default vs max-autotune-no-cudagraphs, on the A100"
+        loader_prefetch: "the next micro-batch read and pinned on a background thread (same blocks, same order); only if profiling shows the GPU waiting on the loader"
+        checkpoint_async: "checkpoint written by a background thread from a CPU copy; only if a save costs > 1% of wall time at the 15-minute interval"
+      unchanged: "model, tokenizer, data and order, tokens per step (524,288), optimizer, LR 2.4e-3, WSD schedule, evaluation cadence (every 0.25B) and sets, checkpoint interval (15 min). Nothing here changes the G1 gate inputs except making the same evaluation faster."
+    thresholds:
+      correctness_training: "from identical weights and batches, 20 optimizer steps: max |loss difference| <= 0.005 and final gradient-norm relative difference <= 1% vs the current path (bf16 / kernel noise; compile alone measured 0.0004 in EXP-M0-COMPILE); a loader change must give bit-identical token ids"
+      correctness_eval: "on the same checkpoint (M3 LR 2.4e-3 final): val_core loss and BPB and every val_text domain BPB within 0.001 of the current implementation"
+      speed: "adopt if the same-session alternating A/B (>= 2 rounds per arm, >= 3 minutes each after warm-up) gives >= +2% mean tok/s on the machine it targets; eval_fast is adopted if evaluation wall time drops by >= 25%; otherwise the current setting stays"
+      selection_on_a100: "micro-batch x attention x compile mode: the combination with the highest mean tok/s among those passing correctness, peak VRAM <= 90% of the card; ties within 2% go to the simpler setting (SDPA, default compile mode, smaller micro-batch)"
+      cost_cap: "the A100 tuning session takes <= 45 minutes of the rental (~INR 45), counted in the INR 2,500 M3 cap"
+    conclusion: null
+
