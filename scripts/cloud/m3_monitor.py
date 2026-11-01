@@ -19,7 +19,7 @@ HOT_C = 88
 STATE = Path.home() / ".litegpt_m3_monitor.json"
 KEY = Path.home() / ".ssh" / "litegpt_vast"
 REMOTE = ("cat ~/guard_status.json 2>/dev/null || echo '{}'; echo; echo ---; cat ~/guard_events.jsonl 2>/dev/null; echo ---; "
-          "tail -q -n 400 $(ls -d ~/LiteGPT/runs/*-train-m3-* 2>/dev/null | tail -1)/eval.jsonl 2>/dev/null")
+          "tail -q -n 400 $(ls -d ~/LiteGPT/runs/*-train-m3-* 2>/dev/null | tail -1)/eval.jsonl 2>/dev/null; true")   # no eval.jsonl before the first evaluation is not a failure
 QUIET_EVENTS = {"guard_start", "backup", "backup_done", "wait"}
 
 
