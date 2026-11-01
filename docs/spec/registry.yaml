@@ -481,14 +481,16 @@ experiments:
     hypothesis: "Pythia-160M's own intermediate checkpoint at ~10.5B training tokens gives a same-training-budget reference next to the 300B-token final model, as context for the V2 comparison (headline claims compare results; the positioning document defines them)."
     config: litegpt/eval/run.py + litegpt/eval/native.py (hf:EleutherAI/pythia-160m@step5000)
     parent: EXP-M1B-BASELINES
-    status: pre-registered
-    runs: []
+    status: done
+    runs:
+      - 20261101T085750Z-eval-base-pythia-160m-step5000-bbdbb87
+      - 20261101T091555Z-eval-bpb-pythia-160m-step5000-bbdbb87
     decisions:   # PRE-REGISTERED 2026-11-01 before the checkpoint was scored (owner-approved)
       model: "EleutherAI/pythia-160m, ref step5000, resolved 2026-11-01 to commit 37f757103d785d3a314240c71e57cbe2408113e5 (re-resolved and recorded at run time); 5,000 steps x 1,024 sequences x 2,048 tokens = 10.49B tokens"
       suite: "base suite 0.1.1 (all base groups) and bits-per-byte on val_text, exactly as the M1b baselines (batch 16, seed 1234, same machine); efficiency is not re-measured (same architecture as the final pythia-160m record)"
       caveat: "step 5000 is an intermediate checkpoint of a 143,000-step cosine schedule, so its learning rate is still ~99.9% of peak: it is not annealed, unlike V2 at the end of M3. It is reported as such, next to the final Pythia-160M, never instead of it."
       schedule: "on the laptop after the M3 LR sweep (pipeline job after 'M2 GPU work complete')"
-    conclusion: null
+    conclusion: "DONE (2026-11-01), commit 37f75710 (step5000, 10.49B tokens), suite 0.1.1, same machine and protocol as the final Pythia-160M record. Zero-shot mean 0.347 (final 300B-token model 0.344): hellaswag 0.283 (0.303), arc_easy 0.426 (0.370), arc_challenge 0.210 (0.224), piqa 0.605 (0.594), openbookqa 0.252 (0.262), commonsense_qa 0.196 (0.195), winogrande 0.513 (0.515), mmlu 0.249 (0.250), truthfulqa mc1 0.264 (0.262) / mc2 0.467 (0.467); TriviaQA 0.006 (0.003), GSM8K / HumanEval / MBPP 0.000 (0.000). Bits per byte on val_text: web 1.083 (final 1.169), synthetic 0.909 (0.952), code 0.737 (0.790), math 1.178 (1.301), chat 0.959 (1.050). Finding: Pythia-160M at 10.5B tokens is level with its own 300B-token final model on the benchmark suite and better on every bits-per-byte domain, so for a model this size the 300B figure buys nothing measurable here; the 'trained on far more data' framing does not explain Pythia-160M's numbers. Not annealed (LR ~99.9% of peak), as pre-registered."
   - id: EXP-M3-CHECKPOINT-EVAL
     milestone: M3
     hypothesis: "Scoring intermediate M3 checkpoints with the M1b base suite shows whether downstream skills improve during pretraining, without influencing the run."
