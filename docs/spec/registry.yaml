@@ -470,11 +470,12 @@ experiments:
       - 20261101T000620Z-train-m3lr-6e-4-b81bbb8     # val_core BPB 1.6917
       - 20261101T021741Z-train-m3lr-1.2e-3-b81bbb8   # 1.6776
       - 20261101T042856Z-train-m3lr-2.4e-3-b81bbb8   # 1.6505 (grid end -> extra point 4.8e-3 by the rule)
+      - 20261101T063947Z-train-m3lr-0.0048-b81bbb8   # extra point 4.8e-3: 1.6827
     thresholds:   # PRE-REGISTERED 2026-10-12
       grid: "peak LR 6e-4, 1.2e-3, 2.4e-3; 0.2B tokens each; WSD with 2% warmup and the last 25% as decay; same data order (stable index prefix)"
       rule: "lowest val_core BPB after the decay wins; if the winner is an end point of the grid, one more point (x0.5 or x2) is run before deciding; ties within 0.003 BPB go to the lower LR"
       adoption: "the proposed M3 LR goes into the spec only with the owner's approval (M3 freeze)"
-    conclusion: null
+    conclusion: "RULE APPLIED (2026-11-01), owner approval pending. val_core BPB after the decay (200M tokens each, V2 28L): 6e-4 1.6917, 1.2e-3 1.6776, 2.4e-3 1.6505, extra point 4.8e-3 1.6827 (run because 2.4e-3 was the grid's upper end). Winner 2.4e-3, bracketed by 1.2e-3 (+0.0271) and 4.8e-3 (+0.0322), both outside the 0.003 tie band. All four runs stable (max gradient-norm ratio <= 1.99x), 0 skipped steps, 0 loss spikes, thermal throttling 0-2.4%. At 100M tokens (mid-stable) 2.4e-3 trailed 1.2e-3 (1.9865 vs 1.9706): higher LRs gained most in the decay, as expected for WSD."
   - id: EXP-M2-PYTHIA-STEP5000
     milestone: M2
     hypothesis: "Pythia-160M's own intermediate checkpoint at ~10.5B training tokens gives a same-training-budget reference next to the 300B-token final model, as context for the V2 comparison (headline claims compare results; the positioning document defines them)."
