@@ -37,8 +37,11 @@ mkdir -p "$BIG/uv-cache" "$BIG/uv-python" "$BIG/hf" "$BIG/tmp" "$BIG/triton"
 
 command -v gcc > /dev/null || { apt-get update -qq; apt-get install -y -qq build-essential; }   # torch.compile needs a C compiler
 command -v tmux > /dev/null || apt-get install -y -qq tmux
-command -v uv > /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
-uv tool install --quiet vastai || true
+UV_VERSION=0.12.23                 # pyproject.toml pins it; base images ship other versions
+[ "$(uv --version 2>/dev/null | cut -d' ' -f2)" = "$UV_VERSION" ] || curl -LsSf "https://astral.sh/uv/$UV_VERSION/install.sh" | env UV_NO_MODIFY_PATH=1 sh
+hash -r
+uv --version
+command -v vastai > /dev/null || uv tool install --quiet vastai || true
 
 echo "=== code"
 if [ ! -d "$BIG/LiteGPT/.git" ]; then git clone -q -b "$BRANCH" "$BUNDLE" "$BIG/LiteGPT"; fi
