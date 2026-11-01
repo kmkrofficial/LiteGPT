@@ -146,7 +146,7 @@ def main() -> int:
     ap.add_argument("--resume-cmd", required=True, help="{run} = the run directory")
     ap.add_argument("--backup-repo", default="kmkrworks/litegpt-v2-m3-runs")
     ap.add_argument("--rented-at", type=float, required=True, help="unix time the instance started billing")
-    ap.add_argument("--price-usd-h", type=float, default=0.594)
+    ap.add_argument("--price-usd-h", type=float, default=0.60)
     ap.add_argument("--inr-per-usd", type=float, default=98.40)
     ap.add_argument("--cap-inr", type=float, default=2500.0)
     ap.add_argument("--backup-hours", type=float, default=3.0)
