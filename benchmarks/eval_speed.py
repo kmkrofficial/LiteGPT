@@ -22,9 +22,12 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--config", required=True)
     ap.add_argument("--eval-micro-batch", type=int, default=16)
+    ap.add_argument("--micro-batch", type=int, default=None, help="the training micro-batch, which the current evaluation path uses")
     ap.add_argument("--blocks", type=int, default=2048, help="validation blocks per evaluation; the speed ratio does not need all 10,240")
     a = ap.parse_args()
     cfg = dataclasses.replace(load_config(a.config), eval_blocks=a.blocks)
+    if a.micro_batch:
+        cfg = dataclasses.replace(cfg, micro_batch=a.micro_batch, accum=524288 // (a.micro_batch * cfg.block_len))
     dev = torch.device("cuda")
     torch.manual_seed(0)
     model = build_model(cfg).to(dev)
