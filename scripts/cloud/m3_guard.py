@@ -6,6 +6,8 @@ Every minute: restart a dead or stalled trainer from its checkpoint, push the re
 Hugging Face repo, and STOP the instance when the run has completed and its final checkpoint is verified on the Hub (sha256), or
 when the spending cap or the restart limit is reached. It only ever stops: a stopped instance keeps its disk and ends GPU billing.
 Destroying the instance is left to the owner. Status goes to ~/guard_status.json and ~/guard_events.jsonl (read by m3_monitor.py).
+With --ntfy-topic the owner's phone also gets short alerts (https://ntfy.sh): they outlive the laptop, any assistant and the stop itself.
+Alerts carry status text only, never tokens or data, and a failed alert never affects the run.
 """
 from __future__ import annotations
 
@@ -16,6 +18,7 @@ import os
 import signal
 import subprocess
 import time
+import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -26,6 +29,8 @@ RESTART_LIMIT = 3              # within RESTART_WINDOW_SECONDS, then stop: a cra
 RESTART_WINDOW_SECONDS = 2 * 3600
 FINAL_BACKUP_ATTEMPTS = 5      # then stop anyway: the disk survives a stop, the bill does not grow
 CAP_MARGIN_INR = 50            # stop this far below the cap: bandwidth and the final backup are billed too
+ALERTS = {"guard_start", "resume", "interrupt", "kill", "guard_error", "final_backup", "stop_requested"}
+PROGRESS_SECONDS = 6 * 3600    # a quiet channel must mean "healthy", so the guard also says it is alive
 
 
 @dataclass
@@ -70,6 +75,27 @@ def decide(s: State) -> tuple[str, str]:
     if s.backup_age_s >= s.backup_every_s:
         return "backup", "periodic"
     return "none", ""
+
+
+def alert_text(kind: str, fields: dict) -> str | None:
+    """The phone message for a guard event, or None if the event is routine."""
+    if kind == "backup_done" and not fields.get("verified"):
+        return f"Backup NOT verified: {fields.get('checkpoint')}"
+    if kind not in ALERTS:
+        return None
+    keep = ("why", "ok", "detail", "verified", "checkpoint", "attempt", "error", "spent_inr")
+    return " ".join([kind.replace("_", " ")] + [f"{k}={v}" for k, v in fields.items() if k in keep])[:400]
+
+
+def send_alert(topic: str | None, text: str, title: str = "LiteGPT M3", urgent: bool = False) -> bool:
+    if not topic:
+        return False
+    req = urllib.request.Request(f"https://ntfy.sh/{topic}", data=text.encode("utf-8"), headers={"Title": title, "Priority": "high" if urgent else "default"})
+    try:
+        urllib.request.urlopen(req, timeout=15).read()
+        return True
+    except Exception:  # noqa: BLE001 - an alert must never affect the run
+        return False
 
 
 def newest_run(repo: Path, name: str) -> Path | None:
@@ -160,6 +186,7 @@ def main() -> int:
     ap.add_argument("--cap-inr", type=float, default=2500.0)
     ap.add_argument("--backup-hours", type=float, default=3.0)
     ap.add_argument("--dry-run", action="store_true", help="log the stop instead of stopping (setup check)")
+    ap.add_argument("--ntfy-topic", default=None, help="private ntfy.sh topic for phone alerts")
     a = ap.parse_args()
     repo, home = Path(a.repo_dir), Path.home()
     backup = Backup(a.backup_repo)
@@ -168,9 +195,13 @@ def main() -> int:
     def event(kind: str, **kw) -> None:
         with open(log, "a", encoding="utf-8") as f:
             f.write(json.dumps({"t": time.time(), "event": kind, **kw}) + "\n")
+        text = alert_text(kind, kw)
+        if text:
+            send_alert(a.ntfy_topic, text, urgent=kind != "guard_start")
 
     s = State(cap_inr=a.cap_inr, backup_every_s=a.backup_hours * 3600)
     last_backup, restarts, interrupted_at = time.time(), [], None
+    last_progress, gate_reported = time.time(), False
     event("guard_start", dry_run=a.dry_run)
     while True:
         now = time.time()
@@ -187,6 +218,16 @@ def main() -> int:
         s.interrupted_age_s = now - interrupted_at if interrupted_at is not None and pids else -1.0
         if not pids:
             interrupted_at = None
+        if run and not gate_reported and (run / "gate" / "extension_gate.json").exists():
+            gate_reported = True
+            g = json.loads((run / "gate" / "extension_gate.json").read_text(encoding="utf-8"))
+            send_alert(a.ntfy_topic, f"Gate: {g.get('decision')}, delta {g.get('delta')}, stable end {g.get('stable_end_tokens')}, {g.get('reason')}", title="LiteGPT M3 gate")
+        if metrics and metrics.exists() and now - last_progress >= PROGRESS_SECONDS:
+            last_progress = now
+            with open(metrics, "rb") as f:
+                f.seek(max(0, metrics.stat().st_size - 400))
+                last = json.loads(f.read().decode("utf-8").strip().splitlines()[-1])
+            send_alert(a.ntfy_topic, f"OK: {last['tokens'] / 1e9:.2f}B tokens, loss {last['loss']:.3f}, {last['tok_per_s'] / 1e3:.0f}k tok/s, spent about INR {s.spent_inr:.0f}, GPU {gpu_temp()} C")
         action, why = decide(s)
         if action == "resume" and not run:          # started before the first run exists: nothing to resume yet
             action, why = "none", ""
@@ -221,6 +262,7 @@ def main() -> int:
                 event("final_backup", checkpoint=ck.name if ck else None, verified=s.final_verified, attempt=s.final_attempts)
             elif action == "stop":
                 backup.api.upload_file(path_or_fileobj=str(log), path_in_repo=f"{run.name}/guard_events.jsonl", repo_id=a.backup_repo, commit_message="guard events") if run else None
+                send_alert(a.ntfy_topic, f"Stopping the server now: {why}. Spent about INR {s.spent_inr:.0f}. Check the Vast console, then destroy the instance and delete the volume.", urgent=True)
                 ok, detail = (True, "dry run") if a.dry_run else stop_instance()
                 event("stop_requested", why=why, ok=ok, detail=detail)
                 if a.dry_run:

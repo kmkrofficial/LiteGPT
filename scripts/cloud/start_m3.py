@@ -39,6 +39,7 @@ def main() -> int:
     ap.add_argument("--eval-fast", action="store_true")
     ap.add_argument("--eval-micro-batch", type=int, default=None)
     ap.add_argument("--backup-repo", default="kmkrworks/litegpt-v2-m3-runs")
+    ap.add_argument("--ntfy-topic", default=None)
     a = ap.parse_args()
     if subprocess.run(["pgrep", "-f", "scripts/(train|cloud/m3_guard)[.]py"], capture_output=True).stdout:
         raise SystemExit("a trainer or the guard is already running")
@@ -66,6 +67,8 @@ def main() -> int:
     train = f"cd {ROOT} && . {home}/.litegpt_env && PYTHONUNBUFFERED=1 {py} scripts/train.py --config benchmarks/m3/m3_run.yaml --rented-at {a.rented_at} 2>&1 | tee -a {home}/trainer.log"
     guard_args = ["scripts/cloud/m3_guard.py", "--repo-dir", str(ROOT), "--name", "m3", "--rented-at", str(a.rented_at), "--price-usd-h", str(a.price_usd_h),
                   "--backup-repo", a.backup_repo, "--resume-cmd", f"{py} scripts/train.py --resume {{run}}"]
+    if a.ntfy_topic:
+        guard_args += ["--ntfy-topic", a.ntfy_topic]
     guard = f"cd {ROOT} && . {home}/.litegpt_env && export PATH=/opt/instance-tools/bin:$PATH && PYTHONUNBUFFERED=1 {py} {shlex.join(guard_args)} 2>&1 | tee -a {home}/guard.log"
     # the key reaches the guard through its own environment file, readable by root only; it is not on any command line here
     keyfile = home / ".litegpt_guard_env"

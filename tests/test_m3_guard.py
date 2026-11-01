@@ -75,6 +75,22 @@ def test_run_completed_needs_the_summary_and_the_final_checkpoint(tmp_path):
     assert not G.run_completed(tmp_path)
 
 
+def test_only_events_that_matter_alert_the_phone():
+    assert G.alert_text("backup", {"why": "periodic"}) is None
+    assert G.alert_text("backup_done", {"checkpoint": "c", "verified": True}) is None
+    assert "NOT verified" in G.alert_text("backup_done", {"checkpoint": "c", "verified": False})
+    assert "trainer not running" in G.alert_text("resume", {"why": "trainer not running", "spent_inr": 5})
+    assert "stop requested" in G.alert_text("stop_requested", {"why": "completed", "ok": True})
+
+
+def test_a_failed_alert_never_raises(monkeypatch):
+    def boom(*a, **k):
+        raise OSError("no network")
+    monkeypatch.setattr(G.urllib.request, "urlopen", boom)
+    assert G.send_alert("topic", "text") is False
+    assert G.send_alert(None, "text") is False
+
+
 def test_newest_run_ignores_other_names(tmp_path):
     for rid, name in (("20261101T100000Z-train-m3-aaa", "m3"), ("20261101T110000Z-train-m3-smoke-tiny-bbb", "m3-smoke-tiny")):
         (tmp_path / "runs" / rid).mkdir(parents=True)
