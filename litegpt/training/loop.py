@@ -172,6 +172,7 @@ def train(cfg: TrainConfig, resume: str | None = None, runs_root: str | Path | N
         if want == "extension":
             ext = cfg.schedule["extension"]
             if model.config.block_size != ext["seq_len"]:
+                save("pre_extension")          # the last 2,048-context weights: the switch itself costs BPB (EXP-M3-OPT notes)
                 model.set_context(ext["seq_len"], ext["rope_theta"])
             fwd = torch.compile(model, mode=cfg.compile_mode) if cfg.compile else model
             ecfg = dataclasses.replace(cfg, block_len=ext["seq_len"], micro_batch=ext["micro_batch"], accum=ext["accum"])

@@ -1,0 +1,27 @@
+{
+  "inputs": {
+    "window_a": {
+      "5000000.0": 2.639502309408684
+    },
+    "window_b": {
+      "10000000.0": 2.6088447355546025
+    }
+  },
+  "threshold_bpb": -1000000.0,
+  "gate_tokens": 10000000.0,
+  "t": 1793529419.757265,
+  "divergence": {
+    "diverged": false,
+    "flagged_steps": 0,
+    "flagged_fraction": 0.0,
+    "first_flagged_step": null,
+    "max_ratio_to_running_median": 0.0,
+    "factor": 10.0,
+    "min_frac": 0.01
+  },
+  "delta": 0.0306575738540813,
+  "decision": "extend",
+  "stable_end_tokens": 15000000.0,
+  "reason": "delta at or above the threshold",
+  "spec_sha256": "3a7786f09e0e21d3f495fed6cc338a1ae66bb8cbb6b0e880b2a42efd66d8e6d4"
+}

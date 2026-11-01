@@ -189,6 +189,8 @@ def test_end_to_end_stop(data_run, tmp_path):
     assert phases(run) == [(20, "decay"), (26, "extension")]
     gate = json.loads((run / "gate" / "extension_gate.json").read_text())
     assert gate["decision"] == "stop" and gate["spec_sha256"]
+    pre = torch.load(run / "checkpoints" / "milestone-pre_extension.pt", map_location="cpu", weights_only=False)
+    assert pre["step"] == 26 and pre["model_config"]["block_size"] == BL and pre["model_config"]["rope_theta"] != 100000.0
     for m in ("stable_end", "final"):
         assert (run / "checkpoints" / f"milestone-{m}.pt").exists(), m
     assert len(list((run / "checkpoints").glob("milestone-tokens-*.pt"))) == 1
