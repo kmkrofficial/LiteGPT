@@ -75,6 +75,24 @@ def test_run_completed_needs_the_summary_and_the_final_checkpoint(tmp_path):
     assert not G.run_completed(tmp_path)
 
 
+def test_newest_run_ignores_other_names(tmp_path):
+    for rid, name in (("20261101T100000Z-train-m3-aaa", "m3"), ("20261101T110000Z-train-m3-smoke-tiny-bbb", "m3-smoke-tiny")):
+        (tmp_path / "runs" / rid).mkdir(parents=True)
+        (tmp_path / "runs" / rid / "run.json").write_text(json.dumps({"config": {"name": name}}))
+    assert G.newest_run(tmp_path, "m3").name == "20261101T100000Z-train-m3-aaa"
+    assert G.newest_run(tmp_path, "m4") is None
+
+
+def test_trainer_pattern_matches_the_trainer_not_the_guard():
+    import re
+    pat = re.compile(G.TRAINER)
+    assert pat.search("/data/LiteGPT/.venv/bin/python scripts/train.py --config benchmarks/m3/m3_run.yaml --rented-at 1")
+    assert pat.search(".venv/bin/python scripts/train.py --resume runs/x")
+    guard = "/data/LiteGPT/.venv/bin/python scripts/cloud/m3_guard.py --name m3 --resume-cmd /data/LiteGPT/.venv/bin/python scripts/train.py --resume {run}"
+    assert not pat.search(guard)
+    assert not pat.search("bash -c cd /data/LiteGPT && python scripts/train.py --config x")
+
+
 def test_stop_without_the_instance_key_reports_failure(monkeypatch):
     monkeypatch.delenv("CONTAINER_ID", raising=False)
     monkeypatch.delenv("CONTAINER_API_KEY", raising=False)

@@ -73,7 +73,13 @@ def decide(s: State) -> tuple[str, str]:
 
 
 def newest_run(repo: Path, name: str) -> Path | None:
-    runs = sorted((repo / "runs").glob(f"*-train-{name}-*"), key=lambda p: p.name)
+    """The newest run whose configured name is exactly `name` (m3-smoke-tiny is not m3)."""
+    def named(p: Path) -> bool:
+        try:
+            return json.loads((p / "run.json").read_text(encoding="utf-8"))["config"]["name"] == name
+        except (OSError, ValueError, KeyError):
+            return False
+    runs = sorted((p for p in (repo / "runs").glob(f"*-train-{name}-*") if named(p)), key=lambda p: p.name)
     return runs[-1] if runs else None
 
 
@@ -127,8 +133,11 @@ def stop_instance() -> tuple[bool, str]:
     return p.returncode == 0, f"exit {p.returncode}"
 
 
+TRAINER = r"^[^ ]*python[^ ]* scripts/train[.]py"       # anchored: the guard's own --resume-cmd argument contains this path too
+
+
 def trainer_pids() -> list[int]:
-    out = subprocess.run(["pgrep", "-f", "scripts/train[.]py"], capture_output=True, text=True).stdout.split()
+    out = subprocess.run(["pgrep", "-f", TRAINER], capture_output=True, text=True).stdout.split()
     return [int(v) for v in out]
 
 
