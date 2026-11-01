@@ -547,4 +547,17 @@ experiments:
       - date: 2026-11-01
         finding: "RoPE switch cost, measured read-only on the M3 LR 2.4e-3 final checkpoint (200M tokens; scratch/rope_switch_shock.py): the same weights scored at theta 10k and theta 100k on the same 2,048 windows: val 1.6490 -> 1.6848 (+0.0359), web +0.0233, code +0.0378, math +0.0348. The switch costs BPB at the moment it happens, on a model far less trained than the one M3 will switch, so the size at 9B+ is unknown, as is how much the last ~0.4B tokens recover at the decay's low LR. The loop now saves milestone pre_extension (the last 2,048-context weights). What to do about the extension goes to the owner with ADR-009."
     conclusion: null
+  - id: EXP-M3-THETA
+    milestone: M3
+    hypothesis: "RoPE theta 100k from the first step, with no switch at the context extension, trains as well at the approved peak LR 2.4e-3 as theta 10k did, so that LR stays valid."
+    config: benchmarks/ladder/m3lr-theta100k.yaml (benchmarks/ladder/m3lr.yaml with lr 2.4e-3 and rope_theta 100000)
+    parent: EXP-M2-M3LR
+    status: pre-registered
+    runs: []
+    decisions:   # PRE-REGISTERED 2026-11-01 before the run
+      owner: "Owner 2026-11-01: the final model uses theta 100k and a 4,096 context. Measured reason to avoid switching at the extension: the same weights lost 0.036 val BPB when theta changed from 10k to 100k (EXP-M3-OPT interim_results). Theta therefore becomes 100k from step 0, and the extension only lengthens the context. Goes into ADR-009 / spec 2.0.0-spec.7 with this result; M2 ladder results stay evidence at theta 10k and are reported as such."
+      comparison: "same model, data order, seed (1), 200M tokens and schedule as 20261101T042856Z-train-m3lr-2.4e-3-b81bbb8 (val_core BPB 1.6505, web 1.6520, code 1.9196, math 2.0802); only theta differs"
+    thresholds:
+      rule: "val_core BPB after the decay <= 1.6505 + 0.005 and not diverged: 2.4e-3 stays the M3 LR. Otherwise the numbers go to the owner; the next candidate is 1.2e-3 at theta 100k. Single seed, so differences inside 0.005 are ties."
+    conclusion: null
 
