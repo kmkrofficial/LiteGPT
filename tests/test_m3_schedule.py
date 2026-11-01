@@ -90,6 +90,24 @@ def budget(rented_hours_ago, cap=2400.0):
     return {"price_usd_h": 0.60, "inr_per_usd": 98.40, "gate_budget_inr": cap, "rented_at_unix": 1e6 - rented_hours_ago * 3600}
 
 
+def test_budget_without_a_rental_time_fails_at_the_start():
+    bud = {"price_usd_h": 0.6, "inr_per_usd": 98.4, "gate_budget_inr": 2400.0}
+    with pytest.raises(ValueError, match="rented"):
+        Schedule(spec(budget=bud), 524288)
+
+
+def test_real_m3_config_has_the_decided_schedule():
+    from litegpt.training import load_config
+    cfg = load_config(Path(__file__).resolve().parents[1] / "benchmarks" / "m3" / "m3.yaml")
+    assert cfg.tokens_per_step == 524288 and cfg.lr == 0.0024 and cfg.train_index == "stable_v2"
+    ext = cfg.schedule["extension"]
+    assert ext["seq_len"] == 4096 and ext["rope_theta"] == 10000.0 and ext["micro_batch"] * ext["accum"] * 4096 == 524288
+    cfg.schedule["budget"]["rented_at_unix"] = 1.0
+    s = Schedule(cfg.schedule, cfg.tokens_per_step)
+    assert s.gate_step == 17167 and s.total_steps == 19075 and s.extension_steps == 763
+    assert cfg.schedule["decay_index"] == "decay_v2" and "rope_theta" not in cfg.model
+
+
 def test_budget_keeps_the_full_extension_when_it_fits():
     s = Schedule(spec(budget=budget(10)), 524288)
     r = decide_gate(s, evals(), metrics(), 1e6)

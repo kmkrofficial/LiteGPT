@@ -1,0 +1,47 @@
+# M3 pretraining (ADR-001, ADR-009 proposed). Theta 10k from start to finish; the context grows to 4,096 at the end of the decay.
+# micro_batch / accum, compile_mode, attention_backend and eval_fast are set from the EXP-M3-OPT tuning session on the server.
+name: m3
+model_kind: litegpt
+model:
+  preset: litegpt-v2-28l
+  attention_backend: sdpa
+tokenizer: litegpt
+data_run: runs/20261011T173054Z-data-prepare-1f005bc
+train_index: stable_v2
+val_index: val_core
+tokens: 10000000000.0
+micro_batch: 8
+accum: 32
+lr: 0.0024
+val_text_dir: runs/20261011T173054Z-data-prepare-1f005bc/shards/val_text
+val_text_domains: [web, synthetic, code, math, chat]
+final_lr_frac: 0.1
+eval_every_tokens: 250000000.0
+eval_blocks: 10240
+compile: true
+seed: 1
+checkpoint_every_minutes: 30
+keep_last: 3
+schedule:
+  warmup_tokens: 100000000.0
+  stable_end_tokens: 9000000000.0
+  decay_tokens: 1000000000.0
+  decay_index: decay_v2
+  extension:
+    seq_len: 4096
+    rope_theta: 10000.0
+    tokens: 400000000.0
+    micro_batch: 4
+    accum: 32
+  gate:
+    window_a: [6500000000.0, 6750000000.0, 7000000000.0]
+    window_b: [8500000000.0, 8750000000.0, 9000000000.0]
+    threshold_bpb: 0.010
+    max_stable_end_tokens: 14000000000.0
+    step_tokens: 500000000.0
+    speed_window_tokens: 1000000000.0
+  budget:                         # rented_at_unix comes from scripts/train.py --rented-at
+    price_usd_h: 0.60
+    inr_per_usd: 98.40
+    gate_budget_inr: 2400.0       # below the guard's stop (2,450) and the owner's cap (2,500), so an extension is never cut mid-decay
+  milestone_tokens: [2500000000.0, 5000000000.0, 9000000000.0]

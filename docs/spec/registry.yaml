@@ -117,6 +117,8 @@ experiments:
         decision: "M3 runs on one rented A100 PCIe (Vast.ai). Budget approved with a hard cap of INR 2,500 on all M3 cloud spend (instance hours including setup, the throughput benchmark and any evaluation there; storage and transfer). At the current estimate (~$0.424/h, ~85-95k tok/s) 10B costs ~INR 1,550 and 15B ~INR 2,330, so the cap binds only if the measured rate or price is worse."
         gate_rule_with_cap: "The BPB rule above is unchanged. If delta >= 0.010 at the 9.0B checkpoint, the projected total = M3 spend so far + the stable phase to 14.0B + the 1.0B decay, at the tok/s measured over the last 1.0B stable tokens and the instance's actual hourly price. If the projection is <= INR 2,500: extend as registered (15.0B). Otherwise the stable phase runs to the largest T in 0.5B steps (9.5B <= T < 14.0B) whose projection is <= INR 2,500, then the 1.0B decay (total T + 1.0B); if no such T exists: stop (decay from 9.0B, total 10.0B). The gate script computes and records the projection."
         status: "to be written into the M3 environment ADR (ADR-009) and the spec (training.extension_gate, spec 2.0.0-spec.7) at the M3 freeze, before M3 starts"
+      - date: 2026-11-01
+        clarification: "Recorded before M3. The gate projects against INR 2,400, the server guard stops at INR 2,450, the owner's cap stays INR 2,500, so a run the gate allows is not cut off mid-decay by the guard. Also: price $0.60/h (A100 40 GB with 20 GB container disk). In ADR-009 (proposed)."
     conclusion: null
   - id: EXP-M1-CODE
     milestone: M1

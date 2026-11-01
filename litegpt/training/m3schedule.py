@@ -23,6 +23,8 @@ class Schedule:
         self.decided = False
         if self.extension_steps > self.decay_steps:
             raise ValueError("the context extension must fit inside the decay")
+        if s.get("budget") and "rented_at_unix" not in s["budget"]:      # fail now, not at the gate about a day into the run
+            raise ValueError("the schedule has a budget but no rented_at_unix: pass scripts/train.py --rented-at")
 
     def steps(self, tokens: float) -> int:
         """First step count whose tokens reach `tokens`, so the evaluation at exactly `tokens` still belongs to the phase."""
