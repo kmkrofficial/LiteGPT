@@ -6,7 +6,7 @@
 # Everything large goes on the big disk: the container disk is small and a full one would break the run. flash-attn comes only from
 # the prebuilt wheel pinned in uv.lock; never build it from source. Before this, the owner runs `hf auth login` with a read token.
 #
-# M4: LITEGPT_MILESTONE=m4 bash bootstrap.sh <disk> <bundle> needs 70 GB free, skips the M3 shards and the flash-attn group (M4 trains with SDPA);
+# M4: LITEGPT_MILESTONE=m4 bash bootstrap.sh <disk> <bundle> needs 70 GB free, skips the M3 shards, adds the eval group;
 # then run scripts/cloud/fetch_m4.sh.
 set -euo pipefail
 BIG="${1:?big disk mount}"
@@ -14,7 +14,7 @@ BUNDLE="${2:?git bundle of the repo}"
 MILESTONE="${LITEGPT_MILESTONE:-m3}"
 MIN_FREE_GB=90
 UV_GROUP=(--group flash)
-if [ "$MILESTONE" = "m4" ]; then MIN_FREE_GB=70; UV_GROUP=(); fi
+if [ "$MILESTONE" = "m4" ]; then MIN_FREE_GB=70; UV_GROUP=(--group flash --group eval); fi   # flash for SFT; transformers for the rival arms, rouge-score for BillSum
 DATA_REPO="kmkrworks/litegpt-v2-data"
 DATA_RUN="runs/20261011T173054Z-data-prepare-1f005bc"
 BRANCH="v2/m0-foundations"
