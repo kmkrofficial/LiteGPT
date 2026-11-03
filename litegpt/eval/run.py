@@ -2,9 +2,10 @@
 
     python -m litegpt.eval.run --model hf:openai-community/gpt2 --suite base
     python -m litegpt.eval.run --model hf:HuggingFaceTB/SmolLM2-135M-Instruct --suite instruct
+    python -m litegpt.eval.run --model litegpt:<checkpoint.pt> --suite base
 
 HF models run through lm-eval's `hf` backend with the model revision pinned to the commit resolved at start. Native LiteGPT
-checkpoints (`litegpt:<path>`) use `litegpt.eval.lm_adapter` (added to the CLI when the first checkpoint exists, M2).
+checkpoints use `litegpt.eval.lm_adapter` and are identified by the checkpoint file's hash.
 `--limit` is for smoke tests only and marks the record as not comparable.
 """
 from __future__ import annotations
@@ -30,10 +31,14 @@ def load_suite() -> dict:
 
 
 def resolve_model(spec: str) -> dict:
-    """`hf:<repo>` (latest commit) or `hf:<repo>@<ref>` (a branch or tag, e.g. Pythia's `step5000`), pinned to the resolved commit."""
+    """`hf:<repo>` (latest commit), `hf:<repo>@<ref>` (a branch or tag, e.g. Pythia's `step5000`), pinned to the resolved commit,
+    or `litegpt:<checkpoint>` (a training checkpoint, pinned by its hash)."""
     kind, _, name = spec.partition(":")
+    if kind == "litegpt":
+        from litegpt.eval.lm_adapter import checkpoint_info
+        return checkpoint_info(name)
     if kind != "hf":
-        raise SystemExit("only hf:<repo> models are supported until the first LiteGPT checkpoint exists (M2)")
+        raise SystemExit("models are hf:<repo>, hf:<repo>@<ref> or litegpt:<checkpoint>")
     name, _, ref = name.partition("@")
     from huggingface_hub import HfApi
     info = HfApi().model_info(name, revision=ref or None)
@@ -45,7 +50,9 @@ def resolve_model(spec: str) -> dict:
 
 
 def model_label(model: dict) -> str:
-    """Short name used in run ids: the repo name, plus the requested ref when one was given."""
+    """Short name used in run ids: the repo name, plus the requested ref when one was given; a checkpoint's own label."""
+    if model["kind"] == "litegpt":
+        return model["label"]
     return model["repo"].split("/")[-1] + (f"-{model['ref']}" if model.get("ref") else "")
 
 
@@ -135,7 +142,7 @@ def triviaqa_subset(size: int, seed: int) -> list[int]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--model", required=True, help="hf:<repo> or hf:<repo>@<ref>")
+    ap.add_argument("--model", required=True, help="hf:<repo>, hf:<repo>@<ref> or litegpt:<checkpoint>")
     ap.add_argument("--suite", choices=["base", "instruct"], required=True)
     ap.add_argument("--batch-size", default="16")
     ap.add_argument("--groups", default=None, help="comma-separated subset of suite groups (default: all)")
@@ -166,14 +173,22 @@ def main() -> int:
         "extra_model_args": args.extra_model_args,
         "chat_template": Path(args.chat_template_file).read_text(encoding="utf-8") if args.chat_template_file else None})
     seed = suite["protocol"]["seed"]
-    pretrained = f"pretrained={model['repo']},revision={model['revision']}"
-    override = generation_length_override(model)
-    removed = {}
-    if args.chat_template_file or override:
-        path, removed = local_copy(model, args.chat_template_file)
-        pretrained = f"pretrained={path}"
-    rec.update(generation_config_override=override, evaluated_from_local_copy=bool(args.chat_template_file or override))   # EXP-M1B-SUITE correction
-    model_args = f"{pretrained},dtype=bfloat16,trust_remote_code=False" + (f",{args.extra_model_args}" if args.extra_model_args else "")
+    native = model["kind"] == "litegpt"
+    if native:
+        if args.suite != "base":
+            raise SystemExit("litegpt checkpoints have no chat template until M4: base suite only")
+        from litegpt.eval.lm_adapter import load_checkpoint, make_lm_class
+        net, tok = load_checkpoint(model["path"])
+        lm_class = make_lm_class()
+    else:
+        pretrained = f"pretrained={model['repo']},revision={model['revision']}"
+        override = generation_length_override(model)
+        removed = {}
+        if args.chat_template_file or override:
+            path, removed = local_copy(model, args.chat_template_file)
+            pretrained = f"pretrained={path}"
+        rec.update(generation_config_override=override, evaluated_from_local_copy=bool(args.chat_template_file or override))   # EXP-M1B-SUITE correction
+        model_args = f"{pretrained},dtype=bfloat16,trust_remote_code=False" + (f",{args.extra_model_args}" if args.extra_model_args else "")
     results, revisions = {}, {}
     for g in groups:
         if g.get("native"):
@@ -187,9 +202,9 @@ def main() -> int:
         bs = int(args.batch_size)
         while True:                                # batch 16; halved only if it exceeds the VRAM cap (large vocabularies)
             try:
+                target = {"model": lm_class(net, tok, batch_size=bs)} if native else {"model": "hf", "model_args": model_args, "batch_size": bs, "device": "cuda"}
                 out = lm_eval.simple_evaluate(
-                    model="hf", model_args=model_args, tasks=g["tasks"], num_fewshot=g["num_fewshot"], batch_size=bs,
-                    device="cuda", limit=args.limit, samples=samples, log_samples=True, apply_chat_template=bool(g.get("chat")),
+                    **target, tasks=g["tasks"], num_fewshot=g["num_fewshot"], limit=args.limit, samples=samples, log_samples=True, apply_chat_template=bool(g.get("chat")),
                     random_seed=seed, numpy_random_seed=seed, torch_random_seed=seed, fewshot_random_seed=seed,
                     confirm_run_unsafe_code=bool(g.get("unsafe_code")), gen_kwargs=g.get("gen_kwargs"),
                     task_manager=TaskManager(include_path=str(TASKS_DIR)))

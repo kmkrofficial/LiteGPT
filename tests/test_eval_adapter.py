@@ -57,3 +57,34 @@ def test_rolling_handles_text_longer_than_context(setup):
     n = len(tok.encode_text(text)) + 1
     assert n > model.config.block_size
     assert rolling_loglikelihood(model, tok, text) < 0
+
+
+def test_batched_generation_equals_one_at_a_time(setup):
+    pytest.importorskip("lm_eval")
+    from types import SimpleNamespace
+
+    from litegpt.eval.lm_adapter import make_lm_class
+    model, tok = setup
+    prompts = ["the cat sat", "the dog ran far away from", "home", "the cat sat on the mat. the dog ran far", "the"]
+    reqs = [SimpleNamespace(args=(p, {"until": ["."], "max_gen_toks": 12})) for p in prompts] + [SimpleNamespace(args=("the mat", {"until": ["zzz"], "max_gen_toks": 7}))]
+    cls = make_lm_class()
+    batched = cls(model, tok, batch_size=3).generate_until(reqs)
+    single = [cls(model, tok, batch_size=1).generate_until([r])[0] for r in reqs]
+    assert batched == single and all(isinstance(t, str) for t in batched)
+
+
+def test_checkpoint_round_trip(setup, tmp_path):
+    from litegpt.checkpoint import CheckpointManager
+    from litegpt.eval.lm_adapter import checkpoint_info, load_checkpoint
+    from litegpt.eval.run import model_label, resolve_model
+    model, _ = setup
+    path = CheckpointManager(tmp_path).save(model=model, optimizer=None, step=7, tokens=3670016, model_config=model.config.to_dict(), milestone="tokens-2.5B")
+    info = checkpoint_info(path)
+    assert (info["kind"], info["step"], info["tokens"], info["block_size"]) == ("litegpt", 7, 3670016, model.config.block_size) and len(info["sha256"]) == 64
+    assert resolve_model(f"litegpt:{path}") == info and model_label(info) == "litegpt-tokens-2.5B"
+    loaded, _ = load_checkpoint(path, device="cpu", dtype=torch.float32)
+    x = torch.tensor([[T.BOS, 5, 6, 7]])
+    with torch.no_grad():
+        a, _ = model(x, logits_all=True)
+        b, _ = loaded(x, logits_all=True)
+    assert torch.equal(a, b) and not loaded.training

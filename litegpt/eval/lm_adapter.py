@@ -7,11 +7,44 @@ encode(context); every sequence starts with <|bos|>.
 """
 from __future__ import annotations
 
+import hashlib
+from pathlib import Path
+
 import torch
 import torch.nn.functional as F
 
+from litegpt.config import ModelConfig
 from litegpt.inference import Engine, GenerationConfig
-from litegpt.tokenizer import BOS, EOT, IM_END
+from litegpt.model import LiteGPT
+from litegpt.tokenizer import BOS, EOT, IM_END, LiteTokenizer
+
+
+def _read_checkpoint(path) -> dict:
+    return torch.load(path, map_location="cpu", weights_only=False, mmap=True)   # own training files only (litegpt/checkpoint.py)
+
+
+def checkpoint_info(path) -> dict:
+    """What a run record needs to identify a training checkpoint: the file's hash and the checkpoint's own position and context."""
+    path = Path(path)
+    if not path.is_file():
+        raise SystemExit(f"no checkpoint at {path}")
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while b := f.read(2 ** 24):
+            h.update(b)
+    state = _read_checkpoint(path)
+    cfg = state["model_config"]
+    return {"kind": "litegpt", "path": str(path), "sha256": h.hexdigest(), "label": "litegpt-" + path.stem.removeprefix("milestone-"),
+            "step": state["step"], "tokens": state["tokens"], "spec_sha256": state.get("spec_sha256"),
+            "block_size": cfg["block_size"], "rope_theta": cfg["rope_theta"]}
+
+
+def load_checkpoint(path, device="cuda", dtype=torch.bfloat16):
+    """The model of a training checkpoint at the suite's dtype, in eval mode, with its tokenizer. The optimizer state is not loaded."""
+    state = _read_checkpoint(path)
+    model = LiteGPT(ModelConfig.from_dict(state["model_config"]))
+    model.load_state_dict({k.removeprefix("_orig_mod."): v for k, v in state["model"].items()})
+    return model.to(device=device, dtype=dtype).eval(), LiteTokenizer.load()
 
 
 def _split(tok, context: str, continuation: str) -> tuple[list[int], list[int]]:
@@ -90,15 +123,22 @@ def make_lm_class():
             return [rolling_loglikelihood(self.model, self.tok, r.args[0]) for r in requests]
 
         def generate_until(self, requests):
-            outs = []
-            for r in requests:
+            groups = {}                                # one stop list and length per batch; longest first, like lm-eval's HF backend
+            for i, r in enumerate(requests):
                 ctx, kw = r.args
                 until = kw.get("until") or []
                 until = [until] if isinstance(until, str) else list(until)
                 n = int(kw.get("max_gen_toks", self.max_gen_toks))
                 prompt = ([BOS] + self.tok.encode_text(ctx))[-(self.model.config.block_size - n):]
-                cfg = GenerationConfig(max_new_tokens=n, temperature=0.0, stop_token_ids=(EOT, IM_END), stop_strings=tuple(until))
-                outs.append(self.engine.generate_ids([prompt], cfg)[0].text)
+                groups.setdefault((tuple(until), n), []).append((i, prompt))
+            outs: list = [None] * len(requests)
+            for (until, n), items in groups.items():
+                items.sort(key=lambda it: -len(it[1]))
+                cfg = GenerationConfig(max_new_tokens=n, temperature=0.0, stop_token_ids=(EOT, IM_END), stop_strings=until)
+                for s in range(0, len(items), self.bs):
+                    chunk = items[s:s + self.bs]
+                    for (i, _), res in zip(chunk, self.engine.generate_ids([p for _, p in chunk], cfg)):
+                        outs[i] = res.text
             return outs
 
     return LiteGPTLM

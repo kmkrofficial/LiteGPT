@@ -1,6 +1,6 @@
 """Native evaluations that lm-eval 0.4.13 does not cover (EXP-M1B-SUITE): bits-per-byte, efficiency, XSTest.
 
-All three work with HF causal LMs (baselines) and are written so a LiteGPT path can be added beside them in M2.
+Bits-per-byte and efficiency work with HF causal LMs (baselines) and LiteGPT training checkpoints (`litegpt:<checkpoint>`); XSTest needs a chat model.
 
     python -m litegpt.eval.native bpb --model hf:HuggingFaceTB/SmolLM2-135M --val-dir <data run>/shards
     python -m litegpt.eval.native efficiency --model hf:openai-community/gpt2
@@ -78,7 +78,24 @@ def doc_nll(model, ids: list[int], window: int, stride: int) -> float:
     return total
 
 
+def litegpt_bpb(args, model_info) -> dict:
+    """The same documents, window rule and stride as the HF path, through the training code's bits-per-byte."""
+    from litegpt.eval.lm_adapter import load_checkpoint
+    from litegpt.records import read_jsonl
+    from litegpt.training.bpb import TextEncoder, val_text_bpb
+    model, _ = load_checkpoint(model_info["path"])
+    window, encoder, device = min(model.config.block_size, 2048), TextEncoder("litegpt"), next(model.parameters()).device
+    out = {}
+    for dom_file in sorted(Path(args.val_dir).glob("*.jsonl")):
+        r = val_text_bpb(model, encoder, [row["text"] for row in read_jsonl(dom_file)], window, device)
+        out[dom_file.stem] = {"docs": r["docs"], "bytes": r["bytes"], "nll_nats": r["bpb"] * math.log(2) * r["bytes"], "bpb": r["bpb"]}
+        print(dom_file.stem, out[dom_file.stem], flush=True)
+    return {"window": window, "stride": window // 2, "domains": out}
+
+
 def cmd_bpb(args, model_info) -> dict:
+    if model_info["kind"] == "litegpt":
+        return litegpt_bpb(args, model_info)
     model, tok = load_hf(model_info["repo"], model_info["revision"])
     window = context_length(model, tok)
     out = {}
@@ -100,18 +117,37 @@ def cmd_bpb(args, model_info) -> dict:
 
 @torch.no_grad()
 def cmd_efficiency(args, model_info) -> dict:
-    model, tok = load_hf(model_info["repo"], model_info["revision"])
+    if model_info["kind"] == "litegpt":
+        from litegpt.eval.lm_adapter import load_checkpoint
+        from litegpt.inference import Engine, GenerationConfig
+        model, tok = load_checkpoint(model_info["path"])
+        engine = Engine(model, tok)
+        encode, decode = tok.encode_text, tok.decode
+
+        def generate(x, n):                                      # every row runs to n tokens, as min_new_tokens does on the HF path
+            return torch.tensor([r.ids for r in engine.generate_ids(x.tolist(), GenerationConfig(max_new_tokens=n, stop_token_ids=()))])
+        params = {"total": model.num_params(), "embedding": model.num_params() - model.num_params(non_embedding=True),
+                  "non_embedding": model.num_params(non_embedding=True), "tied_output": model.lm_head.weight is model.model.embed_tokens.weight, "vocab_size": model.config.vocab_size}
+        note = "LiteGPT engine with KV cache; decode = total - one prefill"
+    else:
+        model, tok = load_hf(model_info["repo"], model_info["revision"])
+        encode, decode = (lambda text: tok(text, add_special_tokens=False)["input_ids"]), tok.decode
+
+        def generate(x, n):
+            return model.generate(x, max_new_tokens=n, min_new_tokens=n, do_sample=False, pad_token_id=tok.eos_token_id)[:, x.shape[1]:]
+        params = None
+        note = "HF transformers generate with KV cache; decode = total - one prefill"
     base = ("The history of science is the study of the development of science and scientific knowledge, including both the "
             "natural and social sciences. Science is a body of empirical, theoretical, and practical knowledge about the natural "
             "world, produced by scientists who emphasize the observation, explanation, and prediction of real-world phenomena. ")
     rows = []
     for prompt_len in (128, 512):
-        ids = tok(base * 40, add_special_tokens=False)["input_ids"][:prompt_len]
-        prompt_bytes = len(tok.decode(ids).encode("utf-8"))
+        ids = encode(base * 40)[:prompt_len]
+        prompt_bytes = len(decode(ids).encode("utf-8"))
         for batch in (1, 8):
             x = torch.tensor([ids] * batch, device="cuda")
             for _ in range(2):                                      # warm-up
-                model.generate(x, max_new_tokens=8, min_new_tokens=8, do_sample=False, pad_token_id=tok.eos_token_id)
+                generate(x, 8)
             torch.cuda.synchronize()
             torch.cuda.reset_peak_memory_stats()
             t0 = time.perf_counter()
@@ -119,11 +155,10 @@ def cmd_efficiency(args, model_info) -> dict:
             torch.cuda.synchronize()
             prefill = time.perf_counter() - t0
             t0 = time.perf_counter()
-            g = model.generate(x, max_new_tokens=args.new_tokens, min_new_tokens=args.new_tokens, do_sample=False, pad_token_id=tok.eos_token_id)
+            new = generate(x, args.new_tokens)
             torch.cuda.synchronize()
             total = time.perf_counter() - t0
-            new = g[:, x.shape[1]:]
-            out_bytes = sum(len(tok.decode(r).encode("utf-8")) for r in new)
+            out_bytes = sum(len(decode(r.tolist()).encode("utf-8")) for r in new)
             decode = max(total - prefill, 1e-9)
             rows.append({"prompt_tokens": prompt_len, "prompt_bytes": prompt_bytes, "batch": batch, "new_tokens": int(new.shape[1]),
                          "prefill_s": prefill, "prefill_tok_s": batch * prompt_len / prefill, "ttft_s": prefill + decode / new.shape[1],
@@ -137,12 +172,13 @@ def cmd_efficiency(args, model_info) -> dict:
         limit = pynvml.nvmlDeviceGetEnforcedPowerLimit(pynvml.nvmlDeviceGetHandleByIndex(0)) / 1000.0
     except Exception:
         pass
-    return {"dtype": "bfloat16", "rows": rows, "gpu_power_limit_w": limit, "params": param_counts(model),
-            "note": "HF transformers generate with KV cache; decode = total - one prefill"}
+    return {"dtype": "bfloat16", "rows": rows, "gpu_power_limit_w": limit, "params": params or param_counts(model), "note": note}
 
 
 @torch.no_grad()
 def cmd_xstest(args, model_info) -> dict:
+    if model_info["kind"] == "litegpt":
+        raise SystemExit("xstest needs a chat model: litegpt checkpoints have no chat template until M4")
     from datasets import load_dataset
     model, tok = load_hf(model_info["repo"], model_info["revision"])
     if args.chat_template_file:
