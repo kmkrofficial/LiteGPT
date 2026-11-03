@@ -65,7 +65,7 @@ def chosen_weight_dirs(root: Path, seeds: list[int]) -> list[Path]:
         return []
     out = []
     for r in json.loads(routes_file.read_text(encoding="utf-8")).values():
-        c = r["chosen"]
+        c = r["chosen"]             # a model with no finished route is not in the file
         for s in seeds:
             run = find_run(root / "runs", run_name(c["arm"], c["lr"], s))
             if run and (run / "weights").exists():
@@ -79,7 +79,7 @@ def main() -> int:
     import yaml
     from litegpt.training.sft import find_run
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--session", choices=["a", "b"], required=True)
+    ap.add_argument("--session", choices=["a", "b", "m"], required=True)
     ap.add_argument("--weights", action="store_true")
     a = ap.parse_args()
     api = HfApi()
@@ -89,7 +89,7 @@ def main() -> int:
     for sub in ("runs/m4_queue", "runs/m4_t2d"):
         if (ROOT / sub).exists():
             api.upload_folder(repo_id=REPO, folder_path=str(ROOT / sub), path_in_repo=f"m4/{Path(sub).name}", ignore_patterns=["*.pt"], commit_message="records")
-    if a.session == "a":
+    if a.session in ("a", "m"):
         run = find_run(ROOT / "runs", "m4-sft")
         if run:
             final = run / "checkpoints" / "milestone-final.pt"
@@ -97,7 +97,7 @@ def main() -> int:
             ck = final if final.exists() else (regular[-1] if regular else None)
             if ck:
                 ok &= upload_verified(api, ck, f"m4/{run.name}/{ck.name}")
-    elif a.weights:
+    if a.session != "a" and a.weights:
         seeds = yaml.safe_load((ROOT / "benchmarks" / "m4" / "t2d.yaml").read_text(encoding="utf-8"))["recipe"]["seeds"]
         for run in chosen_weight_dirs(ROOT, seeds):
             for f in sorted(p for p in (run / "weights").iterdir() if p.is_file()):

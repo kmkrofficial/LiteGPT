@@ -30,7 +30,7 @@ def main() -> int:
     from m4_queue import WATCH_PATTERN
     from start_m3 import pid1_env
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--session", choices=["a", "b"], required=True)
+    ap.add_argument("--session", choices=["a", "b", "m"], required=True)
     ap.add_argument("--part", choices=["queue", "guard"], required=True)
     ap.add_argument("--rented-at", type=float)
     ap.add_argument("--price-usd-h", type=float)
@@ -63,7 +63,7 @@ def main() -> int:
     guard_args = [py, "scripts/cloud/m3_guard.py", "--repo-dir", str(ROOT), "--rented-at", str(a.rented_at), "--price-usd-h", str(a.price_usd_h), "--backup-repo", a.backup_repo,
                   "--stop-usd", f"{stop_usd(a.balance_usd, a.carried_usd):.2f}", "--carried-usd", str(a.carried_usd), "--backup-hours", str(a.backup_hours), "--alert-title", f"LiteGPT M4 {a.session.upper()}",
                   "--trainer-pattern", WATCH_PATTERN, "--done-file", f"runs/m4_queue/session_{a.session}.done", "--heartbeat", f"runs/m4_queue/session_{a.session}.heartbeat",
-                  "--backup-cmd", f"{py} scripts/cloud/m4_backup.py --session {a.session}" + (" --weights" if a.session == "b" else ""),
+                  "--backup-cmd", f"{py} scripts/cloud/m4_backup.py --session {a.session}" + (" --weights" if a.session != "a" else ""),
                   "--resume-cmd", f"PYTHONPATH=. PYTHONUNBUFFERED=1 {shlex.join(queue_args)}"]
     if a.ntfy_topic:
         guard_args += ["--ntfy-topic", a.ntfy_topic]

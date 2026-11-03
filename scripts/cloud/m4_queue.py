@@ -2,6 +2,7 @@
 
     python scripts/cloud/m4_queue.py --session a         # SFT sweep, SFT, verified backup
     python scripts/cloud/m4_queue.py --session b [--test-on cloud|laptop] [--without-arm v2-chat]
+    python scripts/cloud/m4_queue.py --session m         # all of M4 in one go, gate G2 and the speed rule included (owner, 2026-11-03)
 
 The list is written once to runs/m4_queue/session_<x>_jobs.json, so a registered cut is an edit of that file that leaves a trace. Finished jobs
 are recorded and skipped on restart. A failed job stops the queue with an error, and the guard decides whether to restart it. Each job
@@ -22,7 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 QUEUE_DIR = Path("runs/m4_queue")
 # anchored, so the guard's own --resume-cmd argument does not match
-WATCH_PATTERN = r"^[^ ]*python[^ ]* scripts/(cloud/m4_queue|cloud/m4_backup|cloud/m4_fetch_models|train_sft|run_t2d)[.]py"
+WATCH_PATTERN = r"^[^ ]*python[^ ]* scripts/(cloud/m4_queue|cloud/m4_backup|cloud/m4_fetch_models|train_sft|run_t2d|m4_g2)[.]py"
 POLL_SECONDS = 20
 SFT_LRS = {"a": 6e-5, "b": 2e-4, "c": 6e-4}
 SWEEP_KEEP = 0.03
@@ -60,6 +61,31 @@ def session_b_jobs(py: str, arms: list[str], lr_grid: list[float], seeds: list[i
     return jobs
 
 
+def session_m_jobs(py: str, arms: list[str], lr_grid: list[float], seeds: list[int], models: list[str]) -> list[dict]:
+    """All of M4 with no one waiting (owner, 2026-11-03): session A, gate G2 and the speed rule by their registered rules, then session B on
+    the same server. One arm failing must not end the others, so fine-tunes and BillSum get a second try and are then left out, with a
+    record. The gate, the routes, the test and the backups are not tolerated: a failure there stops the queue, and the guard handles it."""
+    run = f"{py} scripts/run_t2d.py"
+    a = session_a_jobs(py)
+    for j in a:
+        if j["id"] == "backup":
+            j.update(id="backup-sft", cmd=f"{py} scripts/cloud/m4_backup.py --session m")
+    middle = [{"id": "fetch-models", "cmd": f"{py} scripts/cloud/m4_fetch_models.py", "quiet": True, "timeout": 3600},
+              {"id": "g2", "cmd": f"{py} scripts/m4_g2.py gate", "quiet": True, "timeout": 4 * 3600},
+              {"id": "speed", "cmd": f"{run} speed --config {T2D_CONFIG} --arm v2-base", "quiet": True, "timeout": 3600, "tolerate": True},
+              {"id": "speed-rule", "cmd": f"{py} scripts/m4_g2.py speed-rule"}]
+    b = [j for j in session_b_jobs(py, arms, lr_grid, seeds, models, "cloud") if j["id"] != "fetch-models"]
+    for j in b:
+        j["cmd"] = j["cmd"].replace("--session b", "--session m")
+        if "v2-chat" in j["id"]:
+            j["unless"] = f"{QUEUE_DIR}/g2_failed"
+        if j["id"].startswith(("fit-", "choose-lr-", "billsum-")):
+            j["tolerate"] = True
+        if j["id"] in ("test", "backup-test"):
+            j["unless"] = f"{QUEUE_DIR}/test_on_laptop"
+    return a + middle + b
+
+
 def newest_activity(root: Path) -> float:
     """The latest sign of work by any job: a run's metrics or a scoring progress file."""
     best = 0.0
@@ -76,6 +102,35 @@ def write_heartbeat(path: Path, job: str, done: int, total: int) -> None:
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps({"job": job, "done": done, "total": total, "t": time.time()}), encoding="utf-8")
     os.replace(tmp, path)
+
+
+def _run_one(job: dict, root: Path, log: Path, poll: float, beat) -> int:
+    """One job to its end. No sign of work is a stall for the guard to handle, unless the job is `quiet`, such as a long upload: those have a time limit here instead."""
+    t0 = time.time()
+    with open(log, "a", encoding="utf-8") as f:
+        f.write(f"\n=== {job['id']}: {job['cmd']}\n")
+        f.flush()
+        p = subprocess.Popen(job["cmd"].split(), cwd=root, stdout=f, stderr=subprocess.STDOUT)
+        seen = newest_activity(root)
+        while True:
+            try:
+                p.wait(timeout=poll)        # returns as soon as the job ends: a poll must not bill idle GPU time
+                break
+            except subprocess.TimeoutExpired:
+                pass
+            if job.get("timeout") and time.time() - t0 > job["timeout"]:
+                p.terminate()
+                try:
+                    p.wait(timeout=60)
+                except subprocess.TimeoutExpired:
+                    p.kill()
+                    p.wait()
+                break
+            now_seen = newest_activity(root)
+            if job.get("quiet") or now_seen > seen:
+                seen = now_seen
+                beat()
+    return p.returncode
 
 
 def run_jobs(jobs: list[dict], root: Path, session: str, poll: float = POLL_SECONDS, log=None) -> int:
@@ -103,28 +158,24 @@ def run_jobs(jobs: list[dict], root: Path, session: str, poll: float = POLL_SECO
             note(event="queue_stopped", before=job["id"])
             return 1
         t0 = time.time()
-        note(event="job_start", job=job["id"])
-        write_heartbeat(heartbeat, job["id"], len(finished), len(jobs))
-        with open(log or (qdir / f"session_{session}.log"), "a", encoding="utf-8") as f:
-            f.write(f"\n=== {job['id']}: {job['cmd']}\n")
-            f.flush()
-            p = subprocess.Popen(job["cmd"].split(), cwd=root, stdout=f, stderr=subprocess.STDOUT)
-            seen = newest_activity(root)
-            while True:
-                try:
-                    p.wait(timeout=poll)        # returns as soon as the job ends: a poll must not bill idle GPU time
+        record = {}
+        if job.get("unless") and (root / job["unless"]).exists():
+            note(event="job_skipped", job=job["id"], because=job["unless"])
+            record = {"skipped": job["unless"]}
+        else:
+            for attempt in range(2 if job.get("tolerate") else 1):
+                note(event="job_start", job=job["id"], attempt=attempt + 1)
+                write_heartbeat(heartbeat, job["id"], len(finished), len(jobs))
+                code = _run_one(job, root, log or (qdir / f"session_{session}.log"), poll, lambda: write_heartbeat(heartbeat, job["id"], len(finished), len(jobs)))
+                note(event="job_end", job=job["id"], code=code, seconds=round(time.time() - t0, 1))
+                if code == 0 or stop["asked"]:
                     break
-                except subprocess.TimeoutExpired:
-                    pass
-                now_seen = newest_activity(root)
-                if job.get("quiet") or now_seen > seen:      # no output is a stall unless the job is a long upload
-                    seen = now_seen
-                    write_heartbeat(heartbeat, job["id"], len(finished), len(jobs))
-        code = p.returncode
-        note(event="job_end", job=job["id"], code=code, seconds=round(time.time() - t0, 1))
-        if code != 0:
-            return 1
-        finished[job["id"]] = {"seconds": round(time.time() - t0, 1), "t": time.time()}
+            if code != 0:
+                if stop["asked"] or not job.get("tolerate"):
+                    return 1
+                note(event="job_left_out", job=job["id"], code=code)
+                record = {"left_out": code}
+        finished[job["id"]] = {"seconds": round(time.time() - t0, 1), "t": time.time(), **record}
         state_file.write_text(json.dumps(finished, indent=1), encoding="utf-8")
     (qdir / f"session_{session}.done").write_text(json.dumps({"t": time.time(), "jobs": len(jobs)}), encoding="utf-8")
     note(event="queue_done", total=len(jobs))
@@ -134,7 +185,7 @@ def run_jobs(jobs: list[dict], root: Path, session: str, poll: float = POLL_SECO
 def main() -> int:
     import yaml
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--session", choices=["a", "b"], required=True)
+    ap.add_argument("--session", choices=["a", "b", "m"], required=True)
     ap.add_argument("--test-on", choices=["cloud", "laptop"], default="cloud")
     ap.add_argument("--without-arm", action="append", default=[])
     a = ap.parse_args()
@@ -149,7 +200,13 @@ def main() -> int:
             cfg = yaml.safe_load((ROOT / T2D_CONFIG).read_text(encoding="utf-8"))
             arms = [x for x in cfg["arms"] if x not in a.without_arm]
             models = [m for m, routes in cfg["models"].items() if any(r in arms for r in routes)]
-            jobs = session_b_jobs(py, arms, cfg["recipe"]["lr_grid"], cfg["recipe"]["seeds"], models, a.test_on)
+            if a.session == "m":
+                jobs = session_m_jobs(py, arms, cfg["recipe"]["lr_grid"], cfg["recipe"]["seeds"], models)
+                old, new = ROOT / QUEUE_DIR / "session_a_finished.json", ROOT / QUEUE_DIR / "session_m_finished.json"
+                if old.exists() and not new.exists():     # taking over from session A: what it finished stays finished
+                    new.write_text(old.read_text(encoding="utf-8"), encoding="utf-8")
+            else:
+                jobs = session_b_jobs(py, arms, cfg["recipe"]["lr_grid"], cfg["recipe"]["seeds"], models, a.test_on)
         jobs_file.parent.mkdir(parents=True, exist_ok=True)
         jobs_file.write_text(json.dumps(jobs, indent=1), encoding="utf-8")
     return run_jobs(jobs, ROOT, a.session)

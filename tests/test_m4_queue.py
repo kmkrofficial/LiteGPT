@@ -23,6 +23,9 @@ def load(name):
 Q = load("m4_queue")
 B = load("m4_backup")
 S = load("start_m4")
+_spec = importlib.util.spec_from_file_location("m4_g2", ROOT / "scripts" / "m4_g2.py")
+G2 = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(G2)
 PY = sys.executable
 
 
@@ -122,6 +125,76 @@ def test_session_a_order_and_session_b_cut_order():
     assert ids.index("billsum-v2") > ids.index("test") and ids[-1] == "backup"
     assert len([v for v in ids if v.startswith("fit-")]) == 3 * (2 + 2)
     assert "test" not in [j["id"] for j in Q.session_b_jobs("py", arms, [1e-5], [1], ["v2"], "laptop")]
+
+
+def test_a_tolerated_job_gets_a_second_try_then_is_left_out_with_a_record(tmp_path):
+    bad = tmp_path / "bad.py"
+    bad.write_text("import sys\nsys.exit(4)\n", encoding="utf-8")
+    jobs = [{"id": "fit-x", "cmd": f"{PY} {bad}", "tolerate": True}, job("after")]
+    assert Q.run_jobs(jobs, tmp_path, "m", poll=0.01) == 0
+    q = tmp_path / Q.QUEUE_DIR
+    fin = json.loads((q / "session_m_finished.json").read_text())
+    assert fin["fit-x"]["left_out"] == 4 and "after" in fin and (q / "session_m.done").exists()
+    events = [json.loads(x) for x in (q / "session_m_events.jsonl").read_text().splitlines()]
+    assert sum(e["event"] == "job_start" and e["job"] == "fit-x" for e in events) == 2
+    assert any(e["event"] == "job_left_out" for e in events)
+
+
+def test_a_tolerated_job_that_recovers_is_not_left_out(tmp_path):
+    jobs = [{"id": "fit-x", "cmd": f"{PY} {write_script(tmp_path, tmp_path / 'flag')}", "tolerate": True}]
+    assert Q.run_jobs(jobs, tmp_path, "m", poll=0.01) == 0
+    assert "left_out" not in json.loads((tmp_path / Q.QUEUE_DIR / "session_m_finished.json").read_text())["fit-x"]
+
+
+def test_unless_skips_a_job_only_when_its_file_exists(tmp_path):
+    marks = tmp_path / "ran.py"
+    out = tmp_path / "ran.txt"
+    marks.write_text(f"open(r'{out}', 'a').write('x')\n", encoding="utf-8")
+    jobs = [{"id": "chat", "cmd": f"{PY} {marks}", "unless": "g2_failed"}]
+    assert Q.run_jobs(jobs, tmp_path, "s1", poll=0.01) == 0 and out.read_text() == "x"
+    (tmp_path / "g2_failed").write_text("no")
+    assert Q.run_jobs(jobs, tmp_path, "s2", poll=0.01) == 0 and out.read_text() == "x"
+    assert json.loads((tmp_path / Q.QUEUE_DIR / "session_s2_finished.json").read_text())["chat"]["skipped"] == "g2_failed"
+
+
+def test_a_job_over_its_time_limit_is_ended_and_fails(tmp_path):
+    slow = tmp_path / "slow.py"
+    slow.write_text("import time\ntime.sleep(60)\n", encoding="utf-8")
+    t0 = time.time()
+    assert Q.run_jobs([{"id": "hung", "cmd": f"{PY} {slow}", "quiet": True, "timeout": 1}], tmp_path, "a", poll=0.2) == 1
+    assert time.time() - t0 < 30
+
+
+def test_all_of_m4_runs_in_the_registered_order_with_nobody_waiting():
+    arms = ["v2-base", "v2-chat", "smollm2-base", "gemma-base", "qwen3-base"]
+    jobs = Q.session_m_jobs("py", arms, [1e-5, 3e-5, 1e-4], [1, 2, 3], ["v2", "smollm2", "gemma", "qwen3"])
+    ids = [j["id"] for j in jobs]
+    assert len(ids) == len(set(ids))
+    assert ids.index("sft") < ids.index("backup-sft") < ids.index("g2") < ids.index("speed-rule") < min(i for i, v in enumerate(ids) if v.startswith("fit-"))
+    assert ids.index("routes") > max(i for i, v in enumerate(ids) if v.startswith("fit-"))
+    assert ids.index("backup-weights") < ids.index("test") < ids.index("backup-test") < ids.index("billsum-v2")
+    by = {j["id"]: j for j in jobs}
+    assert all(by[v].get("unless") == f"{Q.QUEUE_DIR}/g2_failed" for v in ids if "v2-chat" in v) and sum("v2-chat" in v for v in ids) == 6
+    assert by["test"]["unless"] == f"{Q.QUEUE_DIR}/test_on_laptop" and not by["test"].get("tolerate")
+    assert by["fit-qwen3-base-lr1e-05-s1"]["tolerate"] and by["billsum-v2"]["tolerate"]
+    for fatal in ("sft", "g2", "routes", "backup-weights", "test", "backup"):
+        assert not by[fatal].get("tolerate"), fatal
+    assert all("--session b" not in j["cmd"] and "--session a" not in j["cmd"] for j in jobs)
+
+
+def test_g2_uses_the_registered_rule():
+    assert G2.V1_PASSES / G2.V1_ITEMS == pytest.approx(0.0832, abs=1e-4)
+    assert G2.decide(0.20, 541, False)["passed"]
+    assert not G2.decide(0.20, 541, True)["passed"]                 # divergence fails it whatever the score
+    assert not G2.decide(0.083, 541, False)["passed"]
+    assert not G2.decide(0.10, 541, False)["passed"]                # above, but not by 2 standard errors
+    r = G2.decide(0.12, 541, False)
+    assert r["se_of_difference"] == pytest.approx(((0.12 * 0.88 + (45 / 541) * (1 - 45 / 541)) / 541) ** 0.5)
+
+
+def test_speed_rule_is_the_registered_ratio_and_uses_speed_only():
+    assert G2.speed_rule(160.0)["test_on"] == "cloud"
+    assert G2.speed_rule(161.5)["test_on"] == "laptop"
 
 
 def test_grid_learning_rates_are_the_registered_sft_points():

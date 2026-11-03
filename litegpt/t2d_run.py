@@ -372,9 +372,10 @@ def choose_routes(cfg: dict, runs_root: Path, choices: dict) -> dict:
             scores = [dev_score(runs_root, run_name(arm, lr, s)) for s in cfg["recipe"]["seeds"]]
             if all(s and s["score"] is not None for s in scores):
                 rows.append({"arm": arm, "lr": lr, "dev_scores": [s["score"] for s in scores], "mean": float(np.mean([s["score"] for s in scores]))})
-        if not rows:
-            raise SystemExit(f"{model}: no finished route")
-        out[model] = {"routes": rows, "chosen": max(rows, key=lambda r: r["mean"])}
+        if rows:                                    # a model with no finished route is left out, and the results show that
+            out[model] = {"routes": rows, "chosen": max(rows, key=lambda r: r["mean"])}
+    if not out:
+        raise SystemExit("no model has a finished route")
     return out
 
 
