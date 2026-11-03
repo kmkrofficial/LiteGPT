@@ -159,10 +159,10 @@ def cmd_efficiency(args, model_info) -> dict:
             torch.cuda.synchronize()
             total = time.perf_counter() - t0
             out_bytes = sum(len(decode(r.tolist()).encode("utf-8")) for r in new)
-            decode = max(total - prefill, 1e-9)
+            decode_s = max(total - prefill, 1e-9)
             rows.append({"prompt_tokens": prompt_len, "prompt_bytes": prompt_bytes, "batch": batch, "new_tokens": int(new.shape[1]),
-                         "prefill_s": prefill, "prefill_tok_s": batch * prompt_len / prefill, "ttft_s": prefill + decode / new.shape[1],
-                         "decode_tok_s": batch * new.shape[1] / decode, "decode_bytes_s": out_bytes / decode,
+                         "prefill_s": prefill, "prefill_tok_s": batch * prompt_len / prefill, "ttft_s": prefill + decode_s / new.shape[1],
+                         "decode_tok_s": batch * new.shape[1] / decode_s, "decode_bytes_s": out_bytes / decode_s,
                          "peak_vram_GiB": torch.cuda.max_memory_allocated() / 2 ** 30})
             print(rows[-1], flush=True)
     limit = None
