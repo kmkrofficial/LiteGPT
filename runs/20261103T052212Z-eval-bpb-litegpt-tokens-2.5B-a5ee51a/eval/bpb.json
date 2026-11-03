@@ -1,0 +1,47 @@
+{
+  "model": {
+    "kind": "litegpt",
+    "path": "/home/kogan/m3_checkpoints/20261101T142254Z-train-m3-673cd85/milestone-tokens-2.5B.pt",
+    "sha256": "f66d75ec816952c870fbe6d0aa3e6ae57992f7c35b27c4a918a91345444a865e",
+    "label": "litegpt-tokens-2.5B",
+    "step": 4769,
+    "tokens": 2500329472,
+    "spec_sha256": "2a868ecb41977d01f278c916e6515e5df277fd6adfd6032f0aea6650f0ea4eb1",
+    "block_size": 2048,
+    "rope_theta": 10000.0
+  },
+  "window": 2048,
+  "stride": 1024,
+  "domains": {
+    "chat": {
+      "docs": 1049,
+      "bytes": 2000241,
+      "nll_nats": 1292927.8178362846,
+      "bpb": 0.932537904692383
+    },
+    "code": {
+      "docs": 448,
+      "bytes": 2042477,
+      "nll_nats": 919704.7367315291,
+      "bpb": 0.6496295736816947
+    },
+    "math": {
+      "docs": 422,
+      "bytes": 2003305,
+      "nll_nats": 1480050.143506133,
+      "bpb": 1.0658691523773447
+    },
+    "synthetic": {
+      "docs": 540,
+      "bytes": 2004110,
+      "nll_nats": 881106.3563203812,
+      "bpb": 0.6342804390772752
+    },
+    "web": {
+      "docs": 423,
+      "bytes": 2015797,
+      "nll_nats": 1392995.635723114,
+      "bpb": 0.9969594634964263
+    }
+  }
+}

@@ -109,8 +109,8 @@ experiments:
     hypothesis: "Continuing the stable phase from 9B to 14B tokens is worth ~3.5 GPU-days only if val_bpb is still improving."
     config: docs/spec/v2.yaml#training.extension_gate
     parent: null
-    status: pre-registered
-    runs: []
+    status: done
+    runs: [20261101T142254Z-train-m3-673cd85]
     thresholds: {metric: val_bpb, windows_tokens_b: [[6.5, 6.75, 7.0], [8.5, 8.75, 9.0]], delta_ge_bpb_extend: 0.010}
     owner_decisions:   # recorded 2026-11-01, before M3 and before any M3 measurement
       - date: 2026-11-01
@@ -119,7 +119,7 @@ experiments:
         status: "to be written into the M3 environment ADR (ADR-009) and the spec (training.extension_gate, spec 2.0.0-spec.7) at the M3 freeze, before M3 starts"
       - date: 2026-11-01
         clarification: "Recorded before M3. The gate projects against INR 2,400, the server guard stops at INR 2,450, the owner's cap stays INR 2,500, so a run the gate allows is not cut off mid-decay by the guard. Also: price $0.60/h (A100 40 GB with 20 GB container disk). In ADR-009 (proposed)."
-    conclusion: null
+    conclusion: "DECIDED at the 9.0B checkpoint (step 17,167, 2026-11-02): STOP, no extension. Mean val_core BPB 0.87182 at {6.5, 6.75, 7.0}B, 0.86484 at {8.5, 8.75, 9.0}B, delta 0.00698 < 0.010, recomputed independently from eval.jsonl. No divergence (no flagged steps). The run went to the 1.0B decay and finished 2026-11-03: 19,075 steps, 10.0008B tokens, final val_core BPB 0.8197. The 9B checkpoint is kept on the private backup repo, so an extension stays possible only through a new ADR recorded as a deviation."
   - id: EXP-M1-CODE
     milestone: M1
     hypothesis: "At least one code dataset ships text inline, has an acceptable licence basis for training and release, and yields >= 2.0B tokens of ours after filtering."
@@ -498,8 +498,8 @@ experiments:
     hypothesis: "Scoring intermediate M3 checkpoints with the M1b base suite shows whether downstream skills improve during pretraining, without influencing the run."
     config: litegpt/eval/run.py (litegpt:<checkpoint>, native adapter) + litegpt/eval/native.py bpb
     parent: EXP-M1B-SUITE
-    status: pre-registered
-    runs: []
+    status: done
+    runs: [20261103T052212Z-eval-bpb-litegpt-tokens-2.5B-a5ee51a, 20261103T045400Z-eval-bpb-litegpt-tokens-5B-a5ee51a, 20261103T042628Z-eval-bpb-litegpt-tokens-9B-a5ee51a, 20261103T035928Z-eval-bpb-litegpt-final-a5ee51a, 20261103T052408Z-eval-base-litegpt-tokens-2.5B-a5ee51a, 20261103T045549Z-eval-base-litegpt-tokens-5B-a5ee51a, 20261103T042827Z-eval-base-litegpt-tokens-9B-a5ee51a, 20261103T040059Z-eval-base-litegpt-final-a5ee51a, 20261103T055709Z-eval-efficiency-litegpt-final-6dd2570]
     decisions:   # PRE-REGISTERED 2026-11-01 before M3 (owner-approved)
       checkpoints: "stable-phase checkpoints at 2.5B, 5.0B and 9.0B tokens (9.0B is the G1 gate checkpoint, before any decay); the final model is scored anyway as the M3 result"
       suite: "base suite 0.1.1 (all base groups) + bits-per-byte on val_text, same protocol as EXP-M1B-BASELINES; efficiency on the final model only"
@@ -508,7 +508,7 @@ experiments:
       use: "monitoring and reporting only (learning curves next to the baselines). The results cannot change M3: the G1 gate stays bits-per-byte only (ADR-001 rejects benchmark accuracy as a gate)."
       flag: "a task whose score falls by more than twice its reported standard error between consecutive checkpoints is flagged in the report for the owner; no automatic action"
       laptop_off: "Owner 2026-11-01: the laptop will often be off during M3, so these checks may run after the run from the weights kept on the private backup repo. Same checkpoints and protocol; only the time of scoring changes. The results still cannot affect M3."
-    conclusion: null
+    conclusion: "DONE 2026-11-03, scored after the run on the laptop (laptop_off rule), weights loaded from each full checkpoint. Zero-shot mean 2.5B 0.355, 5B 0.369, 9B 0.368, final 0.383 (V1 0.371, Gemma 3 270M 0.393, SmolLM2-135M 0.403). Final BPB web 0.9123, synthetic 0.5112, code 0.5155, math 0.9281. Downstream skills improved from 2.5B to 5B and in the final 1B; flat from 5B to 9B. The last step changes LR, data mix and context together, so causes are not separated. One registered flag: HumanEval 5B 0.0061 to 9B 0.0000, one problem of 164, standard error zero at a score of zero; no action. The results did not influence M3. Chat BPB 0.5862 is not comparable as a measure of general chat: the same dataset family is in the decay mix (exploratory overlap check in the private report, 15.7)."
   - id: EXP-M3-OPT
     milestone: M3
     hypothesis: "Throughput changes that leave the training computation unchanged (same model, data order, global batch of 524,288 tokens, optimizer, LR 2.4e-3 and schedule) raise M3 tokens per paid hour on the rented A100; each is adopted only if it passes the correctness rule and the speed rule below."
