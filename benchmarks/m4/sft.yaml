@@ -1,0 +1,20 @@
+# EXP-M4-SFT: chat SFT from M3 final. The learning rate comes from the sweep (three runs on the same 3% of conversations).
+name: m4-sft
+data_dir: ~/m4_sft
+init_checkpoint: ~/m3_checkpoints/20261101T142254Z-train-m3-673cd85/milestone-final.pt
+lr: 2.0e-4               # replaced by --lr or --lr-from
+attention_backend: sdpa
+row_len: 2048
+batch_rows: 64           # 131,072 tokens per step, padding included
+micro_batch: 16          # memory only; halved automatically if it does not fit
+epochs: 3
+warmup_tokens: 5.0e+6
+final_lr_frac: 0.1
+weight_decay: 0.1        # as M3
+betas: [0.9, 0.95]       # as M3
+grad_clip: 1.0           # as M3
+seed: 1
+compile: true
+eval_micro_batch: 32
+checkpoint_every_minutes: 30
+keep_last: 2

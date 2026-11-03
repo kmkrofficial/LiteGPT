@@ -17,6 +17,7 @@ def load(name):
 
 G = load("m3_guard")
 M = load("m3_monitor")
+Q = load("m4_queue")
 
 
 def state(**kw):
@@ -107,6 +108,27 @@ def test_trainer_pattern_matches_the_trainer_not_the_guard():
     guard = "/data/LiteGPT/.venv/bin/python scripts/cloud/m3_guard.py --name m3 --resume-cmd /data/LiteGPT/.venv/bin/python scripts/train.py --resume {run}"
     assert not pat.search(guard)
     assert not pat.search("bash -c cd /data/LiteGPT && python scripts/train.py --config x")
+
+
+def test_m4_stop_is_exactly_the_registered_figure_and_counts_earlier_sessions():
+    rate, price = 98.40, 0.50
+    cap = G.cap_for_stop(9.00, rate)
+    start = 1000.0
+    just_under = start + 3600 * 13.9
+    assert G.decide(state(spent_inr=G.spent_inr(just_under, start, price, rate), cap_inr=cap))[0] == "none"
+    assert G.decide(state(spent_inr=G.spent_inr(start + 3600 * 18.0, start, price, rate), cap_inr=cap))[0] == "interrupt"
+    assert G.spent_inr(start + 3600, start, price, rate, carried_usd=4.0) == 4.5 * rate
+    assert G.decide(state(spent_inr=G.spent_inr(start + 3600 * 10.0, start, price, rate, carried_usd=4.0), cap_inr=cap))[0] == "interrupt"
+    assert G.decide(state(spent_inr=G.spent_inr(start + 3600 * 9.9, start, price, rate, carried_usd=4.0), cap_inr=cap))[0] == "none"
+
+
+def test_queue_pattern_matches_its_jobs_not_the_guard():
+    import re
+    pat = re.compile(Q.WATCH_PATTERN)
+    for cmd in (".venv/bin/python scripts/cloud/m4_queue.py --session a", "/data/.venv/bin/python scripts/train_sft.py --config x", "/data/.venv/bin/python scripts/run_t2d.py fit --arm v2-base"):
+        assert pat.search(cmd), cmd
+    assert not pat.search("/data/.venv/bin/python scripts/cloud/m3_guard.py --resume-cmd /data/.venv/bin/python scripts/cloud/m4_queue.py --session a")
+    assert not pat.search("bash -c cd /data && python scripts/cloud/m4_queue.py")
 
 
 def test_stop_without_the_instance_key_reports_failure(monkeypatch):

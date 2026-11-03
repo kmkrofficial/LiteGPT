@@ -8,6 +8,10 @@ when the spending cap or the restart limit is reached. It only ever stops: a sto
 Destroying the instance is left to the owner. Status goes to ~/guard_status.json and ~/guard_events.jsonl (read by m3_monitor.py).
 With --ntfy-topic the owner's phone also gets short alerts (https://ntfy.sh): they outlive the laptop, any assistant and the stop itself.
 Alerts carry status text only, never tokens or data, and a failed alert never affects the run.
+
+M4 watches a job queue instead of one run (scripts/cloud/m4_queue.py): --done-file, --heartbeat, --trainer-pattern and --backup-cmd
+replace the run name and the checkpoint upload, and --stop-usd with --carried-usd counts spending across both sessions. `decide()` is
+the same for both.
 """
 from __future__ import annotations
 
@@ -162,9 +166,25 @@ def stop_instance() -> tuple[bool, str]:
 TRAINER = r"^[^ ]*python[^ ]* scripts/train[.]py"       # anchored: the guard's own --resume-cmd argument contains this path too
 
 
-def trainer_pids() -> list[int]:
-    out = subprocess.run(["pgrep", "-f", TRAINER], capture_output=True, text=True).stdout.split()
+def trainer_pids(pattern: str = TRAINER) -> list[int]:
+    out = subprocess.run(["pgrep", "-f", pattern], capture_output=True, text=True).stdout.split()
     return [int(v) for v in out]
+
+
+def spent_inr(now: float, rented_at: float, price_usd_h: float, inr_per_usd: float, carried_usd: float = 0.0) -> float:
+    """Spending so far: this session's rental plus what earlier sessions cost."""
+    return ((now - rented_at) / 3600 * price_usd_h + carried_usd) * inr_per_usd
+
+
+def cap_for_stop(stop_usd: float, inr_per_usd: float) -> float:
+    """The cap whose stop point, after CAP_MARGIN_INR, is exactly `stop_usd`."""
+    return stop_usd * inr_per_usd + CAP_MARGIN_INR
+
+
+def run_command_backup(cmd: str, repo: Path, log: Path) -> bool:
+    """A backup command proves its own uploads and exits 0 only if every file was verified."""
+    with open(log, "a", encoding="utf-8") as f:
+        return subprocess.run(cmd, shell=True, cwd=repo, stdout=f, stderr=subprocess.STDOUT).returncode == 0
 
 
 def gpu_temp() -> int | None:
@@ -187,33 +207,45 @@ def main() -> int:
     ap.add_argument("--backup-hours", type=float, default=3.0)
     ap.add_argument("--dry-run", action="store_true", help="log the stop instead of stopping (setup check)")
     ap.add_argument("--ntfy-topic", default=None, help="private ntfy.sh topic for phone alerts")
+    ap.add_argument("--trainer-pattern", default=TRAINER, help="pgrep pattern of the processes being watched")
+    ap.add_argument("--done-file", default=None, help="queue mode: this file, relative to the repo, means all jobs finished and their backup was verified")
+    ap.add_argument("--heartbeat", default=None, help="queue mode: this file's age, relative to the repo, replaces the run's metrics")
+    ap.add_argument("--backup-cmd", default=None, help="queue mode: run this instead of uploading a checkpoint; exit 0 means every file was verified")
+    ap.add_argument("--stop-usd", type=float, default=None, help="stop at this total spend; replaces --cap-inr")
+    ap.add_argument("--carried-usd", type=float, default=0.0, help="what earlier sessions cost")
+    ap.add_argument("--alert-title", default="LiteGPT M3")
     a = ap.parse_args()
     repo, home = Path(a.repo_dir), Path.home()
-    backup = Backup(a.backup_repo)
     log = home / "guard_events.jsonl"
+    queue = a.done_file is not None
+    backup = None if queue and a.dry_run else Backup(a.backup_repo)   # a queue dry run touches nothing on the Hub
 
     def event(kind: str, **kw) -> None:
         with open(log, "a", encoding="utf-8") as f:
             f.write(json.dumps({"t": time.time(), "event": kind, **kw}) + "\n")
         text = alert_text(kind, kw)
         if text:
-            send_alert(a.ntfy_topic, text, urgent=kind != "guard_start")
+            send_alert(a.ntfy_topic, text, title=a.alert_title, urgent=kind != "guard_start")
 
-    s = State(cap_inr=a.cap_inr, backup_every_s=a.backup_hours * 3600)
+    cap = cap_for_stop(a.stop_usd, a.inr_per_usd) if a.stop_usd is not None else a.cap_inr
+    s = State(cap_inr=cap, backup_every_s=a.backup_hours * 3600)
     last_backup, restarts, interrupted_at = time.time(), [], None
     last_progress, gate_reported = time.time(), False
     event("guard_start", dry_run=a.dry_run)
     while True:
         now = time.time()
-        run = newest_run(repo, a.name)
-        pids = trainer_pids()
-        metrics = run / "metrics.jsonl" if run else None
-        s.completed = bool(run and run_completed(run))
+        run = None if queue else newest_run(repo, a.name)
+        pids = trainer_pids(a.trainer_pattern)
+        metrics = repo / a.heartbeat if queue else (run / "metrics.jsonl" if run else None)
+        started = metrics.exists() if queue else bool(run)
+        s.completed = (repo / a.done_file).exists() if queue else bool(run and run_completed(run))
+        if queue and s.completed:
+            s.final_verified = True             # the queue writes the file only after its last backup is verified
         s.trainer_alive = bool(pids)
         s.metrics_age_s = now - metrics.stat().st_mtime if metrics and metrics.exists() else 0.0
         restarts = [t for t in restarts if now - t < RESTART_WINDOW_SECONDS]
         s.recent_restarts = len(restarts)
-        s.spent_inr = (now - a.rented_at) / 3600 * a.price_usd_h * a.inr_per_usd
+        s.spent_inr = spent_inr(now, a.rented_at, a.price_usd_h, a.inr_per_usd, a.carried_usd)
         s.backup_age_s = now - last_backup
         s.interrupted_age_s = now - interrupted_at if interrupted_at is not None and pids else -1.0
         if not pids:
@@ -224,22 +256,26 @@ def main() -> int:
             send_alert(a.ntfy_topic, f"Gate: {g.get('decision')}, delta {g.get('delta')}, stable end {g.get('stable_end_tokens')}, {g.get('reason')}", title="LiteGPT M3 gate")
         if metrics and metrics.exists() and now - last_progress >= PROGRESS_SECONDS:
             last_progress = now
-            with open(metrics, "rb") as f:
-                f.seek(max(0, metrics.stat().st_size - 400))
-                last = json.loads(f.read().decode("utf-8").strip().splitlines()[-1])
-            send_alert(a.ntfy_topic, f"OK: {last['tokens'] / 1e9:.2f}B tokens, loss {last['loss']:.3f}, {last['tok_per_s'] / 1e3:.0f}k tok/s, spent about INR {s.spent_inr:.0f}, GPU {gpu_temp()} C")
+            if queue:
+                beat = json.loads(metrics.read_text(encoding="utf-8") or "{}")
+                send_alert(a.ntfy_topic, f"OK: job {beat.get('done')} of {beat.get('total')} ({beat.get('job')}), spent about ${s.spent_inr / a.inr_per_usd:.2f}, GPU {gpu_temp()} C", title=a.alert_title)
+            else:
+                with open(metrics, "rb") as f:
+                    f.seek(max(0, metrics.stat().st_size - 400))
+                    last = json.loads(f.read().decode("utf-8").strip().splitlines()[-1])
+                send_alert(a.ntfy_topic, f"OK: {last['tokens'] / 1e9:.2f}B tokens, loss {last['loss']:.3f}, {last['tok_per_s'] / 1e3:.0f}k tok/s, spent about INR {s.spent_inr:.0f}, GPU {gpu_temp()} C", title=a.alert_title)
         action, why = decide(s)
-        if action == "resume" and not run:          # started before the first run exists: nothing to resume yet
+        if action == "resume" and not started:      # started before the first run exists: nothing to resume yet
             action, why = "none", ""
         if action in ("interrupt", "wait", "kill", "backup_final", "stop") and why != "stalled" and not s.completed:
             s.halting = why
         if action != "none" and action != "wait":
             event(action, why=why, spent_inr=round(s.spent_inr))
         try:
-            if action == "resume" and run:
+            if action == "resume":
                 restarts.append(now)
                 with open(home / "trainer.log", "a", encoding="utf-8") as f:
-                    subprocess.Popen(a.resume_cmd.format(run=run.relative_to(repo)), shell=True, cwd=repo, stdout=f, stderr=subprocess.STDOUT, start_new_session=True)
+                    subprocess.Popen(a.resume_cmd if queue else a.resume_cmd.format(run=run.relative_to(repo)), shell=True, cwd=repo, stdout=f, stderr=subprocess.STDOUT, start_new_session=True)
             elif action == "interrupt":
                 interrupted_at = now
                 for p in pids:
@@ -247,6 +283,14 @@ def main() -> int:
             elif action == "kill":
                 for p in pids:
                     os.kill(p, signal.SIGKILL)
+            elif action == "backup" and queue:
+                ok = run_command_backup(a.backup_cmd, repo, home / "backup.log")
+                last_backup = now
+                event("backup_done", checkpoint="queue", verified=ok)
+            elif action == "backup_final" and queue:
+                s.final_attempts += 1
+                s.final_verified = run_command_backup(a.backup_cmd, repo, home / "backup.log")
+                event("final_backup", checkpoint="queue", verified=s.final_verified, attempt=s.final_attempts)
             elif action == "backup" and run:
                 backup.records(run)
                 ck = newest_checkpoint(run)
@@ -261,8 +305,11 @@ def main() -> int:
                 s.final_verified = backup.checkpoint(run, ck) if ck else False
                 event("final_backup", checkpoint=ck.name if ck else None, verified=s.final_verified, attempt=s.final_attempts)
             elif action == "stop":
-                backup.api.upload_file(path_or_fileobj=str(log), path_in_repo=f"{run.name}/guard_events.jsonl", repo_id=a.backup_repo, commit_message="guard events") if run else None
-                send_alert(a.ntfy_topic, f"Stopping the server now: {why}. Spent about INR {s.spent_inr:.0f}. Check the Vast console, then destroy the instance and delete the volume.", urgent=True)
+                if backup and (run or queue):
+                    dest = f"m4/guard_events-{int(now)}.jsonl" if queue else f"{run.name}/guard_events.jsonl"
+                    backup.api.upload_file(path_or_fileobj=str(log), path_in_repo=dest, repo_id=a.backup_repo, commit_message="guard events")
+                text = f"Spent about ${s.spent_inr / a.inr_per_usd:.2f}. Check the Vast console." if queue else f"Spent about INR {s.spent_inr:.0f}. Check the Vast console, then destroy the instance and delete the volume."
+                send_alert(a.ntfy_topic, f"Stopping the server now: {why}. {text}", title=a.alert_title, urgent=True)
                 ok, detail = (True, "dry run") if a.dry_run else stop_instance()
                 event("stop_requested", why=why, ok=ok, detail=detail)
                 if a.dry_run:

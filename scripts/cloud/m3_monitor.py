@@ -1,12 +1,14 @@
 """Laptop-side monitor of the rented M3 run. Exits with an EVENT line when something needs the assistant; run it again to continue.
 
     python scripts/cloud/m3_monitor.py            # ~/.litegpt_m3_ssh holds the instance's "<port> <host>"
+    python scripts/cloud/m3_monitor.py --queue-session a     # M4: reports the job queue's events instead of a run's evaluations
 
 Read-only on the server: it only reads the guard's status, the guard's events and the run's evaluations over SSH. What it has
 already reported is kept in ~/.litegpt_m3_monitor.json, so a restart never repeats an event and a missed one is still reported.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import subprocess
 import sys
@@ -23,9 +25,14 @@ REMOTE = ("cat ~/guard_status.json 2>/dev/null || echo '{}'; echo; echo ---; cat
 QUIET_EVENTS = {"guard_start", "backup", "backup_done", "wait"}
 
 
-def fetch(port: str, host: str) -> dict | None:
+def queue_remote(session: str) -> str:
+    return ("cat ~/guard_status.json 2>/dev/null || echo '{}'; echo; echo ---; cat ~/guard_events.jsonl 2>/dev/null; echo ---; "
+            f"cat ~/LiteGPT/runs/m4_queue/session_{session}_events.jsonl 2>/dev/null; true")
+
+
+def fetch(port: str, host: str, remote: str = REMOTE) -> dict | None:
     cmd = ["ssh", "-i", str(KEY), "-p", port, "-o", "BatchMode=yes", "-o", "ConnectTimeout=20", "-o", "StrictHostKeyChecking=accept-new",
-           f"root@{host}", REMOTE]
+           f"root@{host}", remote]
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     except subprocess.TimeoutExpired:
@@ -50,7 +57,11 @@ def events(seen: dict, snap: dict) -> list[str]:
     new_evals = snap["evals"][seen.get("evals", 0):]
     seen["evals"] = len(snap["evals"])
     for e in new_evals:
-        out.append(f"eval tokens={e.get('tokens')} val_bpb={e.get('val', {}).get('bpb')}")
+        if "event" in e:                 # the M4 queue's own events
+            if e["event"] != "job_start":
+                out.append("queue " + json.dumps({k: v for k, v in e.items() if k != "t"}))
+        else:
+            out.append(f"eval tokens={e.get('tokens')} val_bpb={e.get('val', {}).get('bpb')}")
     temp = snap["status"].get("temp_c")
     if temp is not None and temp >= HOT_C and not seen.get("hot"):
         out.append(f"gpu temperature {temp} C")
@@ -59,11 +70,15 @@ def events(seen: dict, snap: dict) -> list[str]:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--queue-session", choices=["a", "b"])
+    a = ap.parse_args()
+    remote = queue_remote(a.queue_session) if a.queue_session else REMOTE
     port, host = (Path.home() / ".litegpt_m3_ssh").read_text(encoding="utf-8").split()
     seen = json.loads(STATE.read_text(encoding="utf-8")) if STATE.exists() else {}
     misses = 0
     while True:
-        snap = fetch(port, host)
+        snap = fetch(port, host, remote)
         if snap is None:
             misses += 1
             if misses >= UNREACHABLE_POLLS:

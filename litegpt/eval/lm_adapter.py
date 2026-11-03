@@ -13,6 +13,7 @@ from pathlib import Path
 import torch
 import torch.nn.functional as F
 
+from litegpt import chat_template
 from litegpt.config import ModelConfig
 from litegpt.inference import Engine, GenerationConfig
 from litegpt.model import LiteGPT
@@ -115,6 +116,23 @@ def make_lm_class():
             super().__init__()
             self.model, self.tok, self.bs, self.max_gen_toks = model.eval(), tok, batch_size, max_gen_toks
             self.engine = Engine(model, tok)
+            self._chat_ids = {}                        # rendered prompt text -> its ids, so special tokens never pass through text
+
+        @property
+        def tokenizer_name(self) -> str:
+            return chat_template.VERSION
+
+        def apply_chat_template(self, chat_history, add_generation_prompt=True) -> str:
+            """litegpt-chat-v1. Without a generation prompt the last message is an assistant prefill, which stays open, as `continue_final_message` does on the HF path."""
+            msgs = [{"role": m["role"], "content": m["content"]} for m in chat_history]
+            if add_generation_prompt:
+                text, ids = chat_template.render_text(msgs, True), chat_template.render_ids(self.tok, msgs, True)
+            else:
+                head, prefill = msgs[:-1], msgs[-1]["content"]
+                text = chat_template.render_text(head, True) + prefill
+                ids = chat_template.render_ids(self.tok, head, True) + self.tok.encode_text(prefill)
+            self._chat_ids[text] = ids
+            return text
 
         def loglikelihood(self, requests):
             return score_continuations(self.model, self.tok, [r.args for r in requests], self.bs)
@@ -129,7 +147,7 @@ def make_lm_class():
                 until = kw.get("until") or []
                 until = [until] if isinstance(until, str) else list(until)
                 n = int(kw.get("max_gen_toks", self.max_gen_toks))
-                prompt = ([BOS] + self.tok.encode_text(ctx))[-(self.model.config.block_size - n):]
+                prompt = (self._chat_ids.get(ctx) or [BOS] + self.tok.encode_text(ctx))[-(self.model.config.block_size - n):]
                 groups.setdefault((tuple(until), n), []).append((i, prompt))
             outs: list = [None] * len(requests)
             for (until, n), items in groups.items():

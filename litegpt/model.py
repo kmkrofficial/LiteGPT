@@ -260,10 +260,12 @@ class LiteGPT(nn.Module):
     # ----- forward -------------------------------------------------------------------------------------------------
     def forward(self, idx, targets=None, kv_cache: KVCache | None = None, start_pos: int | None = None,
                 cu_seqlens: torch.Tensor | None = None, max_seqlen: int | None = None, logits_all: bool = False,
-                key_padding_mask: torch.Tensor | None = None):
+                key_padding_mask: torch.Tensor | None = None, doc_pos: tuple | None = None):
         """idx: (B, T) token ids. targets: (B, T) with -1 = ignore (assistant-only loss masks use this).
         kv_cache: incremental decoding; start_pos defaults to kv_cache.length. cu_seqlens: packed documents (see
         doc_ids_from_cu_seqlens), RoPE positions restart per document and attention is block-diagonal causal.
+        doc_pos: the same layout as (doc_id, position_ids), both (B, T), always through the mask path: their fixed shape keeps a
+        compiled graph valid, while the length of cu_seqlens changes with every batch.
         key_padding_mask: (B, start_pos + T) bool, True = real token; used for left-padded batched generation (padded keys are
         never attended to; each position may always attend to itself so no attention row is empty).
         Returns (logits, loss). Without targets only the last position's logits are returned unless logits_all."""
@@ -275,10 +277,10 @@ class LiteGPT(nn.Module):
         assert not (kv_cache is not None and cu_seqlens is not None), "packed sequences are for training, not cached decoding"
 
         attn_mask = None
-        if cu_seqlens is not None:
-            doc, position_ids = doc_ids_from_cu_seqlens(cu_seqlens, B, T)
+        if cu_seqlens is not None or doc_pos is not None:
+            doc, position_ids = doc_pos if doc_pos is not None else doc_ids_from_cu_seqlens(cu_seqlens, B, T)
             cos, sin = self.rope_cos[position_ids].unsqueeze(1), self.rope_sin[position_ids].unsqueeze(1)
-            if resolve_backend(cfg.attention_backend) != "flash":  # 'auto'/'sdpa' may need the mask (SDPA fallback)
+            if doc_pos is not None or resolve_backend(cfg.attention_backend) != "flash":  # 'auto'/'sdpa' may need the mask (SDPA fallback)
                 causal = torch.ones(T, T, dtype=torch.bool, device=idx.device).tril()
                 attn_mask = ((doc[:, :, None] == doc[:, None, :]) & causal).unsqueeze(1)
         else:

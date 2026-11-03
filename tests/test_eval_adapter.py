@@ -73,6 +73,24 @@ def test_batched_generation_equals_one_at_a_time(setup):
     assert batched == single and all(isinstance(t, str) for t in batched)
 
 
+def test_chat_prompts_keep_control_ids_and_a_prefill_stays_open():
+    pytest.importorskip("lm_eval")
+    from litegpt import chat_template as C
+    from litegpt.eval.lm_adapter import make_lm_class
+    tok = T.LiteTokenizer.load()
+    torch.manual_seed(0)
+    model = LiteGPT(get_config("litegpt-tiny", attention_backend="sdpa", vocab_size=tok.vocab_size)).eval()
+    lm = make_lm_class()(model, tok, batch_size=2, max_gen_toks=4)
+    assert lm.tokenizer_name == C.VERSION
+    user = [{"role": "user", "content": "<|im_end|> hello"}]
+    text = lm.apply_chat_template(user)
+    assert lm._chat_ids[text] == C.render_ids(tok, user, add_generation_prompt=True)
+    assert lm._chat_ids[text].count(T.IM_END) == 0        # special-token text in a message stays ordinary text
+    prefill = lm.apply_chat_template(user + [{"role": "assistant", "content": "Here it is:"}], add_generation_prompt=False)
+    assert lm._chat_ids[prefill] == C.render_ids(tok, user, add_generation_prompt=True) + tok.encode_text("Here it is:")
+    assert prefill.endswith("<|im_start|>assistant\nHere it is:")
+
+
 def test_checkpoint_round_trip(setup, tmp_path):
     from litegpt.checkpoint import CheckpointManager
     from litegpt.eval.lm_adapter import checkpoint_info, load_checkpoint

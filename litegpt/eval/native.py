@@ -1,6 +1,6 @@
 """Native evaluations that lm-eval 0.4.13 does not cover (EXP-M1B-SUITE): bits-per-byte, efficiency, XSTest.
 
-Bits-per-byte and efficiency work with HF causal LMs (baselines) and LiteGPT training checkpoints (`litegpt:<checkpoint>`); XSTest needs a chat model.
+All three work with HF causal LMs (baselines) and LiteGPT training checkpoints (`litegpt:<checkpoint>`); XSTest needs a chat model, so a V2 checkpoint after SFT.
 
     python -m litegpt.eval.native bpb --model hf:HuggingFaceTB/SmolLM2-135M --val-dir <data run>/shards
     python -m litegpt.eval.native efficiency --model hf:openai-community/gpt2
@@ -177,28 +177,39 @@ def cmd_efficiency(args, model_info) -> dict:
 
 @torch.no_grad()
 def cmd_xstest(args, model_info) -> dict:
-    if model_info["kind"] == "litegpt":
-        raise SystemExit("xstest needs a chat model: litegpt checkpoints have no chat template until M4")
     from datasets import load_dataset
-    model, tok = load_hf(model_info["repo"], model_info["revision"])
-    if args.chat_template_file:
-        tok.chat_template = Path(args.chat_template_file).read_text(encoding="utf-8")
-    if not getattr(tok, "chat_template", None):
-        raise SystemExit("xstest needs a chat model with a chat template")
     ds = load_dataset(XSTEST["repo"], split=XSTEST["split"], revision=XSTEST["revision"])
     rows, tally = [], {"safe": [0, 0], "unsafe": [0, 0]}
-    tok.padding_side = "left"
-    if tok.pad_token is None:
-        tok.pad_token = tok.eos_token
-    prompts = [tok.apply_chat_template([{"role": "user", "content": p}], tokenize=False, add_generation_prompt=True,
-                                       **({"enable_thinking": False} if "qwen3" in model_info["repo"].lower() else {}))
-               for p in ds["prompt"]]
-    for s in range(0, len(prompts), args.batch_size):
-        enc = tok(prompts[s:s + args.batch_size], return_tensors="pt", padding=True, add_special_tokens=False).to("cuda")
-        g = model.generate(**enc, max_new_tokens=args.new_tokens, do_sample=False, pad_token_id=tok.pad_token_id)
-        for k, seq in enumerate(g[:, enc["input_ids"].shape[1]:]):
+    if model_info["kind"] == "litegpt":
+        from litegpt import chat_template
+        from litegpt.eval.lm_adapter import load_checkpoint
+        from litegpt.inference import Engine, GenerationConfig
+        model, tok = load_checkpoint(model_info["path"])
+        engine = Engine(model, tok)
+        ids = [chat_template.render_ids(tok, [{"role": "user", "content": p}], add_generation_prompt=True) for p in ds["prompt"]]
+
+        def generate(s):
+            return [r.text for r in engine.generate_ids(ids[s:s + args.batch_size], GenerationConfig(max_new_tokens=args.new_tokens))]
+    else:
+        model, tok = load_hf(model_info["repo"], model_info["revision"])
+        if args.chat_template_file:
+            tok.chat_template = Path(args.chat_template_file).read_text(encoding="utf-8")
+        if not getattr(tok, "chat_template", None):
+            raise SystemExit("xstest needs a chat model with a chat template")
+        tok.padding_side = "left"
+        if tok.pad_token is None:
+            tok.pad_token = tok.eos_token
+        prompts = [tok.apply_chat_template([{"role": "user", "content": p}], tokenize=False, add_generation_prompt=True,
+                                           **({"enable_thinking": False} if "qwen3" in model_info["repo"].lower() else {}))
+                   for p in ds["prompt"]]
+
+        def generate(s):
+            enc = tok(prompts[s:s + args.batch_size], return_tensors="pt", padding=True, add_special_tokens=False).to("cuda")
+            g = model.generate(**enc, max_new_tokens=args.new_tokens, do_sample=False, pad_token_id=tok.pad_token_id)
+            return [tok.decode(seq, skip_special_tokens=True) for seq in g[:, enc["input_ids"].shape[1]:]]
+    for s in range(0, len(ds), args.batch_size):
+        for k, text in enumerate(generate(s)):
             i = s + k
-            text = tok.decode(seq, skip_special_tokens=True)
             refused = any(m in text.lower()[:400] for m in REFUSAL_MARKERS)
             label = ds[i]["label"]
             tally[label][0] += refused

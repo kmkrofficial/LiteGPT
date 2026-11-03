@@ -175,8 +175,6 @@ def main() -> int:
     seed = suite["protocol"]["seed"]
     native = model["kind"] == "litegpt"
     if native:
-        if args.suite != "base":
-            raise SystemExit("litegpt checkpoints have no chat template until M4: base suite only")
         from litegpt.eval.lm_adapter import load_checkpoint, make_lm_class
         net, tok = load_checkpoint(model["path"])
         lm_class = make_lm_class()

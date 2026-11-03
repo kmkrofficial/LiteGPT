@@ -27,6 +27,7 @@
   "applies_to": "test, every model",
   "approved": "owner 2026-11-03, ADR-010"
  },
+ "context_rule": "prompt plus 256 new tokens must fit V2's 4,096-token context; an item that does not is removed for every model, before any model output",
  "tasks": {
   "cuad": {
    "train": {
@@ -48,6 +49,7 @@
      "ReynoldsConsumerProductsInc_20200121_S-1A_EX-10.22_11948918_EX-10.22_Service Agreement",
      "RitterPharmaceuticalsInc_20200313_S-4A_EX-10.54_12055220_EX-10.54_Development Agreement"
     ],
+    "removed_for_context_ids": [],
     "flagged_kept_ids": [
      "ADAPTIMMUNETHERAPEUTICSPLC_04_06_2017-EX-10.11-STRATEGIC ALLIANCE AGREEMENT",
      "AMBASSADOREYEWEARGROUPINC_11_17_1997-EX-10.28-ENDORSEMENT AGREEMENT",
@@ -126,6 +128,7 @@
     "removed_ids": [
      "13762"
     ],
+    "removed_for_context_ids": [],
     "flagged_kept_ids": [],
     "zero_match_items": 2973
    }
@@ -145,6 +148,7 @@
     "items_before_overlap": 3080,
     "sha256_before_overlap": "0d0217e5520d97a889f44fecf4ea9377678319de1dace5ce948cf69e1a3418b3",
     "removed_ids": [],
+    "removed_for_context_ids": [],
     "flagged_kept_ids": [],
     "zero_match_items": 3080
    }
@@ -155,8 +159,8 @@
     "sha256": "b02e884d4666c000f27d2b2dc530b6744e96e795a4e090197a2348c68d309527"
    },
    "test": {
-    "items": 1001,
-    "sha256": "2994edf997170f6e9ee4a7a3c0722fff31a7a3dfa4ce460f8ac4e34dbd738dc5",
+    "items": 1000,
+    "sha256": "75f8ef942f1034a21285e3327c37a6c0d4a15888e7ea83d93c7de1e1626cf790",
     "items_before_overlap": 1044,
     "sha256_before_overlap": "865bbb773824f9345ffd69fb6e9c1f9a57431807719f595e0d24d1eb7435faed",
     "removed_ids": [
@@ -203,6 +207,9 @@
      "test717",
      "test719",
      "test892"
+    ],
+    "removed_for_context_ids": [
+     "test1834"
     ],
     "flagged_kept_ids": [
      "test1001",
@@ -904,7 +911,7 @@
      "test996",
      "test997"
     ],
-    "zero_match_items": 303
+    "zero_match_items": 302
    },
    "dev": {
     "items": 300,
