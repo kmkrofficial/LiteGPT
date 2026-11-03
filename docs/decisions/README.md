@@ -14,6 +14,7 @@ Each ADR records one decision for LiteGPT V2: its context, the decision, the alt
 | [ADR-007](ADR-007-repository-structure.md) | Repository structure: litegpt / tests / benchmarks / scratch / runs / docs / scripts | Accepted | 2026-10-06 |
 | [ADR-008](ADR-008-data-sources-mixture-and-freeze.md) | Data sources, mixture, partitions, tokenizer and validation freeze | Accepted | 2026-10-11 |
 | [ADR-009](ADR-009-m3-cloud-budget-context-and-mixture.md) | M3 on a rented GPU, budget cap, 4,096 context without a theta switch, text-to-data mixture | Accepted | 2026-11-01 |
+| [ADR-010](ADR-010-m4-scope-text-to-data-comparison-and-cloud.md) | M4 scope, text-to-data comparison and where M4 runs | Accepted | 2026-11-03 |
 
 ## Template
 

@@ -5,7 +5,7 @@
 # Changing any field requires a new ADR in docs/decisions/ and a bumped spec_version.
 # Fields marked `frozen_before: M3` must not change once the initial pretraining run (M3) has started.
 
-spec_version: "2.0.0-spec.7"   # spec.2: toolchain update (ADR-006); spec.3: flash-attn adopted for attention_backend=auto (ADR-006 evidence, EXP-M0-FLASH); spec.4: repository restructure, path pointers only, no value changes (ADR-007); spec.5: torch.compile adopted for production training on WSL2 (ADR-006 evidence, EXP-M0-COMPILE); spec.6: M1 data decisions (ADR-008): Wikipedia removed from the mixture and redistributed, focused code mix (Python/JS/TS/SQL/Shell), decontamination filters pretraining, tokenizer and val_core hashes pending, data_sources.yaml added; spec.7: ADR-009: M3 on a rented A100 with a budget cap, peak LR 2.4e-3, theta 10k throughout with a 4,096 context, text-to-data mixture
+spec_version: "2.0.0-spec.8"   # spec.2: toolchain update (ADR-006); spec.3: flash-attn adopted for attention_backend=auto (ADR-006 evidence, EXP-M0-FLASH); spec.4: repository restructure, path pointers only, no value changes (ADR-007); spec.5: torch.compile adopted for production training on WSL2 (ADR-006 evidence, EXP-M0-COMPILE); spec.6: M1 data decisions (ADR-008): Wikipedia removed from the mixture and redistributed, focused code mix (Python/JS/TS/SQL/Shell), decontamination filters pretraining, tokenizer and val_core hashes pending, data_sources.yaml added; spec.7: ADR-009: M3 on a rented A100 with a budget cap, peak LR 2.4e-3, theta 10k throughout with a 4,096 context, text-to-data mixture; spec.8: ADR-010: M4 is chat SFT then a registered text-to-data comparison, reasoning and DPO deferred, GPU-heavy work on one A100 under a $9.00 stop
 approved: 2026-10-06
 decision_records: docs/decisions/
 status: approved
@@ -156,9 +156,27 @@ training:
     invalidation: "divergence/rollback or config/data change inside either window -> decision = stop (no extension)"
     overrides: "only via a new ADR recorded as a protocol deviation; reports display the deviation"
     automation: "decision computed by script from metrics records and written as a gate record"
-  sft: {data_core: smoltalk, loss: assistant_only, packing: per_conversation_cu_seqlens, epochs: "2-3"}
-  reasoning: {max_tokens: 1024, self_generated_verified: true, self_correction_share: "0.05-0.10", sft_replay: 0.30}
-  preference: {method: dpo, reference: precomputed_logprobs, beta: 0.1}
+  sft: {data_core: smoltalk, data: [sft_reserved, smol_magpie_ultra], loss: assistant_only, packing: per_conversation_cu_seqlens, epochs: "2-3", registered: EXP-M4-SFT}   # ADR-010
+  reasoning: {status: deferred, max_tokens: 1024, self_generated_verified: true, self_correction_share: "0.05-0.10", sft_replay: 0.30}
+  preference: {status: deferred, method: dpo, reference: precomputed_logprobs, beta: 0.1}
+
+m4:                               # ADR-010, owner 2026-11-03
+  order: [chat_sft, text_to_data_comparison, offline_api_and_cli]
+  deferred: {items: [training.reasoning, training.preference], until: "decision after the comparison, with its own plan"}
+  experiments: [EXP-M4-SFT, EXP-M4-T2D]
+  text_to_data:
+    primary: [cuad, massive_en_us, banking77]
+    secondary_reported_only: [billsum]
+    score: mean_of_cuad_field_micro_f1_massive_slot_micro_f1_banking77_accuracy
+    sources_file_section: text_to_data
+    manifest: benchmarks/m4/t2d_manifest.json
+    overlap_removal: {longest_run_words_at_least: 30, coverage_at_least: 0.10, applies_to: "test, every model", also_report: zero_match_items}
+  compute:
+    cloud: {gpu: A100 PCIe 40 GB, rental: on-demand, max_usd_per_hour: 0.50, work: [sft, all_fine_tune_arms, dev_scoring]}
+    laptop: [audit, code, data_preparation, instruct_suite_and_g2, cpu_numbers]
+    test_scoring: "A100, or the laptop if the A100 is under 1.5x the laptop's generation speed on the same dev scoring job; one machine for every model"
+  budget: {guard_stop_usd: 9.00, or_balance_minus_usd: 1.00, cut_order: [sft_at_2_epochs, billsum, qwen3_reference_arm, stop_and_ask], never_cut: [v2_and_rival_arms, seeds, test_scoring]}
+  gate_g2: {metric: ifeval, baseline: v1_instruct, baseline_score: 0.083, rule: "above baseline by more than 2 standard errors of the difference, and no divergence"}
 
 evaluation:
   suite_version_file: litegpt/eval/SUITE_VERSION

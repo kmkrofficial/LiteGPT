@@ -1,7 +1,7 @@
 # Experiment registry: one entry per experiment. The report is built from this index plus run records.
 # Pre-registered thresholds live here (and in docs/spec/v2.yaml) BEFORE the corresponding runs start.
 registry_version: 1
-spec_version: "2.0.0-spec.7"
+spec_version: "2.0.0-spec.8"
 experiments:
   - id: EXP-M0-ENV
     milestone: M0
@@ -564,4 +564,51 @@ experiments:
     thresholds:
       rule: "val_core BPB after the decay <= 1.6505 + 0.005 and not diverged: 2.4e-3 stays the M3 LR. Otherwise the numbers go to the owner; the next candidate is 1.2e-3 at theta 100k. Single seed, so differences inside 0.005 are ties."
     conclusion: "STOPPED 2026-11-01 by the owner at step 97 of 381 (50.9M of 200M tokens), so the rule was not applied: no validation result exists and nothing here compares theta values. Logged single-batch training loss averaged 0.070 above the theta 10k run at the same steps (noisy, early, not evidence). OWNER DECISION: theta stays 10k from start to finish and the final context is 4,096, so the extension only lengthens the context; there is no theta switch (the switch cost +0.036 val BPB, EXP-M3-OPT interim_results). All M2 evidence, including LR 2.4e-3, was measured at theta 10k. Spec training.pretraining.context_extension.rope_theta changes from 100000 to 10000 in spec 2.0.0-spec.7 (ADR-009)."
-
+  - id: EXP-M4-SFT
+    milestone: M4
+    hypothesis: "Assistant-only SFT from the M3 final checkpoint on the reserved SmolTalk data gives a chat model that clearly beats V1-Instruct on IFEval, without divergence."
+    config: benchmarks/m4/sft.yaml (Phase 1)
+    parent: EXP-G1-EXTENSION-GATE
+    status: approved by the owner 2026-11-03 (ADR-010, spec 2.0.0-spec.8); nothing has run
+    runs: []
+    decisions:   # PRE-REGISTERED 2026-11-03 before any SFT run
+      data: "sft_reserved (15% of smol-summarize, smol-rewrite, smol-constraints) + smol-magpie-ultra at smoltalk revision 5feaf2fd; conversations over 2,048 tokens dropped; 13-gram decontamination against the spec's reference sets; 1% held out"
+      training: "from milestone-final.pt of 20261101T142254Z-train-m3-673cd85; assistant-only loss from chat_template; whole-conversation packing with cu_seqlens; batch 131,072 tokens; AdamW; warm-up 5M tokens; final LR 10% of peak"
+      sweep: "peak LR from {6e-5, 2e-4, 6e-4}, each on the same 3% of the data with the same 5M-token warm-up; lowest held-out assistant-only loss wins; a diverged point is out"
+      length: "3 epochs at most, checkpoint at each epoch; the checkpoint is chosen by held-out assistant-only loss, never by a benchmark. Stop early if held-out loss rises after an epoch"
+      where: "SFT on one A100 PCIe 40 GB; instruct suite and G2 on the laptop in WSL2"
+      speed_check: "first real packed steps on the A100 below 55k tok/s: stop and report before the sweep (fixed-length M3 measurement: 78.6k tok/s median)"
+    thresholds:
+      gate_G2: "PASS if IFEval is above V1-Instruct 0.083 by more than 2 standard errors of the difference and training did not diverge. Reported with no pass line: IFEval against SmolLM2-135M-Instruct 0.220 and Gemma 3 270M-it 0.251, the rest of the instruct suite, XSTest, bits per byte"
+      on_failure: "stop and report; V2's chat arm is dropped from EXP-M4-T2D and its from-base route can still run"
+      chat_bpb: "not evidence for V2-Instruct: it measures familiarity with this dataset family (progress report 15.7); shown in tables, labelled as such"
+      safety: "D5: a safety slice only if a cleanly licensed training source exists. Phase 0 found none, so none is planned; stated on the model card"
+    conclusion: "not started"
+  - id: EXP-M4-T2D
+    milestone: M4
+    hypothesis: "Fine-tuned on the same real text-to-data tasks by the same recipe, V2 is at least level with SmolLM2-135M and Gemma 3 270M on the mean of field F1, slot F1 and intent accuracy."
+    config: benchmarks/m4/t2d.yaml (Phase 1)
+    parent: EXP-M4-SFT
+    status: approved by the owner 2026-11-03 (ADR-010, spec 2.0.0-spec.8); nothing has run
+    runs: []
+    decisions:   # PRE-REGISTERED 2026-11-03 before any fine-tune
+      arms: "from base: V2 M3 final, SmolLM2-135M, Gemma 3 270M, Qwen3-0.6B-Base (reference only). From chat version: V2-Instruct, SmolLM2-135M-Instruct, Gemma 3 270M-it"
+      tasks: "CUAD (document name, parties, agreement date, governing law), MASSIVE en-US slots, Banking77 intents; one model fine-tuned jointly on the three primary tasks. BillSum separately, on each model's chosen route, one seed, last"
+      sources: "cuad a3c393f5 (master_clauses.csv -Answer columns, CUAD_v1.json text); massive refs/convert/parquet ed58ac42; banking77 18469841; billsum 3d851044"
+      splits: "hashes in benchmarks/m4/t2d_manifest.json, committed before any fine-tune. CUAD split by filer so that the same parties are not on both sides"
+      overlap: "Rule set before the scan: remove any test item sharing a 13-word run with V2's training data; above 1%, stop and report. Measured over 20.7B tokens: CUAD 60 of 102, BillSum 741 of 1,044, MASSIVE 1 of 2,974, Banking77 0 of 3,080; standard wording, most of one CUAD or BillSum item matched 23.5%, longest run 90 words. OWNER DECISION 2026-11-03: remove only items with a longest run of at least 30 words or at least 10% matched, for every model. Test items after removal: CUAD 98, MASSIVE 2,973, Banking77 3,080, BillSum 1,001. This relaxes the earlier rule; the cut-offs were chosen after seeing overlap figures and before any model output. Runs are pooled across documents, so they are upper limits. Rival models' overlap cannot be measured"
+      cuad_input: "whitespace normalised, first 3,000 characters plus a 1,500-character window around the last governing-law keyword after them, or the end of the contract if there is none. Limits are in characters so every model reads the same bytes"
+      output: "CUAD: one JSON object, null for an absent field. MASSIVE: JSON list of {type, value}, empty when there are no slots. Banking77: the label name. Prompts are fixed in the config before the first real fine-tune and not changed after"
+      recipe: "whole model, AdamW, loss on output tokens only, 3 epochs, batches of up to 32 examples and up to 16,000 characters, linear warm-up over 5% of steps then cosine to 10% of peak. Micro-batch may differ between models only to fit memory; the effective batch does not"
+      learning_rate: "per arm from {1e-5, 3e-5, 1e-4}, chosen on dev only with the same warm-up as the real run; the grid run at the chosen rate counts as the first seed; 2 more seeds"
+      route: "each model's better route is chosen on dev only, by the mean over its seeds"
+      decoding: "greedy, at most 256 new tokens, no JSON grammar help in the primary score"
+      where: "all fine-tunes and dev scoring on one A100 PCIe 40 GB. Test scoring moves to the laptop if the A100 is under 1.5x the laptop's generation speed on the same dev scoring job; every model uses the same machine for test scoring. CPU numbers on the laptop"
+      budget: "guard stops at $9.00 or balance minus $1, across M4. Cut order if the projection passes the stop: SFT at 2 epochs, BillSum, the Qwen3 arm; then stop and ask. V2 and rival arms, their seeds and test scoring are never cut. A cut is decided from time and money only, never from scores"
+    thresholds:
+      score: "text-to-data score = plain mean of CUAD field micro-F1, MASSIVE slot micro-F1 and Banking77 accuracy. Normalisation: lowercase, punctuation removed, whitespace collapsed. Invalid JSON: every field in that output counts as missed. JSON validity reported separately. BillSum ROUGE-L reported only"
+      decision: "test scored once, after every route is chosen. Paired bootstrap over test items, seeds averaged, seed spread shown. Against each rival: win if ahead by more than 2 standard errors, loss if behind by more than 2, otherwise tie; also per task"
+      strict_check: "the score and each comparison are also reported on zero-match test items only (CUAD 42, MASSIVE 2,973, Banking77 3,080; BillSum 303), next to the main score. The decision above uses the main score"
+      headline: "win or tie and faster or smaller on CPU: a credible private text-to-data base, stated with its numbers. Tie and slower: as accurate, with the speed cost. Loss to either: publish it, recommend the winner for this job, and rest V2's case on reproducibility only"
+      deviation: "a recipe change after seeing test scores voids the comparison and is recorded as a deviation"
+    conclusion: "not started"

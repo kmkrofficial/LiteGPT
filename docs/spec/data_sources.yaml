@@ -3,8 +3,8 @@
 # Every revision is the exact Hub commit SHA verified on 2026-10-07/11 (records runs/*data-verify-sources*, *data-audit-*).
 # Token counts below are estimates with the GPT-2 tokenizer as a proxy; checkpoint B (tokenizer freeze) re-derives file lists
 # with the real tokenizer (EXP-M1-PREFLIGHT, C9). YAML note: floats are plain decimals or signed exponents.
-data_sources_version: "1.0.0"
-spec_version: "2.0.0-spec.7"
+data_sources_version: "1.1.0"   # 1.1.0: text_to_data added (ADR-010); nothing used by M1-M3 changed
+spec_version: "2.0.0-spec.8"
 status: approved   # owner decisions 2026-10-07 (Wikipedia excluded, Apache-2.0 SmolTalk subsets only) and 2026-10-11 (focused code mix; C5 clause not treated as a blocker)
 
 partitioning:
@@ -157,3 +157,31 @@ proxy_slice:   # GPT-2-tokenized text for M2 steps 1-6
   source: fineweb_edu
   train_tokens: 1.0e+9
   same_documents_as: "fineweb_edu stable and val partitions (first files in index order)"
+
+text_to_data:   # M4 comparison only (ADR-010, EXP-M4-T2D); never part of pretraining or SFT. Final hashes: benchmarks/m4/t2d_manifest.json
+  salt: litegpt-m4-t2d-20261103
+  cuad:
+    repo: theatticusproject/cuad
+    revision: a3c393f5d103fd0c516374e4fdff676c8176dcb1
+    licence: cc-by-4.0
+    files: [CUAD_v1/CUAD_v1.json, CUAD_v1/master_clauses.csv]
+    fields: [document_name, parties, agreement_date, governing_law]
+    input_chars: {head: 3000, window: 1500}
+    split: {by: filer, train: 356, dev: 51, test: 102, test_after_overlap: 98}
+  massive:
+    repo: AmazonScience/massive
+    revision: ed58ac423a2f4121720918bf5301577edce4ffd3   # refs/convert/parquet; the main branch (ff6bd8e4) needs a loader script
+    licence: cc-by-4.0
+    config: en-US
+    split: {train: 11514, dev: 2033, test: 2974, test_after_overlap: 2973}
+  banking77:
+    repo: PolyAI/banking77
+    revision: 1846984189f2bc0ac51c6fc3a600fa9e1714e0c6
+    licence: cc-by-4.0
+    split: {train: 9000, dev: 1003, test: 3080, test_after_overlap: 3080}
+  billsum:
+    repo: FiscalNote/billsum
+    revision: 3d8510441c06a3d9dfb32eb0d7f80151730bcc4f
+    licence: cc0-1.0
+    max_input_chars: 6000
+    split: {train: 5622, dev: 300, test: 1044, test_after_overlap: 1001}

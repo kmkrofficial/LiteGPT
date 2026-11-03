@@ -139,6 +139,17 @@ of the generated report.
 Note on IFEval: 47% of smol-constraints conversations contain IFEval's instruction templates verbatim; they were removed
 (EXP-M1-DECONTAM), so the base model has not seen those templates in pretraining.
 
+## Text-to-data benchmarks (M4)
+
+Used to fine-tune and score every model in `EXP-M4-T2D` (ADR-010), never in pretraining or SFT. Licences are as stated on each dataset card; revisions are in `data_sources.yaml`, item hashes in `benchmarks/m4/t2d_manifest.json`.
+
+| Dataset | Licence | Who wrote it |
+|---|---|---|
+| CUAD | CC BY 4.0 | Contracts from SEC EDGAR; answers by trained law students, checked by experienced lawyers |
+| MASSIVE (en-US) | CC BY 4.0 | SLURP commands written by Mechanical Turk workers, not real user logs |
+| Banking77 | CC BY 4.0 | "Customer service queries"; the paper does not say how they were collected |
+| BillSum | CC0 | US bills from GovInfo; summaries by the Congressional Research Service |
+
 ## Evaluation datasets (decontamination reference)
 
 Used only to build the 13-gram filter and for scoring, never as training data. Revisions and licences are pinned in step 2 with `data_sources.yaml`.
@@ -151,3 +162,4 @@ Used only to build the 13-gram filter and for scoring, never as training data. R
 4. Cosmopedia generator (Mixtral, Apache-2.0): no restriction found (C5).
 5b. Qwen2.5-72B-Instruct display requirement (smol-summarize / rewrite / constraints), above.
 5. Wikipedia: excluded, nothing carried.
+6. Text-to-data fine-tunes: credit for the CC BY 4.0 datasets (CUAD, MASSIVE, Banking77) if a model fine-tuned on them is released.
