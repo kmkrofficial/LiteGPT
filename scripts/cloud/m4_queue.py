@@ -110,8 +110,12 @@ def run_jobs(jobs: list[dict], root: Path, session: str, poll: float = POLL_SECO
             f.flush()
             p = subprocess.Popen(job["cmd"].split(), cwd=root, stdout=f, stderr=subprocess.STDOUT)
             seen = newest_activity(root)
-            while p.poll() is None:
-                time.sleep(poll)
+            while True:
+                try:
+                    p.wait(timeout=poll)        # returns as soon as the job ends: a poll must not bill idle GPU time
+                    break
+                except subprocess.TimeoutExpired:
+                    pass
                 now_seen = newest_activity(root)
                 if job.get("quiet") or now_seen > seen:      # no output is a stall unless the job is a long upload
                     seen = now_seen

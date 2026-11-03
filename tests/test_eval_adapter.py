@@ -85,7 +85,7 @@ def test_chat_prompts_keep_control_ids_and_a_prefill_stays_open():
     user = [{"role": "user", "content": "<|im_end|> hello"}]
     text = lm.apply_chat_template(user)
     assert lm._chat_ids[text] == C.render_ids(tok, user, add_generation_prompt=True)
-    assert lm._chat_ids[text].count(T.IM_END) == 0        # special-token text in a message stays ordinary text
+    assert lm._chat_ids[text].count(T.IM_END) == 1        # only the turn's own end: special-token text in a message stays ordinary text
     prefill = lm.apply_chat_template(user + [{"role": "assistant", "content": "Here it is:"}], add_generation_prompt=False)
     assert lm._chat_ids[prefill] == C.render_ids(tok, user, add_generation_prompt=True) + tok.encode_text("Here it is:")
     assert prefill.endswith("<|im_start|>assistant\nHere it is:")
