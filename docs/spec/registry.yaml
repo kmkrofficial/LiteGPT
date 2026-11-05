@@ -629,7 +629,7 @@ experiments:
     config: litegpt/export/to_hf.py
     parent: EXP-M4-SFT
     status: measured 2026-11-05; the owner decided to release as measured
-    runs: [20261105T171709Z-export-LiteGPT-V2-Base-ff62167, 20261105T171910Z-export-LiteGPT-Llama-V2-Instruct-ff62167]
+    runs: [20261105T171709Z-export-LiteGPT-V2-Base-ff62167, 20261105T171910Z-export-LiteGPT-Llama-V2-Instruct-ff62167, 20261105T173814Z-export-LiteGPT-V2-Base-00fcc24, 20261105T174024Z-export-LiteGPT-Llama-V2-Instruct-00fcc24]
     decisions:   # PRE-REGISTERED 2026-11-05 before any export
       models: "LiteGPT-V2-Base from the M3 milestone-final.pt, LiteGPT-Llama-V2-Instruct from the M4 SFT milestone-final.pt"
       format: "safetensors at bfloat16, the dtype every benchmark was scored at, with tied embeddings stored once; Qwen3 config, tokenizer, chat template, litegpt.json metadata, model card, notice and licence files"

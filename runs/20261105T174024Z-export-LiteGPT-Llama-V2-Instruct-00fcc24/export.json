@@ -1,0 +1,96 @@
+{
+  "format": 1,
+  "name": "LiteGPT-Llama-V2-Instruct",
+  "kind": "instruct",
+  "architecture": "Qwen3ForCausalLM layout",
+  "dtype": "bfloat16",
+  "parameters": 201373952,
+  "model_config": {
+    "block_size": 4096,
+    "vocab_size": 32768,
+    "n_layer": 28,
+    "n_embd": 768,
+    "n_head": 12,
+    "n_kv_head": 4,
+    "ffn_hidden": 2048,
+    "norm_eps": 1e-06,
+    "rope_theta": 10000.0,
+    "qk_norm": true,
+    "tie_embeddings": true,
+    "dropout": 0.0,
+    "attention_backend": "sdpa",
+    "init_std": 0.02,
+    "config_version": 1
+  },
+  "step": 14000,
+  "tokens": 1835008000,
+  "chat_template": "litegpt-chat-v1",
+  "spec_version": "2.0.0-spec.9",
+  "source_sha256": "9031e64c9f3527cd69af850383f0727fe1c665ea4b699907613d9c510fdfe061",
+  "weights_sha256": "738d9e8b2bf4f26354939d4e5344099b51280e12739c98e1fb7084f5742dc2d1",
+  "tokenizer_sha256": "2f208b58085074d9520d737332f8da9fb8c8a8718479978bbe8afb5b4ea015d6",
+  "licence": "apache-2.0",
+  "checks": {
+    "parameters": {
+      "litegpt": 201373952,
+      "transformers": 201373952
+    },
+    "logits": {
+      "1": 0.0,
+      "16": 0.0,
+      "512": 0.0,
+      "2048": 0.0,
+      "3968": 0.0
+    },
+    "greedy": {
+      "16": {
+        "new_tokens": 64,
+        "identical": true,
+        "first_difference": null
+      },
+      "512": {
+        "new_tokens": 64,
+        "identical": true,
+        "first_difference": null
+      },
+      "3968": {
+        "new_tokens": 64,
+        "identical": true,
+        "first_difference": null
+      }
+    },
+    "logits_max": 0.0,
+    "logits_pass": true,
+    "greedy_pass": true,
+    "parameters_pass": true,
+    "tokenizer": {
+      "strings": 200,
+      "identical": 195,
+      "identical_with_bos": 195,
+      "chat_template_identical": true
+    },
+    "tokenizer_pass": false,
+    "round_trip_pass": true,
+    "passed": false,
+    "at_bfloat16": {
+      "16": {
+        "logits_max_difference": 0.34375,
+        "greedy_tokens": 64,
+        "greedy_identical": true,
+        "greedy_matching_tokens": 64
+      },
+      "512": {
+        "logits_max_difference": 0.90625,
+        "greedy_tokens": 64,
+        "greedy_identical": false,
+        "greedy_matching_tokens": 2
+      },
+      "3968": {
+        "logits_max_difference": 0.84375,
+        "greedy_tokens": 64,
+        "greedy_identical": true,
+        "greedy_matching_tokens": 64
+      }
+    }
+  }
+}
