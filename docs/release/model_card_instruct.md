@@ -1,6 +1,6 @@
 # LiteGPT-Llama-V2-Instruct (draft model card, not released)
 
-> Draft for owner review. The licence is proposed, not decided ([ADR-011](../decisions/ADR-011-model-licence.md)). The export format is not built yet.
+> Draft for owner review. Not released yet.
 
 **Built with Llama. Built with Qwen.** See Training data.
 
@@ -74,4 +74,4 @@ Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta P
 
 ## Licence
 
-Proposed: Apache-2.0 for the weights, MIT for the code, with the [NOTICE](NOTICE_instruct.txt) file.
+Apache-2.0 for the weights, MIT for the code, with the [NOTICE](NOTICE_instruct.txt) file ([ADR-011](../decisions/ADR-011-model-licence.md)).

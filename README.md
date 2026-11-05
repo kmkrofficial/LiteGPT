@@ -88,7 +88,7 @@ V1 is GPT-2 Small (124M), trained on FineWeb-Edu and fine-tuned on Alpaca, publi
 
 Code is MIT licensed ([`LICENSE`](LICENSE)).
 
-The licence of the V2 weights isn't final: Apache-2.0 is proposed in [ADR-011](docs/decisions/ADR-011-model-licence.md), and no weights are published before it is accepted. Datasets and their terms are in [docs/data_licenses.md](docs/data_licenses.md).
+V2's weights will be Apache-2.0, each model with its own notice file ([ADR-011](docs/decisions/ADR-011-model-licence.md)). Datasets and their terms are in [docs/data_licenses.md](docs/data_licenses.md).
 
 ## Acknowledgements
 

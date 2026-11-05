@@ -5,7 +5,7 @@
 # Changing any field requires a new ADR in docs/decisions/ and a bumped spec_version.
 # Fields marked `frozen_before: M3` must not change once the initial pretraining run (M3) has started.
 
-spec_version: "2.0.0-spec.8"   # spec.2: toolchain update (ADR-006); spec.3: flash-attn adopted for attention_backend=auto (ADR-006 evidence, EXP-M0-FLASH); spec.4: repository restructure, path pointers only, no value changes (ADR-007); spec.5: torch.compile adopted for production training on WSL2 (ADR-006 evidence, EXP-M0-COMPILE); spec.6: M1 data decisions (ADR-008): Wikipedia removed from the mixture and redistributed, focused code mix (Python/JS/TS/SQL/Shell), decontamination filters pretraining, tokenizer and val_core hashes pending, data_sources.yaml added; spec.7: ADR-009: M3 on a rented A100 with a budget cap, peak LR 2.4e-3, theta 10k throughout with a 4,096 context, text-to-data mixture; spec.8: ADR-010: M4 is chat SFT then a registered text-to-data comparison, reasoning and DPO deferred, GPU-heavy work on one A100 under a $9.00 stop
+spec_version: "2.0.0-spec.9"   # spec.2: toolchain update (ADR-006); spec.3: flash-attn adopted for attention_backend=auto (ADR-006 evidence, EXP-M0-FLASH); spec.4: repository restructure, path pointers only, no value changes (ADR-007); spec.5: torch.compile adopted for production training on WSL2 (ADR-006 evidence, EXP-M0-COMPILE); spec.6: M1 data decisions (ADR-008): Wikipedia removed from the mixture and redistributed, focused code mix (Python/JS/TS/SQL/Shell), decontamination filters pretraining, tokenizer and val_core hashes pending, data_sources.yaml added; spec.7: ADR-009: M3 on a rented A100 with a budget cap, peak LR 2.4e-3, theta 10k throughout with a 4,096 context, text-to-data mixture; spec.8: ADR-010: M4 is chat SFT then a registered text-to-data comparison, reasoning and DPO deferred, GPU-heavy work on one A100 under a $9.00 stop; spec.9: weights licence Apache-2.0 (ADR-011)
 approved: 2026-10-06
 decision_records: docs/decisions/
 status: approved
@@ -193,6 +193,6 @@ quantization:
   release_gate_max_relative_drop: 0.02
 
 licensing:                        # D4, ADR-004
-  code: MIT                       # with nanoGPT (Andrej Karpathy) copyright notice retained
-  model: pending-dataset-audit    # release-blocking gate at M5
+  code: MIT                       # with the upstream copyright notice retained
+  model: apache-2.0               # ADR-011, owner 2026-11-05: Base and LiteGPT-Llama-V2-Instruct, each with a notice file
   audit_file: docs/data_licenses.md

@@ -15,7 +15,7 @@ Each ADR records one decision for LiteGPT V2: its context, the decision, the alt
 | [ADR-008](ADR-008-data-sources-mixture-and-freeze.md) | Data sources, mixture, partitions, tokenizer and validation freeze | Accepted | 2026-10-11 |
 | [ADR-009](ADR-009-m3-cloud-budget-context-and-mixture.md) | M3 on a rented GPU, budget cap, 4,096 context without a theta switch, text-to-data mixture | Accepted | 2026-11-01 |
 | [ADR-010](ADR-010-m4-scope-text-to-data-comparison-and-cloud.md) | M4 scope, text-to-data comparison and where M4 runs | Accepted | 2026-11-03 |
-| [ADR-011](ADR-011-model-licence.md) | Model licence and what v2.0.0 releases | Partly decided: release scope by the owner, licence proposed | 2026-11-05 |
+| [ADR-011](ADR-011-model-licence.md) | Model licence and what v2.0.0 releases | Accepted | 2026-11-05 |
 
 ## Template
 

@@ -623,3 +623,22 @@ experiments:
       headline: "win or tie and faster or smaller on CPU: a credible private text-to-data base, stated with its numbers. Tie and slower: as accurate, with the speed cost. Loss to either: publish it, recommend the winner for this job, and rest V2's case on reproducibility only"
       deviation: "a recipe change after seeing test scores voids the comparison and is recorded as a deviation"
     conclusion: "DONE 2026-11-05: HYPOTHESIS REJECTED. Test scored once, on the laptop by the registered rule. Score, mean of 3 seeds: V2 0.7999, SmolLM2-135M 0.8172, Gemma 3 270M 0.8220, Qwen3-0.6B reference 0.8507. V2 lost to each by more than 2 SE: -0.0173 (3.4 SE), -0.0221 (4.6 SE), -0.0508 (9.2 SE). No win on any task or on the zero-match items: on zero-match items V2 0.7758 ties SmolLM2 0.7893 (1.6 SE) and loses to Gemma 0.7911 (2.1 SE) and Qwen3 0.8341. Routes chosen on dev: V2 base, SmolLM2 chat, Gemma base, Qwen3 base. CPU at 8 threads, reported: V2 is slower than Gemma on all three tasks and than SmolLM2 on two; peak RAM V2 1.66 GiB, SmolLM2 1.61, Gemma 2.62, Qwen3 4.27. BillSum, reported only, ROUGE-L: V2 0.429, Gemma 0.442, SmolLM2 0.448, Qwen3 0.482. Headline by the registered rule, a loss to either rival: publish it, recommend the winner for this job, rest V2's case on full reproducibility only. Exploratory and not registered: Gemma against SmolLM2 from the saved predictions is a tie (+0.0047, 1.0 SE), so neither rival is the single winner. Limits: rivals may have seen these public datasets in pretraining and that cannot be measured; both V2 routes and both SmolLM2 routes chose the top of the learning-rate grid, and Gemma and Qwen3 the bottom. Nothing was changed after seeing test scores. No run left out. Test scoring was interrupted once before any score existed and resumed from saved outputs."
+  - id: EXP-M5-EXPORT
+    milestone: M5
+    hypothesis: "Exported to the Hugging Face Qwen3 layout, each V2 model gives the same outputs through Transformers as through LiteGPT's own code."
+    config: litegpt/export/to_hf.py
+    parent: EXP-M4-SFT
+    status: registered 2026-11-05 before any export; the owner asked for the export the same day
+    runs: []
+    decisions:   # PRE-REGISTERED 2026-11-05 before any export
+      models: "LiteGPT-V2-Base from the M3 milestone-final.pt, LiteGPT-Llama-V2-Instruct from the M4 SFT milestone-final.pt"
+      format: "safetensors at bfloat16, the dtype every benchmark was scored at, with tied embeddings stored once; Qwen3 config, tokenizer, chat template, litegpt.json metadata, model card, notice and licence files"
+      measured_on: "CPU in float32 for logits, using the bfloat16 weights both sides, so differences are not hidden by bf16 rounding; prompts of 1, 16, 512, 2,048 and 3,968 tokens from fixed-seed token ids"
+    thresholds:
+      parameters: "201,373,952 on both sides"
+      logits: "PASS if the largest absolute logit difference on any prompt is at most 1e-3"
+      greedy: "PASS if 64 new tokens with the KV cache are identical on the 16, 512 and 3,968 token prompts"
+      tokenizer: "PASS if ids are identical on 200 validation-independent strings from docs/ and the chat template gives the ids of chat_template.render_ids"
+      round_trip: "PASS if litegpt.load on the exported folder gives logits identical to the source checkpoint rounded to bfloat16"
+      on_failure: "The release loads through the litegpt package only and says so. No remote code is added without asking the owner"
+    conclusion: "not started"

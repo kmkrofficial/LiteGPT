@@ -1,6 +1,6 @@
 # Distribution and export
 
-**Status: nothing is released, and export is not built.** Blocked by the licence gate ([ADR-004](decisions/ADR-004-licensing.md), proposal in [ADR-011](decisions/ADR-011-model-licence.md)).
+**Status: nothing is released.** The licence gate has passed ([ADR-004](decisions/ADR-004-licensing.md), [ADR-011](decisions/ADR-011-model-licence.md)). Publishing still needs the owner's final yes.
 
 ## Where it will be published
 
