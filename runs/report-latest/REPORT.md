@@ -6,9 +6,9 @@
 
 | item | value |
 |---|---|
-| spec version | `2.0.0-spec.8` |
-| spec sha256 | `fdaaed4cac2f673c…` |
-| code licence / model licence | MIT / pending-dataset-audit |
+| spec version | `2.0.0-spec.9` |
+| spec sha256 | `1dd628d51109130a…` |
+| code licence / model licence | MIT / apache-2.0 |
 | python / torch (pinned) | 3.12 / 2.14.1+cu130 |
 | attention | sdpa mandatory; flash-attn 2.8.3+cu130torch2.14 optional (adopted-for-auto) |
 | pretraining budget | 10B tokens (max 15B), ~7 days, requires 16,500 tok/s sustained |
