@@ -1,0 +1,29 @@
+{
+  "required_tok_per_s": 16500,
+  "matmul_ceiling": {
+    "n": 8192,
+    "dtype": "bfloat16",
+    "tflops": 49.11
+  },
+  "results": [
+    {
+      "config": "litegpt-v2-28l",
+      "micro_batch": 6,
+      "seq_len": 2048,
+      "backend": "sdpa",
+      "compile": true,
+      "grad_accum": 1,
+      "data": "synthetic-random",
+      "status": "oom",
+      "vram_total_gib": 15.99,
+      "vram_free_at_start_gib": 14.69,
+      "vram_cap_gib": 13.69,
+      "params": 201373952,
+      "flops_per_token_full": 1736726016,
+      "flops_per_token_causal": 1472484864.0,
+      "peak_alloc_gib": 13.11,
+      "peak_reserved_gib": 13.41,
+      "meets_16_5k_tok_per_s": false
+    }
+  ]
+}

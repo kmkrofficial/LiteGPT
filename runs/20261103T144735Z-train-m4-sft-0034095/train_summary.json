@@ -1,0 +1,49 @@
+{
+  "status": "completed",
+  "step": 14000,
+  "total_steps": 14000,
+  "tokens": 1835008000,
+  "real_tokens": 1491536838,
+  "lr": 0.0006,
+  "best": {
+    "epoch": 2,
+    "loss": 1.023784618067403,
+    "step": 14000
+  },
+  "history": [
+    {
+      "epoch": 0,
+      "step": 4667,
+      "tokens": 611713024,
+      "loss": 1.132345047516479,
+      "target_tokens": 4218558,
+      "conversations": 3846,
+      "seconds": 39.30373549461365
+    },
+    {
+      "epoch": 1,
+      "step": 9334,
+      "tokens": 1223426048,
+      "loss": 1.051804090877294,
+      "target_tokens": 4218558,
+      "conversations": 3846,
+      "seconds": 38.7543740272522
+    },
+    {
+      "epoch": 2,
+      "step": 14000,
+      "tokens": 1835008000,
+      "loss": 1.023784618067403,
+      "target_tokens": 4218558,
+      "conversations": 3846,
+      "seconds": 38.815650939941406
+    }
+  ],
+  "stopped_early": false,
+  "skipped_steps": 0,
+  "mean_tok_per_s": 50096.26871506486,
+  "row_fill_epoch0": 0.8127910220855458,
+  "micro_batch_used": 8,
+  "config_hash": "d334dba2d5754e5ec32f5a77164725cbc85c212353e543bb0712070eb92e9e5a",
+  "run": "20261103T144735Z-train-m4-sft-0034095"
+}

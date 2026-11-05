@@ -1,0 +1,97 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "openai-community/gpt2-medium",
+    "revision": "6dcaa7a952f72f9298047fd5137cd6e4f05f41da",
+    "gated": false,
+    "license": "mit"
+  },
+  "suite_version": "0.1.0",
+  "task_dataset_revisions": {
+    "truthfulqa/truthful_qa": "741b8276f2d1982aa3d5b832d3ee81ed3b896490",
+    "cais/mmlu": "c30699e8356da336a370243923dbaf21066bb9fe",
+    "allenai/winogrande": "01e74176c63542e6b0bcb004dcdea22d94fb67b5",
+    "tau/commonsense_qa": "94630fe30dad47192a8546eb75f094926d47e155",
+    "allenai/openbookqa": "388097ea7776314e93a529163e0fea805b8a6454",
+    "baber/piqa": "142f6d7367fd9877f0fb3b5734ea6a545f54cdd1",
+    "allenai/ai2_arc": "210d026faf9955653af8916fad021475a3f00453",
+    "Rowan/hellaswag": "218ec52e09a7e7462a5400043bb9a69a41d06b76",
+    "mandarjoshi/trivia_qa": "0f7faf33a3908546c6fd5b73a660e0f8ff173c2f",
+    "openai/gsm8k": "740312add88f781978c0658806c59bc2815b9866",
+    "openai/openai_humaneval": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544",
+    "google-research-datasets/mbpp": "4bb6404fdc6cacfda99d4ac4205087b89d32030c"
+  },
+  "headline": {
+    "hellaswag": {
+      "metric": "acc_norm",
+      "value": 0.394443337980482,
+      "stderr": 0.004877319683639204
+    },
+    "arc_easy": {
+      "metric": "acc",
+      "value": 0.49663299663299665,
+      "stderr": 0.010259550893799069
+    },
+    "arc_challenge": {
+      "metric": "acc_norm",
+      "value": 0.25426621160409557,
+      "stderr": 0.012724999945157845
+    },
+    "piqa": {
+      "metric": "acc",
+      "value": 0.6735582154515778,
+      "stderr": 0.010940467046177422
+    },
+    "openbookqa": {
+      "metric": "acc_norm",
+      "value": 0.294,
+      "stderr": 0.02039509548493655
+    },
+    "commonsense_qa": {
+      "metric": "acc",
+      "value": 0.19492219492219492,
+      "stderr": 0.011341478090883516
+    },
+    "winogrande": {
+      "metric": "acc",
+      "value": 0.5201262825572218,
+      "stderr": 0.014041096664344348
+    },
+    "truthfulqa_mc1": {
+      "metric": "acc",
+      "value": 0.22766217870257038,
+      "stderr": 0.014679255032111014
+    },
+    "truthfulqa_mc2": {
+      "metric": "acc",
+      "value": 0.4047217137414456,
+      "stderr": 0.014639751577124991
+    },
+    "mmlu_continuation": {
+      "metric": "acc",
+      "value": 0.26869391824526423,
+      "stderr": 0.003722229598102722
+    },
+    "triviaqa": {
+      "metric": "exact_match",
+      "value": 0.0685,
+      "stderr": 0.005649764147064789
+    },
+    "gsm8k": {
+      "metric": "exact_match",
+      "value": 0.012130401819560273,
+      "stderr": 0.0030152942428909395
+    },
+    "humaneval": {
+      "metric": "pass@1",
+      "value": 0.0,
+      "stderr": 0.0
+    },
+    "mbpp": {
+      "metric": "pass_at_1",
+      "value": 0.0,
+      "stderr": 0.0
+    }
+  },
+  "comparable": true
+}

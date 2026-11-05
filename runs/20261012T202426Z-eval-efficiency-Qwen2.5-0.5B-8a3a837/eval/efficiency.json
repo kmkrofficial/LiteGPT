@@ -1,0 +1,69 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "Qwen/Qwen2.5-0.5B",
+    "revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "dtype": "bfloat16",
+  "rows": [
+    {
+      "prompt_tokens": 128,
+      "prompt_bytes": 747,
+      "batch": 1,
+      "new_tokens": 128,
+      "prefill_s": 0.020342484999673616,
+      "prefill_tok_s": 6292.249939083336,
+      "ttft_s": 0.03774320724185998,
+      "decode_tok_s": 57.46887893972568,
+      "decode_bytes_s": 339.42556623775477,
+      "peak_vram_GiB": 0.9746208190917969
+    },
+    {
+      "prompt_tokens": 128,
+      "prompt_bytes": 747,
+      "batch": 8,
+      "new_tokens": 128,
+      "prefill_s": 0.028184697999677155,
+      "prefill_tok_s": 36331.77123316097,
+      "ttft_s": 0.04408762936687083,
+      "decode_tok_s": 503.0519100713272,
+      "decode_bytes_s": 2971.150343858776,
+      "peak_vram_GiB": 1.2390642166137695
+    },
+    {
+      "prompt_tokens": 512,
+      "prompt_bytes": 3014,
+      "batch": 1,
+      "new_tokens": 128,
+      "prefill_s": 0.016887411999960023,
+      "prefill_tok_s": 30318.44074161346,
+      "ttft_s": 0.03254710705464703,
+      "decode_tok_s": 63.85820391187606,
+      "decode_bytes_s": 373.1713791100257,
+      "peak_vram_GiB": 1.0874624252319336
+    },
+    {
+      "prompt_tokens": 512,
+      "prompt_bytes": 3014,
+      "batch": 8,
+      "new_tokens": 128,
+      "prefill_s": 0.09146829400015122,
+      "prefill_tok_s": 44780.54439271851,
+      "ttft_s": 0.10735112935952884,
+      "decode_tok_s": 503.68840443067364,
+      "decode_bytes_s": 2943.429113391749,
+      "peak_vram_GiB": 2.1497344970703125
+    }
+  ],
+  "gpu_power_limit_w": 147.704,
+  "params": {
+    "total": 494032768,
+    "embedding": 136134656,
+    "non_embedding": 357898112,
+    "tied_output": true,
+    "vocab_size": 151936
+  },
+  "note": "HF transformers generate with KV cache; decode = total - one prefill"
+}

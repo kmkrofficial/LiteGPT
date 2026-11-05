@@ -1,0 +1,29 @@
+{
+ "model": "smollm2",
+ "arm": "smollm2-chat",
+ "lr": 0.0001,
+ "seed": 1,
+ "status": "completed",
+ "rouge_l": 0.44833831281586634,
+ "rouge_l_zero_match": 0.4304470172988837,
+ "items": 1000,
+ "zero_match_items": 302,
+ "generation": {
+  "items": 1000,
+  "seconds": 154.7107949256897,
+  "items_per_s": 6.463673077759813,
+  "output_chars": 881972,
+  "chars_per_s": 5700.778671737978,
+  "gen_tokens_budget_final": 262144
+ },
+ "train": {
+  "status": "completed",
+  "steps": 8016,
+  "total_steps": 8016,
+  "tokens": 25380120,
+  "seconds": 914.606609582901,
+  "skipped_steps": 0,
+  "micro_tokens_final": 16384
+ },
+ "run": "20261104T064334Z-train-m4-billsum-smollm2-15e8937"
+}

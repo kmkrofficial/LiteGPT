@@ -1,0 +1,73 @@
+{
+  "model": {
+    "kind": "litegpt",
+    "path": "/home/user/m3_checkpoints/20261101T142254Z-train-m3-673cd85/milestone-final.pt",
+    "sha256": "ba1103d8b6166f3c8dedf0e2e6d71bdd622ffa33015bf150e4cf06404a2c87a0",
+    "label": "litegpt-final",
+    "step": 19075,
+    "tokens": 10000793600,
+    "spec_sha256": "2a868ecb41977d01f278c916e6515e5df277fd6adfd6032f0aea6650f0ea4eb1",
+    "block_size": 4096,
+    "rope_theta": 10000.0
+  },
+  "dtype": "bfloat16",
+  "rows": [
+    {
+      "prompt_tokens": 128,
+      "prompt_bytes": 747,
+      "batch": 1,
+      "new_tokens": 128,
+      "prefill_s": 0.010157531000004383,
+      "prefill_tok_s": 12601.48750714566,
+      "ttft_s": 0.021385559445320723,
+      "decode_tok_s": 89.06283100993923,
+      "decode_bytes_s": 523.9399355506582,
+      "peak_vram_GiB": 0.4014320373535156
+    },
+    {
+      "prompt_tokens": 128,
+      "prompt_bytes": 747,
+      "batch": 8,
+      "new_tokens": 128,
+      "prefill_s": 0.016899721002118895,
+      "prefill_tok_s": 60592.71628635824,
+      "ttft_s": 0.02868694918961978,
+      "decode_tok_s": 678.7006981406499,
+      "decode_bytes_s": 3992.668950780542,
+      "peak_vram_GiB": 0.4632449150085449
+    },
+    {
+      "prompt_tokens": 512,
+      "prompt_bytes": 3014,
+      "batch": 1,
+      "new_tokens": 128,
+      "prefill_s": 0.012012217001029057,
+      "prefill_tok_s": 42623.27261954544,
+      "ttft_s": 0.023663163836943113,
+      "decode_tok_s": 85.8299341747487,
+      "decode_bytes_s": 501.5686778336877,
+      "peak_vram_GiB": 0.41797876358032227
+    },
+    {
+      "prompt_tokens": 512,
+      "prompt_bytes": 3014,
+      "batch": 8,
+      "new_tokens": 128,
+      "prefill_s": 0.04820272199867759,
+      "prefill_tok_s": 84974.45434953592,
+      "ttft_s": 0.06026280598305789,
+      "decode_tok_s": 663.3452976248967,
+      "decode_bytes_s": 3876.4240829954906,
+      "peak_vram_GiB": 0.5933136940002441
+    }
+  ],
+  "gpu_power_limit_w": 150.0,
+  "params": {
+    "total": 201373952,
+    "embedding": 25165824,
+    "non_embedding": 176208128,
+    "tied_output": true,
+    "vocab_size": 32768
+  },
+  "note": "LiteGPT engine with KV cache; decode = total - one prefill"
+}

@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "run_id": "20261011T162235Z-data-decontam-index-c833e2c",
+  "kind": "data",
+  "name": "decontam-index",
+  "created_utc": "2026-10-11T16:22:35.906451+00:00",
+  "spec_version": "2.0.0-spec.6",
+  "spec_sha256": "99aaf60a9e3d0bc70b8ec6e01d99eba811dfcaa7d8a181327fcc77a74c4dee34",
+  "git_commit": "c833e2c14131ea71c0e4a192e3d92f760d115de4",
+  "git_dirty": true,
+  "attention_backend": "sdpa",
+  "compile_enabled": false,
+  "config": {
+    "sources_sha256": "a4c122bf0979bfaba92f2c5eb8ac4579a256b45f9600b3939c6a6191b4dd5082",
+    "reference": {
+      "hellaswag": {
+        "repo": "Rowan/hellaswag",
+        "config": null,
+        "split": "validation",
+        "revision": "218ec52e09a7e7462a5400043bb9a69a41d06b76"
+      },
+      "arc_easy": {
+        "repo": "allenai/ai2_arc",
+        "config": "ARC-Easy",
+        "split": "test",
+        "revision": "210d026faf9955653af8916fad021475a3f00453"
+      },
+      "arc_challenge": {
+        "repo": "allenai/ai2_arc",
+        "config": "ARC-Challenge",
+        "split": "test",
+        "revision": "210d026faf9955653af8916fad021475a3f00453"
+      },
+      "piqa": {
+        "repo": "baber/piqa",
+        "config": null,
+        "split": "validation",
+        "revision": "142f6d7367fd9877f0fb3b5734ea6a545f54cdd1"
+      },
+      "openbookqa": {
+        "repo": "allenai/openbookqa",
+        "config": "main",
+        "split": "test",
+        "revision": "388097ea7776314e93a529163e0fea805b8a6454"
+      },
+      "commonsenseqa": {
+        "repo": "tau/commonsense_qa",
+        "config": null,
+        "split": "validation",
+        "revision": "94630fe30dad47192a8546eb75f094926d47e155"
+      },
+      "mmlu": {
+        "repo": "cais/mmlu",
+        "config": "all",
+        "split": "test",
+        "revision": "c30699e8356da336a370243923dbaf21066bb9fe"
+      },
+      "gsm8k": {
+        "repo": "openai/gsm8k",
+        "config": "main",
+        "split": "test",
+        "revision": "740312add88f781978c0658806c59bc2815b9866"
+      },
+      "winogrande": {
+        "repo": "allenai/winogrande",
+        "config": "winogrande_xl",
+        "split": "validation",
+        "revision": "01e74176c63542e6b0bcb004dcdea22d94fb67b5"
+      },
+      "humaneval": {
+        "repo": "openai/openai_humaneval",
+        "config": null,
+        "split": "test",
+        "revision": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544"
+      },
+      "mbpp": {
+        "repo": "google-research-datasets/mbpp",
+        "config": "full",
+        "split": "test",
+        "revision": "4bb6404fdc6cacfda99d4ac4205087b89d32030c"
+      },
+      "ifeval": {
+        "repo": "google/IFEval",
+        "config": null,
+        "split": "train",
+        "revision": "966cd89545d6b6acfd7638bc708b98261ca58e84"
+      },
+      "truthfulqa": {
+        "repo": "truthfulqa/truthful_qa",
+        "config": "generation",
+        "split": "validation",
+        "revision": "741b8276f2d1982aa3d5b832d3ee81ed3b896490"
+      },
+      "triviaqa": {
+        "repo": "mandarjoshi/trivia_qa",
+        "config": "rc.nocontext",
+        "split": "validation",
+        "revision": "0f7faf33a3908546c6fd5b73a660e0f8ff173c2f"
+      },
+      "xstest": {
+        "repo": "Paul/XSTest",
+        "config": null,
+        "split": "train",
+        "revision": "f600c994b256f12867dfa5b3eb3d545a3e62f8b5"
+      },
+      "multipl_e_humaneval_js": {
+        "repo": "nuprl/MultiPL-E",
+        "config": "humaneval-js",
+        "split": "test",
+        "revision": "28441b6024e71d4a1c1c0f6bf171c935cd5a43f2"
+      },
+      "multipl_e_humaneval_ts": {
+        "repo": "nuprl/MultiPL-E",
+        "config": "humaneval-ts",
+        "split": "test",
+        "revision": "28441b6024e71d4a1c1c0f6bf171c935cd5a43f2"
+      },
+      "text_to_sql_spider": {
+        "repo": "xlangai/spider",
+        "config": null,
+        "split": "validation",
+        "revision": "0c350918f3f29ec754f1181c65cdce76cd6c133c"
+      }
+    }
+  },
+  "environment": {
+    "python": "3.12.15",
+    "uv_version": "0.12.23",
+    "uv_lock_sha256": "a7bb4295401607bd220351a8a907ceba568f329cf69a98e57f3a5333d3d1b6e8",
+    "resolved_package_versions": {
+      "aiohappyeyeballs": "2.7.1",
+      "aiohttp": "3.14.4",
+      "aiosignal": "1.4.0",
+      "annotated-doc": "0.0.5",
+      "anyio": "4.15.1",
+      "attrs": "26.1.0",
+      "certifi": "2026.7.22",
+      "click": "8.5.0",
+      "contourpy": "1.4.0",
+      "cuda-bindings": "13.4.3",
+      "cuda-pathfinder": "1.8.3",
+      "cuda-toolkit": "13.0.3.0",
+      "cycler": "0.12.1",
+      "datasets": "5.1.0",
+      "dill": "0.4.1",
+      "einops": "0.8.2",
+      "filelock": "4.0.12",
+      "flash_attn": "2.8.3+cu130torch2.14",
+      "fonttools": "4.66.1",
+      "frozenlist": "1.8.0",
+      "fsspec": "2026.7.0",
+      "h11": "0.16.0",
+      "hf-xet": "1.6.0",
+      "httpcore": "1.0.9",
+      "httpx": "0.28.1",
+      "huggingface_hub": "1.33.0",
+      "idna": "3.20",
+      "iniconfig": "2.3.0",
+      "Jinja2": "3.1.6",
+      "kiwisolver": "1.5.1",
+      "litegpt": "2.0.0.dev0",
+      "markdown-it-py": "4.2.0",
+      "MarkupSafe": "3.0.4",
+      "matplotlib": "3.11.2",
+      "mdurl": "0.1.2",
+      "mpmath": "1.3.0",
+      "multidict": "6.9.1",
+      "multiprocess": "0.70.19",
+      "networkx": "3.7",
+      "numpy": "2.5.3",
+      "nvidia-cublas": "13.1.1.3",
+      "nvidia-cuda-cupti": "13.0.85",
+      "nvidia-cuda-nvrtc": "13.0.88",
+      "nvidia-cuda-runtime": "13.0.96",
+      "nvidia-cudnn-cu13": "9.24.0.43",
+      "nvidia-cufft": "12.0.0.61",
+      "nvidia-cufile": "1.15.1.6",
+      "nvidia-curand": "10.4.0.35",
+      "nvidia-cusolver": "12.0.4.66",
+      "nvidia-cusparse": "12.6.3.3",
+      "nvidia-cusparselt-cu13": "0.8.1",
+      "nvidia-ml-py": "13.615.71",
+      "nvidia-nccl-cu13": "2.30.7",
+      "nvidia-nvjitlink": "13.4.92",
+      "nvidia-nvshmem-cu13": "3.4.5",
+      "nvidia-nvtx": "13.0.85",
+      "packaging": "26.3",
+      "pandas": "3.0.6",
+      "pillow": "12.3.0",
+      "pluggy": "1.6.0",
+      "propcache": "0.5.4",
+      "pyarrow": "25.0.1",
+      "Pygments": "2.21.0",
+      "pyparsing": "3.3.3",
+      "pytest": "9.1.1",
+      "python-dateutil": "2.9.0.post0",
+      "PyYAML": "6.0.3",
+      "regex": "2026.9.29",
+      "rich": "15.0.0",
+      "safetensors": "0.8.0",
+      "setuptools": "84.0.0",
+      "shellingham": "1.5.4",
+      "six": "1.17.0",
+      "sympy": "1.14.0",
+      "tokenizers": "0.23.2",
+      "torch": "2.14.1+cu130",
+      "tqdm": "4.70.1",
+      "transformers": "5.18.0",
+      "triton": "3.8.0",
+      "typer": "0.27.2",
+      "typing_extensions": "4.16.0",
+      "xxhash": "4.0.1",
+      "yarl": "1.25.1"
+    },
+    "os": "Linux",
+    "os_version": "Linux-6.18.40.1-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+    "wsl_distro_and_kernel": "Ubuntu / 6.18.40.1-microsoft-standard-WSL2",
+    "flash_attn_version_or_none": "2.8.3+cu130torch2.14",
+    "triton_version_or_none": "3.8.0",
+    "torch_version": "2.14.1+cu130",
+    "torch_cuda_version": "13.0",
+    "cudnn_version": "92400",
+    "nvidia_driver_version": "610.88",
+    "gpu_name": "NVIDIA GeForce RTX 4090 Laptop GPU",
+    "gpu_vram_gib": 15.99,
+    "cuda_available": true
+  }
+}

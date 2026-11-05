@@ -1,0 +1,17 @@
+{
+  "status": "stopped_at_max_steps",
+  "step": 60,
+  "total_steps": 14000,
+  "tokens": 7864320,
+  "real_tokens": 6387027,
+  "lr": 0.0002,
+  "best": null,
+  "history": [],
+  "stopped_early": false,
+  "skipped_steps": 0,
+  "mean_tok_per_s": 46802.036965863415,
+  "row_fill_epoch0": 0.8127910220855458,
+  "micro_batch_used": 16,
+  "config_hash": "58f13a617227be5b88cf1c9e7c06dc7efe436306b52a3c2fef2fe4753e0488f4",
+  "run": "20261103T140514Z-train-m4-speedcheck-52798d3"
+}

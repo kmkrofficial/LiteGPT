@@ -1,0 +1,84 @@
+{
+  "revision": "5feaf2fd3ffca7c237fc38d1861bc30365d48ffa",
+  "rows_by_source": {
+    "smol-magpie-ultra": {
+      "test": 21555,
+      "train": 409537
+    },
+    "apigen-80k": {
+      "test": 4377,
+      "train": 83144
+    },
+    "numina-cot-100k": {
+      "test": 5587,
+      "train": 106147
+    },
+    "explore-instruct-rewriting": {
+      "test": 1600,
+      "train": 30400
+    },
+    "smol-summarize": {
+      "test": 5072,
+      "train": 96356
+    },
+    "openhermes-100k": {
+      "test": 5000,
+      "train": 95000
+    },
+    "smol-rewrite": {
+      "test": 2808,
+      "train": 53342
+    },
+    "self-oss-instruct": {
+      "test": 2534,
+      "train": 48127
+    },
+    "metamathqa-50k": {
+      "test": 2500,
+      "train": 47500
+    },
+    "systemchats-30k": {
+      "test": 1797,
+      "train": 34133
+    },
+    "everyday-conversations": {
+      "test": 119,
+      "train": 2260
+    },
+    "smol-constraints": {
+      "test": 1812,
+      "train": 34424
+    },
+    "longalign": {
+      "test": 187,
+      "train": 3547
+    }
+  },
+  "allowed": {
+    "smol-magpie-ultra": {
+      "rows_train": 409537,
+      "proxy_tokens_per_row": 1595.76945,
+      "turns_per_row": 6.0,
+      "est_tokens_M": 653.52663324465
+    },
+    "smol-constraints": {
+      "rows_train": 34424,
+      "proxy_tokens_per_row": 216.64535,
+      "turns_per_row": 2.0,
+      "est_tokens_M": 7.4577995284
+    },
+    "smol-rewrite": {
+      "rows_train": 53342,
+      "proxy_tokens_per_row": 350.21835,
+      "turns_per_row": 3.0,
+      "est_tokens_M": 18.681347225699998
+    },
+    "smol-summarize": {
+      "rows_train": 96356,
+      "proxy_tokens_per_row": 495.22505,
+      "turns_per_row": 3.0,
+      "est_tokens_M": 47.7179049178
+    }
+  },
+  "allowed_total_tokens_M": 727.38368491655
+}

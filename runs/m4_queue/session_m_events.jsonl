@@ -1,0 +1,112 @@
+{"t": 1793717448.9339628, "event": "queue_start", "finished": 4, "total": 61}
+{"t": 1793717448.9340515, "event": "job_start", "job": "sft", "attempt": 1}
+{"t": 1793754037.784466, "event": "job_end", "job": "sft", "code": 0, "seconds": 36588.9}
+{"t": 1793754037.7851, "event": "job_start", "job": "backup-sft", "attempt": 1}
+{"t": 1793754120.012241, "event": "job_end", "job": "backup-sft", "code": 0, "seconds": 82.2}
+{"t": 1793754120.0127604, "event": "job_start", "job": "fetch-models", "attempt": 1}
+{"t": 1793754120.378363, "event": "job_end", "job": "fetch-models", "code": 0, "seconds": 0.4}
+{"t": 1793754120.3789742, "event": "job_start", "job": "g2", "attempt": 1}
+{"t": 1793754530.4437542, "event": "job_end", "job": "g2", "code": 0, "seconds": 410.1}
+{"t": 1793754530.4443746, "event": "job_start", "job": "speed", "attempt": 1}
+{"t": 1793754808.6179264, "event": "job_end", "job": "speed", "code": 0, "seconds": 278.2}
+{"t": 1793754808.618508, "event": "job_start", "job": "speed-rule", "attempt": 1}
+{"t": 1793754808.6840446, "event": "job_end", "job": "speed-rule", "code": 0, "seconds": 0.1}
+{"t": 1793754808.6845043, "event": "job_start", "job": "fit-v2-base-lr1e-05-s1", "attempt": 1}
+{"t": 1793755287.2257493, "event": "job_end", "job": "fit-v2-base-lr1e-05-s1", "code": 0, "seconds": 478.5}
+{"t": 1793755287.2266111, "event": "job_start", "job": "fit-v2-base-lr3e-05-s1", "attempt": 1}
+{"t": 1793755759.7690437, "event": "job_end", "job": "fit-v2-base-lr3e-05-s1", "code": 0, "seconds": 472.5}
+{"t": 1793755759.7701623, "event": "job_start", "job": "fit-v2-base-lr0.0001-s1", "attempt": 1}
+{"t": 1793756234.0625052, "event": "job_end", "job": "fit-v2-base-lr0.0001-s1", "code": 0, "seconds": 474.3}
+{"t": 1793756234.063085, "event": "job_start", "job": "choose-lr-v2-base", "attempt": 1}
+{"t": 1793756236.0817566, "event": "job_end", "job": "choose-lr-v2-base", "code": 0, "seconds": 2.0}
+{"t": 1793756236.0822847, "event": "job_start", "job": "fit-v2-base-chosen-s2", "attempt": 1}
+{"t": 1793756708.4229996, "event": "job_end", "job": "fit-v2-base-chosen-s2", "code": 0, "seconds": 472.3}
+{"t": 1793756708.4235945, "event": "job_start", "job": "fit-v2-base-chosen-s3", "attempt": 1}
+{"t": 1793757183.9169834, "event": "job_end", "job": "fit-v2-base-chosen-s3", "code": 0, "seconds": 475.5}
+{"t": 1793757183.9180593, "event": "job_start", "job": "fit-v2-chat-lr1e-05-s1", "attempt": 1}
+{"t": 1793757660.420296, "event": "job_end", "job": "fit-v2-chat-lr1e-05-s1", "code": 0, "seconds": 476.5}
+{"t": 1793757660.4213548, "event": "job_start", "job": "fit-v2-chat-lr3e-05-s1", "attempt": 1}
+{"t": 1793758135.5231454, "event": "job_end", "job": "fit-v2-chat-lr3e-05-s1", "code": 0, "seconds": 475.1}
+{"t": 1793758135.5241823, "event": "job_start", "job": "fit-v2-chat-lr0.0001-s1", "attempt": 1}
+{"t": 1793758613.431837, "event": "job_end", "job": "fit-v2-chat-lr0.0001-s1", "code": 0, "seconds": 477.9}
+{"t": 1793758613.4325686, "event": "job_start", "job": "choose-lr-v2-chat", "attempt": 1}
+{"t": 1793758615.452161, "event": "job_end", "job": "choose-lr-v2-chat", "code": 0, "seconds": 2.0}
+{"t": 1793758615.4529414, "event": "job_start", "job": "fit-v2-chat-chosen-s2", "attempt": 1}
+{"t": 1793759092.058045, "event": "job_end", "job": "fit-v2-chat-chosen-s2", "code": 0, "seconds": 476.6}
+{"t": 1793759092.0592363, "event": "job_start", "job": "fit-v2-chat-chosen-s3", "attempt": 1}
+{"t": 1793759578.957005, "event": "job_end", "job": "fit-v2-chat-chosen-s3", "code": 0, "seconds": 486.9}
+{"t": 1793759578.957776, "event": "job_start", "job": "fit-smollm2-base-lr1e-05-s1", "attempt": 1}
+{"t": 1793760144.6433008, "event": "job_end", "job": "fit-smollm2-base-lr1e-05-s1", "code": 0, "seconds": 565.7}
+{"t": 1793760144.6439304, "event": "job_start", "job": "fit-smollm2-base-lr3e-05-s1", "attempt": 1}
+{"t": 1793760722.4031427, "event": "job_end", "job": "fit-smollm2-base-lr3e-05-s1", "code": 0, "seconds": 577.8}
+{"t": 1793760722.4041464, "event": "job_start", "job": "fit-smollm2-base-lr0.0001-s1", "attempt": 1}
+{"t": 1793761287.4703653, "event": "job_end", "job": "fit-smollm2-base-lr0.0001-s1", "code": 0, "seconds": 565.1}
+{"t": 1793761287.4713655, "event": "job_start", "job": "choose-lr-smollm2-base", "attempt": 1}
+{"t": 1793761289.442569, "event": "job_end", "job": "choose-lr-smollm2-base", "code": 0, "seconds": 2.0}
+{"t": 1793761289.4434886, "event": "job_start", "job": "fit-smollm2-base-chosen-s2", "attempt": 1}
+{"t": 1793761863.7074862, "event": "job_end", "job": "fit-smollm2-base-chosen-s2", "code": 0, "seconds": 574.3}
+{"t": 1793761863.7084582, "event": "job_start", "job": "fit-smollm2-base-chosen-s3", "attempt": 1}
+{"t": 1793762438.3949287, "event": "job_end", "job": "fit-smollm2-base-chosen-s3", "code": 0, "seconds": 574.7}
+{"t": 1793762438.3958652, "event": "job_start", "job": "fit-smollm2-chat-lr1e-05-s1", "attempt": 1}
+{"t": 1793763012.479665, "event": "job_end", "job": "fit-smollm2-chat-lr1e-05-s1", "code": 0, "seconds": 574.1}
+{"t": 1793763012.4803407, "event": "job_start", "job": "fit-smollm2-chat-lr3e-05-s1", "attempt": 1}
+{"t": 1793763594.0549204, "event": "job_end", "job": "fit-smollm2-chat-lr3e-05-s1", "code": 0, "seconds": 581.6}
+{"t": 1793763594.0558374, "event": "job_start", "job": "fit-smollm2-chat-lr0.0001-s1", "attempt": 1}
+{"t": 1793764172.5567198, "event": "job_end", "job": "fit-smollm2-chat-lr0.0001-s1", "code": 0, "seconds": 578.5}
+{"t": 1793764172.557686, "event": "job_start", "job": "choose-lr-smollm2-chat", "attempt": 1}
+{"t": 1793764174.5291958, "event": "job_end", "job": "choose-lr-smollm2-chat", "code": 0, "seconds": 2.0}
+{"t": 1793764174.5301242, "event": "job_start", "job": "fit-smollm2-chat-chosen-s2", "attempt": 1}
+{"t": 1793764753.9339578, "event": "job_end", "job": "fit-smollm2-chat-chosen-s2", "code": 0, "seconds": 579.4}
+{"t": 1793764753.9346485, "event": "job_start", "job": "fit-smollm2-chat-chosen-s3", "attempt": 1}
+{"t": 1793765331.279166, "event": "job_end", "job": "fit-smollm2-chat-chosen-s3", "code": 0, "seconds": 577.3}
+{"t": 1793765331.2802057, "event": "job_start", "job": "fit-gemma-base-lr1e-05-s1", "attempt": 1}
+{"t": 1793765773.2240899, "event": "job_end", "job": "fit-gemma-base-lr1e-05-s1", "code": 0, "seconds": 441.9}
+{"t": 1793765773.2250657, "event": "job_start", "job": "fit-gemma-base-lr3e-05-s1", "attempt": 1}
+{"t": 1793766217.7875094, "event": "job_end", "job": "fit-gemma-base-lr3e-05-s1", "code": 0, "seconds": 444.6}
+{"t": 1793766217.7885303, "event": "job_start", "job": "fit-gemma-base-lr0.0001-s1", "attempt": 1}
+{"t": 1793766664.7982118, "event": "job_end", "job": "fit-gemma-base-lr0.0001-s1", "code": 0, "seconds": 447.0}
+{"t": 1793766664.7993026, "event": "job_start", "job": "choose-lr-gemma-base", "attempt": 1}
+{"t": 1793766666.82131, "event": "job_end", "job": "choose-lr-gemma-base", "code": 0, "seconds": 2.0}
+{"t": 1793766666.8224058, "event": "job_start", "job": "fit-gemma-base-chosen-s2", "attempt": 1}
+{"t": 1793767115.234066, "event": "job_end", "job": "fit-gemma-base-chosen-s2", "code": 0, "seconds": 448.4}
+{"t": 1793767115.2351344, "event": "job_start", "job": "fit-gemma-base-chosen-s3", "attempt": 1}
+{"t": 1793767560.854589, "event": "job_end", "job": "fit-gemma-base-chosen-s3", "code": 0, "seconds": 445.6}
+{"t": 1793767560.855645, "event": "job_start", "job": "fit-gemma-chat-lr1e-05-s1", "attempt": 1}
+{"t": 1793768013.8261032, "event": "job_end", "job": "fit-gemma-chat-lr1e-05-s1", "code": 0, "seconds": 453.0}
+{"t": 1793768013.8268077, "event": "job_start", "job": "fit-gemma-chat-lr3e-05-s1", "attempt": 1}
+{"t": 1793768467.5583007, "event": "job_end", "job": "fit-gemma-chat-lr3e-05-s1", "code": 0, "seconds": 453.7}
+{"t": 1793768467.5593784, "event": "job_start", "job": "fit-gemma-chat-lr0.0001-s1", "attempt": 1}
+{"t": 1793768923.0015702, "event": "job_end", "job": "fit-gemma-chat-lr0.0001-s1", "code": 0, "seconds": 455.4}
+{"t": 1793768923.0026586, "event": "job_start", "job": "choose-lr-gemma-chat", "attempt": 1}
+{"t": 1793768925.0250208, "event": "job_end", "job": "choose-lr-gemma-chat", "code": 0, "seconds": 2.0}
+{"t": 1793768925.0260904, "event": "job_start", "job": "fit-gemma-chat-chosen-s2", "attempt": 1}
+{"t": 1793769380.8657236, "event": "job_end", "job": "fit-gemma-chat-chosen-s2", "code": 0, "seconds": 455.8}
+{"t": 1793769380.8668516, "event": "job_start", "job": "fit-gemma-chat-chosen-s3", "attempt": 1}
+{"t": 1793769836.7053225, "event": "job_end", "job": "fit-gemma-chat-chosen-s3", "code": 0, "seconds": 455.8}
+{"t": 1793769836.7064362, "event": "job_start", "job": "fit-qwen3-base-lr1e-05-s1", "attempt": 1}
+{"t": 1793770520.6908658, "event": "job_end", "job": "fit-qwen3-base-lr1e-05-s1", "code": 0, "seconds": 684.0}
+{"t": 1793770520.6919675, "event": "job_start", "job": "fit-qwen3-base-lr3e-05-s1", "attempt": 1}
+{"t": 1793771199.2029555, "event": "job_end", "job": "fit-qwen3-base-lr3e-05-s1", "code": 0, "seconds": 678.5}
+{"t": 1793771199.2044923, "event": "job_start", "job": "fit-qwen3-base-lr0.0001-s1", "attempt": 1}
+{"t": 1793771882.1448245, "event": "job_end", "job": "fit-qwen3-base-lr0.0001-s1", "code": 0, "seconds": 682.9}
+{"t": 1793771882.1459248, "event": "job_start", "job": "choose-lr-qwen3-base", "attempt": 1}
+{"t": 1793771884.118454, "event": "job_end", "job": "choose-lr-qwen3-base", "code": 0, "seconds": 2.0}
+{"t": 1793771884.119579, "event": "job_start", "job": "fit-qwen3-base-chosen-s2", "attempt": 1}
+{"t": 1793772567.566321, "event": "job_end", "job": "fit-qwen3-base-chosen-s2", "code": 0, "seconds": 683.4}
+{"t": 1793772567.5674396, "event": "job_start", "job": "fit-qwen3-base-chosen-s3", "attempt": 1}
+{"t": 1793773251.0145073, "event": "job_end", "job": "fit-qwen3-base-chosen-s3", "code": 0, "seconds": 683.4}
+{"t": 1793773251.0152578, "event": "job_start", "job": "routes", "attempt": 1}
+{"t": 1793773253.1355412, "event": "job_end", "job": "routes", "code": 0, "seconds": 2.1}
+{"t": 1793773253.1363552, "event": "job_start", "job": "backup-weights", "attempt": 1}
+{"t": 1793773721.097338, "event": "job_end", "job": "backup-weights", "code": 0, "seconds": 468.0}
+{"t": 1793773721.098271, "event": "job_skipped", "job": "test", "because": "runs/m4_queue/test_on_laptop"}
+{"t": 1793773721.098818, "event": "job_skipped", "job": "backup-test", "because": "runs/m4_queue/test_on_laptop"}
+{"t": 1793773721.0993028, "event": "job_start", "job": "billsum-v2", "attempt": 1}
+{"t": 1793774612.3454673, "event": "job_end", "job": "billsum-v2", "code": 0, "seconds": 891.2}
+{"t": 1793774612.3469365, "event": "job_start", "job": "billsum-smollm2", "attempt": 1}
+{"t": 1793775714.8245192, "event": "job_end", "job": "billsum-smollm2", "code": 0, "seconds": 1102.5}
+{"t": 1793775714.8255515, "event": "job_start", "job": "billsum-gemma", "attempt": 1}
+{"t": 1793777481.1169024, "event": "job_end", "job": "billsum-gemma", "code": 0, "seconds": 1766.3}
+{"t": 1793777481.1179745, "event": "job_start", "job": "billsum-qwen3", "attempt": 1}
+{"t": 1793780212.3039012, "event": "job_end", "job": "billsum-qwen3", "code": 0, "seconds": 2731.2}
+{"t": 1793780212.3051572, "event": "job_start", "job": "backup", "attempt": 1}

@@ -1,0 +1,9 @@
+{
+ "items": 3087,
+ "seconds": 241.42082381248474,
+ "items_per_s": 12.786800870159073,
+ "output_chars": 2358810,
+ "chars_per_s": 9770.532478309013,
+ "gen_tokens_budget_final": 262144,
+ "device": "NVIDIA GeForce RTX 4090 Laptop GPU"
+}

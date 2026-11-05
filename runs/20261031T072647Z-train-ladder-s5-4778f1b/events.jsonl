@@ -1,0 +1,2 @@
+{"t": 1793431641.6778116, "event": "micro_batch_halved", "configured": 16, "used": 8, "accum_used": 16}
+{"t": 1793431642.4283733, "event": "start", "step": 0, "total_steps": 3814, "params": 60836416, "params_non_embedding": 31861312, "tokens_per_step": 262144}

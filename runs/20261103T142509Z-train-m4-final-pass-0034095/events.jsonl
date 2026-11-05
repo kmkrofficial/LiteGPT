@@ -1,0 +1,1 @@
+{"t": 1793715911.9108098, "event": "start", "step": 0, "total_steps": 2, "steps_per_epoch": [2], "params": 201373952, "row_fill_epoch0": 0.8174057006835938, "conversations": 193, "heldout_conversations": 3846, "micro_batch": 8, "warmup_steps": 38}

@@ -1,0 +1,9 @@
+{
+ "items": 3087,
+ "seconds": 272.21606040000916,
+ "items_per_s": 11.34025668971843,
+ "output_chars": 2353641,
+ "chars_per_s": 8646.223872836274,
+ "gen_tokens_budget_final": 262144,
+ "device": "NVIDIA A100-PCIE-40GB"
+}

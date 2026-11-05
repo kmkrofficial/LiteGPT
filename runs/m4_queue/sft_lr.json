@@ -1,0 +1,23 @@
+{
+ "rows": [
+  {
+   "name": "m4-sft-sweep-a",
+   "lr": 6e-05,
+   "loss": 1.5240071723493094,
+   "status": "completed"
+  },
+  {
+   "name": "m4-sft-sweep-b",
+   "lr": 0.0002,
+   "loss": 1.4641664576725812,
+   "status": "completed"
+  },
+  {
+   "name": "m4-sft-sweep-c",
+   "lr": 0.0006,
+   "loss": 1.4130596426499593,
+   "status": "completed"
+  }
+ ],
+ "chosen_lr": 0.0006
+}

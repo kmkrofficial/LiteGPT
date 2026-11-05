@@ -1,0 +1,31 @@
+{
+  "status": "completed",
+  "step": 2,
+  "total_steps": 2,
+  "tokens": 262144,
+  "real_tokens": 214278,
+  "lr": 0.0002,
+  "best": {
+    "epoch": 0,
+    "loss": 1.6755349855257755,
+    "step": 2
+  },
+  "history": [
+    {
+      "epoch": 0,
+      "step": 2,
+      "tokens": 262144,
+      "loss": 1.6755349855257755,
+      "target_tokens": 4218558,
+      "conversations": 3846,
+      "seconds": 38.86451959609985
+    }
+  ],
+  "stopped_early": false,
+  "skipped_steps": 0,
+  "mean_tok_per_s": null,
+  "row_fill_epoch0": 0.8174057006835938,
+  "micro_batch_used": 8,
+  "config_hash": "d334dba2d5754e5ec32f5a77164725cbc85c212353e543bb0712070eb92e9e5a",
+  "run": "20261103T142509Z-train-m4-final-pass-0034095"
+}

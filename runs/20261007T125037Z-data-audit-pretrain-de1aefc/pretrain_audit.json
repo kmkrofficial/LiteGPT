@@ -1,0 +1,103 @@
+{
+  "fineweb_edu_dedup": {
+    "repo": "HuggingFaceTB/smollm-corpus",
+    "config": "fineweb-edu-dedup",
+    "revision": "3ba9d605774198c5868892d7a8deda78031a781f",
+    "n_files": 234,
+    "parquet_GB": 550.069279849,
+    "rows_total": 190168005,
+    "sample_files": [
+      "fineweb-edu-dedup/train-00000-of-00234.parquet",
+      "fineweb-edu-dedup/train-00116-of-00234.parquet",
+      "fineweb-edu-dedup/train-00233-of-00234.parquet"
+    ],
+    "sample_docs": 18000,
+    "proxy_tokens_per_doc": 1077.1371111111112,
+    "chars_per_token": 4.618096901725294,
+    "bytes_per_token": 4.639449130276822,
+    "est_total_tokens_B": 204.83701553146335,
+    "per_file_tokens_per_doc": [
+      1010.4936666666666,
+      1118.2091666666668,
+      1102.7085
+    ],
+    "share_docs_int_score_ge4": 0.12705555555555556,
+    "share_tokens_int_score_ge4": 0.13317122322403194,
+    "est_ge4_tokens_B": 27.278395919885003
+  },
+  "cosmopedia_v2": {
+    "repo": "HuggingFaceTB/smollm-corpus",
+    "config": "cosmopedia-v2",
+    "revision": "3ba9d605774198c5868892d7a8deda78031a781f",
+    "n_files": 104,
+    "parquet_GB": 122.361137711,
+    "rows_total": 39134000,
+    "sample_files": [
+      "cosmopedia-v2/train-00000-of-00104.parquet",
+      "cosmopedia-v2/train-00052-of-00104.parquet",
+      "cosmopedia-v2/train-00103-of-00104.parquet"
+    ],
+    "sample_docs": 18000,
+    "proxy_tokens_per_doc": 727.4626111111111,
+    "chars_per_token": 5.127017906304005,
+    "bytes_per_token": 5.132319515161031,
+    "est_total_tokens_B": 28.468521823222222,
+    "per_file_tokens_per_doc": [
+      729.7005,
+      727.393,
+      725.2943333333334
+    ]
+  },
+  "finemath_3plus": {
+    "repo": "HuggingFaceTB/finemath",
+    "config": "finemath-3plus",
+    "revision": "e92b25a616738fe95dc186b64dfb19f9c8525594",
+    "n_files": 128,
+    "parquet_GB": 65.039196945,
+    "rows_total": 21405610,
+    "sample_files": [
+      "finemath-3plus/train-00000-of-00128.parquet",
+      "finemath-3plus/train-00064-of-00128.parquet",
+      "finemath-3plus/train-00127-of-00128.parquet"
+    ],
+    "sample_docs": 18000,
+    "proxy_tokens_per_doc": 1760.6765,
+    "chars_per_token": 3.2719063761381872,
+    "bytes_per_token": 3.31766883669746,
+    "est_total_tokens_B": 37.688354495165,
+    "per_file_tokens_per_doc": [
+      1855.1125,
+      1823.7408333333333,
+      1603.1761666666666
+    ],
+    "share_docs_int_score_ge4": 0.31022222222222223,
+    "share_tokens_int_score_ge4": 0.2561293596208301,
+    "est_ge4_tokens_B": 9.653094102009446
+  },
+  "finemath_4plus": {
+    "repo": "HuggingFaceTB/finemath",
+    "config": "finemath-4plus",
+    "revision": "e92b25a616738fe95dc186b64dfb19f9c8525594",
+    "n_files": 64,
+    "parquet_GB": 18.365184633,
+    "rows_total": 6699493,
+    "sample_files": [
+      "finemath-4plus/train-00000-of-00064.parquet",
+      "finemath-4plus/train-00032-of-00064.parquet",
+      "finemath-4plus/train-00063-of-00064.parquet"
+    ],
+    "sample_docs": 18000,
+    "proxy_tokens_per_doc": 1547.0984444444443,
+    "chars_per_token": 3.2973105712011717,
+    "bytes_per_token": 3.3404524426586084,
+    "est_total_tokens_B": 10.364775198866443,
+    "per_file_tokens_per_doc": [
+      1524.6775,
+      1618.2066666666667,
+      1498.4111666666668
+    ],
+    "share_docs_int_score_ge4": 1.0,
+    "share_tokens_int_score_ge4": 1.0,
+    "est_ge4_tokens_B": 10.364775198866443
+  }
+}

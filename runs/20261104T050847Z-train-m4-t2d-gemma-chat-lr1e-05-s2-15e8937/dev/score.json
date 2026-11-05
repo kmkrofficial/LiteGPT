@@ -1,0 +1,37 @@
+{
+  "status": "completed",
+  "arm": "gemma-chat",
+  "lr": 1e-05,
+  "seed": 2,
+  "run": "20261104T050847Z-train-m4-t2d-gemma-chat-lr1e-05-s2-15e8937",
+  "cuad": 0.6976744186046512,
+  "massive": 0.7983275946876537,
+  "banking77": 0.9192422731804586,
+  "score": 0.8050814288242544,
+  "cuad_valid_json": 0.9803921568627451,
+  "massive_valid_json": 1.0,
+  "cuad_per_field": {
+    "document_name": 0.7920792079207921,
+    "parties": 0.5656565656565656,
+    "agreement_date": 0.8395061728395061,
+    "governing_law": 0.925
+  },
+  "generation": {
+    "items": 3087,
+    "seconds": 55.48452568054199,
+    "items_per_s": 55.63713417635987,
+    "output_chars": 125849,
+    "chars_per_s": 2268.181956255495,
+    "gen_tokens_budget_final": 262144
+  },
+  "train": {
+    "status": "completed",
+    "steps": 1970,
+    "total_steps": 1970,
+    "tokens": 4575243,
+    "seconds": 383.48254466056824,
+    "skipped_steps": 0,
+    "micro_tokens_final": 4096
+  },
+  "params": 268098176
+}

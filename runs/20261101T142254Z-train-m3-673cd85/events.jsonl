@@ -1,0 +1,5 @@
+{"t": 1793542987.6096983, "event": "start", "step": 0, "total_steps": 19075, "params": 201373952, "params_non_embedding": 176208128, "tokens_per_step": 524288}
+{"t": 1793662680.9926884, "event": "gate", "step": 17167, "decision": "stop", "delta": 0.006978252250736228, "stable_end_tokens": 9000000000.0, "reason": "delta below the threshold"}
+{"t": 1793662694.0899231, "event": "phase", "step": 17167, "tokens": 9000452096, "phase": "decay"}
+{"t": 1793670763.211944, "event": "context_extension", "step": 18312, "seq_len": 4096, "rope_theta": 10000.0, "micro_batch": 8, "accum": 16, "probe": {"free_GiB": 38.98, "cap_fraction": 0.9617, "optimizer_reserve_GiB": 0.0, "tried": [{"micro_batch": 8, "fits": true, "peak_GiB": 34.52}]}}
+{"t": 1793670763.2732048, "event": "phase", "step": 18312, "tokens": 9600761856, "phase": "extension"}

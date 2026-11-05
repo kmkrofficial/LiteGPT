@@ -1,0 +1,16 @@
+{
+  "vocab_size": 32768,
+  "vocab_size_ok": true,
+  "specials_ok": true,
+  "round_trip": {},
+  "round_trip_ok": true,
+  "special_text_not_control_ok": true,
+  "digits_single_ok": true,
+  "whitespace_tokens": {
+    "4 spaces": 2,
+    "tab": 2,
+    "newline+indent": 3,
+    "8 spaces": 2
+  },
+  "whitespace_ok": true
+}
