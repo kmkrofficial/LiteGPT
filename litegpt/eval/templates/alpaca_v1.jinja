@@ -1,0 +1,13 @@
+{%- for m in messages -%}
+{%- if m['role'] == 'user' -%}
+Below is an instruction that describes a task. Write a response that appropriately completes the request.
+
+### Instruction:
+{{ m['content'] }}
+
+### Response:
+{% elif m['role'] == 'assistant' -%}
+{{ m['content'] }}{{ eos_token }}
+
+{% endif -%}
+{%- endfor -%}
