@@ -634,6 +634,8 @@ experiments:
       models: "LiteGPT-V2-Base from the M3 milestone-final.pt, LiteGPT-Llama-V2-Instruct from the M4 SFT milestone-final.pt"
       format: "safetensors at bfloat16, the dtype every benchmark was scored at, with tied embeddings stored once; Qwen3 config, tokenizer, chat template, litegpt.json metadata, model card, notice and licence files"
       measured_on: "CPU in float32 for logits, using the bfloat16 weights both sides, so differences are not hidden by bf16 rounding; prompts of 1, 16, 512, 2,048 and 3,968 tokens from fixed-seed token ids"
+      correction_before_measuring: "2026-11-05, on a tiny random model, before any real export: LiteGPT's .to(bfloat16) also rounds its RoPE tables, and Transformers keeps them in float32. That gave logit differences near 5e-4 and failed the round trip. The rule is about weights, so the check now rebuilds LiteGPT's tables in float32. Thresholds unchanged"
+      reported_at_bfloat16: "logit difference and greedy agreement with both sides at bfloat16, as people will run it; no pass line"
     thresholds:
       parameters: "201,373,952 on both sides"
       logits: "PASS if the largest absolute logit difference on any prompt is at most 1e-3"
