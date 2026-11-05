@@ -1,111 +1,94 @@
-# LiteGPT Project
+# LiteGPT
 
-This repository contains the code and resources for training a Small Language Model (SLM) from scratch, based on Andrej Karpathy's [nanoGPT](https://github.com/karpathy/nanoGPT). 
+A small language model trained from scratch, with its whole build on record: every dataset revision, every threshold set before the run, and every result, including the comparison it lost.
 
-The goal of this project is to build a GPT-2 (124M parameter) equivalent model trained on high-quality educational data and subsequently fine-tuned for instruction following.
+**LiteGPT V2** has 201M parameters and was designed on one laptop and trained on one rented GPU. It is a research model. **No V2 weights are public yet**: the release is being prepared.
 
-## Project Overview
+## Should you use it?
 
-- **Architecture**: GPT-2 Small (12 layers, 12 heads, 768 embedding dim)
-- **Dataset**: [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu) (Sample 10B tokens)
-- **Fine-Tuning**: Alpaca Dataset (Instruction Tuning)
-- **Framework**: PyTorch (nanoGPT)
+| You want | Use |
+|---|---|
+| To extract data from text, offline | SmolLM2-135M or Gemma 3 270M, or Qwen3-0.6B if you have the memory. V2 lost to all three |
+| A good small chat model | Gemma 3 270M-it or Qwen3-0.6B. V2-Instruct scores well below them and refuses nothing |
+| To see how a small model gets built and tested, failures included | **LiteGPT V2** |
 
-## Setup
+## Results
 
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+| Text-to-data, after fine-tuning | V2 | SmolLM2-135M | Gemma 3 270M | Qwen3-0.6B |
+|---|---:|---:|---:|---:|
+| Parameters | 201M | 135M | 268M | 596M |
+| Score (higher is better) | 0.800 | 0.817 | 0.822 | 0.851 |
+| V2's verdict | | Loss | Loss | Loss |
+| Peak RAM on CPU | 1.66 GiB | 1.61 GiB | 2.62 GiB | 4.27 GiB |
 
-2. **Prepare Data**
-   The training data is processed using the scripts in the `data/` directory.
-   
-   > **Note**: The actual datasets (FineWeb-Edu and Alpaca) are not included in this repository to keep it light. You can download and prepare them using the provided `prepare.py` scripts in the respective `data/` subdirectories.
+| As a base model | V2 | V1 | SmolLM2-135M | Gemma 3 270M |
+|---|---:|---:|---:|---:|
+| Zero-shot mean, 10 tasks | 0.383 | 0.371 | 0.403 | 0.393 |
+| TriviaQA | 0.054 | 0.029 | 0.134 | 0.133 |
+| Decode speed on a laptop GPU, tok/s | 86 | 213 | 46 | 46 |
+| GPU memory at batch 8, GiB | 0.59 | 0.78 | 0.73 | 2.59 |
 
-## Usage
+V2 is clearly better than V1 on five tasks and clearly worse on none. Its speed and memory figures use its own engine and the others use Hugging Face `generate`, so they aren't like for like. It can't yet do math or write working code. **[All benchmarks and limits](docs/results.md)**.
 
-### 1. Training
-To train the base model:
-```bash
-python train.py config/train_fineweb.py
-```
+## Use it
 
-### 2. Instruction Fine-Tuning
-To fine-tune the model on instructions:
-```bash
-python train.py config/finetune_alpaca.py
-```
-
-### 3. Inference / Chat
-We provide interactive scripts to test the models:
-
-- **Check Base Model**:
-  ```bash
-  python check_model.py
-  ```
-  *Interactively prompts the base model (trained on FineWeb-Edu).*
-
-- **Check Instruction Model**:
-  ```bash
-  python check_instruct.py
-  ```
-  *Interactively chats with the instruction-tuned model. Supports commands like `/temp`, `/tokens`.*
-
-### 4. Publish to Hugging Face
-To export your trained model to the Hugging Face Hub:
+Install from this repository (Python 3.12, [uv](https://docs.astral.sh/uv/)):
 
 ```bash
-python export_to_hub.py --checkpoint out-instruct/ckpt.pt --repo_name <your-username>/<your-model-name>
+uv sync --locked
 ```
-*Note: Make sure you remain logged in via `huggingface-cli login` or provide a token.*
 
-### 5. Use from Hugging Face
-We host two versions of the model:
-- **Instruct Model**: `koganrath/LiteGPT-Instruct` (Fine-tuned on Alpaca)
-- **Base Model**: `koganrath/LiteGPT-Base` (Pre-trained on FineWeb)
-
-We provide a standalone inference setup in the `hugging_face_inference/` directory.
-
-To use it:
 ```bash
-cd hugging_face_inference
-pip install -r requirements.txt
-
-# Run Instruct Model
-python inference_instruct.py
-
-# Run Base Model
-python inference_base.py
+uv run litegpt info --model weights.pt
 ```
 
-Or in Python:
+```bash
+uv run litegpt generate --model weights.pt "The capital of France is"
+```
+
+```bash
+uv run litegpt chat --model instruct.pt
+```
+
 ```python
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+import litegpt
 
-model = GPT2LMHeadModel.from_pretrained("koganrath/LiteGPT")
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+m = litegpt.load("instruct.pt")
+print(litegpt.chat(m, "Name three colours.", max_new_tokens=48))
 ```
 
-## Directory Structure
+Everything runs offline. More in [docs/inference.md](docs/inference.md).
 
-- `data/`: Data preparation scripts and raw data.
-- `config/`: Configuration files for training and fine-tuning.
-- `out-fineweb/`: Checkpoints and logs for the base model.
-- `out-instruct/`: Checkpoints for the instruction-tuned model.
-- `hugging_face_inference/`: Standalone scripts for using the hosted model.
-- `check_model.py`: Inference script for the base model.
-- `check_instruct.py`: Inference script for the instruct model.
-- `export_to_hub.py`: Script to export checkpoints to Hugging Face.
+## What's here
+
+| Folder | What it holds |
+|---|---|
+| [`litegpt/`](litegpt/README.md) | The package: model, tokenizer, inference, training, evaluation, API and CLI |
+| [`docs/`](docs/README.md) | Results, history, architecture, data, licences, decisions and the experiment registry |
+| [`benchmarks/`](benchmarks/README.md) | Run configs and benchmark tools |
+| [`scripts/`](scripts/README.md) | Data preparation, training, scoring and rented-server tools |
+| [`tests/`](tests/README.md) | The test suite |
+| [`runs/`](runs/README.md) | Run records behind every reported number |
+
+## How it was built
+
+Every experiment was registered before it ran. Design choices were tested one at a time on small models. Pretraining took 37 hours on one rented A100 and cost $16.64, and the cloud total including chat fine-tuning and the comparison was $24.73. [The history](docs/history.md) covers the decisions, the deviations and what went wrong.
+
+No one has rebuilt the model independently. The recipe is on record and re-runnable: [docs/reproduce.md](docs/reproduce.md).
+
+## V1
+
+V1 is GPT-2 Small (124M), trained on FineWeb-Edu and fine-tuned on Alpaca, published as `koganrath/LiteGPT-Base` and `koganrath/LiteGPT-Instruct`. Its code is preserved in [`scripts/legacy_v1/`](scripts/legacy_v1/README.md) as the baseline.
+
+## Licence and attribution
+
+Code is MIT licensed ([`LICENSE`](LICENSE)). LiteGPT is derived from [nanoGPT](https://github.com/karpathy/nanoGPT) (Copyright (c) 2022 Andrej Karpathy, MIT), whose copyright notice is retained.
+
+The licence of the V2 weights isn't final: Apache-2.0 is proposed in [ADR-011](docs/decisions/ADR-011-model-licence.md), and no weights are published before it is accepted. Datasets and their terms are in [docs/data_licenses.md](docs/data_licenses.md).
 
 ## Acknowledgements
 
 - [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy
-- [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu) Dataset
-- [Alpaca](https://github.com/tatsu-lab/stanford_alpaca) Dataset
-
-## Testing Environment
-
-The code has been tested on **Windows** with **Python 3.11.9**.
-
-For a complete list of installed packages in the testing environment (including specific versions), see `test_env_requirements.txt`.
+- [SmolLM corpus, FineMath and SmolTalk](https://huggingface.co/HuggingFaceTB) by Hugging Face
+- [github-code-clean](https://huggingface.co/datasets/codeparrot/github-code-clean) by CodeParrot
+- [CUAD](https://huggingface.co/datasets/theatticusproject/cuad), [MASSIVE](https://huggingface.co/datasets/AmazonScience/massive), [Banking77](https://huggingface.co/datasets/PolyAI/banking77) and [BillSum](https://huggingface.co/datasets/FiscalNote/billsum), used for the comparison
