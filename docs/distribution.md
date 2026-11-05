@@ -6,11 +6,11 @@
 
 | What | Where |
 |---|---|
-| Code | `github.com/kmkrworks/LiteGPT` |
+| Code | `github.com/kmkrofficial/LiteGPT`, where V1 already is |
 | Base weights | `huggingface.co/kmkrworks/LiteGPT-V2-Base` |
 | Instruct weights | `huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct` |
 
-V1 stays where it is: `kmkrofficial/LiteGPT` on GitHub, and `koganrath/LiteGPT-Base` and `koganrath/LiteGPT-Instruct` on Hugging Face. None of the V2 locations above exist yet.
+V2's commits go on top of V1's, so V1's history stays. V1's models stay at `koganrath/LiteGPT-Base` and `koganrath/LiteGPT-Instruct` on Hugging Face. The V2 model repos above don't exist yet, and no V2 code is public yet.
 
 ## Planned
 
