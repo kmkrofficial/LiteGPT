@@ -1,0 +1,28 @@
+# lm-eval 0.4.13 humaneval_instruct (humaneval.yaml + humaneval_instruct.yaml) with two changes (EXP-M1B-SUITE, suite 0.1.1):
+# no "\ndef" / "\n#" / "\nif" / "\nclass" / "\nprint" stop strings, and the answer's code is taken up to its closing fence.
+task: humaneval_instruct_litegpt
+dataset_path: openai/openai_humaneval
+unsafe_code: true
+output_type: generate_until
+test_split: test
+doc_to_text: "Write a solution to the following problem and make sure that it passes the tests:\n```python\n{{ prompt }}\n```\n"
+gen_prefix: "Here is the completed function:\n```python\n{{ prompt }}\n"
+doc_to_target: "{{test}}\ncheck({{entry_point}})"
+metric_list:
+  - metric: !function utils.pass_at_k
+    aggregation: mean
+    higher_is_better: true
+    k: [1]
+generation_kwargs:
+  until: []
+  max_gen_toks: 1024
+  do_sample: false
+repeats: 1
+num_fewshot: 0
+filter_list:
+  - name: "create_test"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions_humaneval
+metadata:
+  version: 1.0

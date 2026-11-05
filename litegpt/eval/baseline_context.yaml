@@ -1,0 +1,93 @@
+# Published context for the M1b baselines (EXP-M1B-BASELINES). These are the publishers' figures, shown in the report as
+# "published", never as measurements. Parameter counts are NOT typed here: the report counts them from the loaded weights
+# (efficiency records). Checked 2026-10-12 against each model card at the evaluated revision.
+# order: report row order (V1 first, then by size).
+models:
+  - repo: koganrath/LiteGPT-Base
+    label: LiteGPT V1 Base
+    role: V1
+    training_tokens: 10000000000
+    training_data: FineWeb-Edu
+    source: "model card koganrath/LiteGPT-Instruct (pre-training: 10B tokens from FineWeb-Edu)"
+  - repo: koganrath/LiteGPT-Instruct
+    label: LiteGPT V1 Instruct
+    role: V1
+    training_tokens: 10000000000
+    training_data: FineWeb-Edu + instruction tuning
+    source: "model card (pre-training: 10B tokens from FineWeb-Edu)"
+  - repo: openai-community/gpt2
+    label: GPT-2
+    role: same class
+    training_tokens: null
+    training_data: WebText (40 GB, not released)
+    source: "model card: token count not published"
+  - repo: HuggingFaceTB/SmolLM2-135M
+    label: SmolLM2-135M
+    role: same class
+    training_tokens: 2000000000000
+    source: "model card (135M trained on 2 trillion tokens)"
+  - repo: HuggingFaceTB/SmolLM2-135M-Instruct
+    label: SmolLM2-135M-Instruct
+    role: same class
+    training_tokens: 2000000000000
+    source: "model card (135M trained on 2 trillion tokens)"
+  - repo: EleutherAI/pythia-160m
+    label: Pythia-160M
+    role: same class
+    training_tokens: 299892736000
+    training_data: the Pile
+    source: "model card (299,892,736,000 tokens)"
+  - repo: google/gemma-3-270m
+    label: Gemma 3 270M
+    role: same class
+    training_tokens: 6000000000000
+    source: "model card (270M trained with 6 trillion tokens)"
+  - repo: google/gemma-3-270m-it
+    label: Gemma 3 270M-it
+    role: same class
+    training_tokens: 6000000000000
+    source: "model card (270M trained with 6 trillion tokens)"
+  - repo: openai-community/gpt2-medium
+    label: GPT-2 Medium
+    role: same class
+    training_tokens: null
+    training_data: WebText (40 GB, not released)
+    source: "model card: token count not published"
+  - repo: HuggingFaceTB/SmolLM2-360M
+    label: SmolLM2-360M
+    role: same class
+    training_tokens: 4000000000000
+    source: "model card (360M trained on 4 trillion tokens)"
+  - repo: HuggingFaceTB/SmolLM2-360M-Instruct
+    label: SmolLM2-360M-Instruct
+    role: same class
+    training_tokens: 4000000000000
+    source: "model card (360M trained on 4 trillion tokens)"
+  - repo: EleutherAI/pythia-410m
+    label: Pythia-410M
+    role: same class
+    training_tokens: 299892736000
+    training_data: the Pile
+    source: "model card (299,892,736,000 tokens)"
+  - repo: Qwen/Qwen2.5-0.5B
+    label: Qwen2.5-0.5B
+    role: reference
+    training_tokens: 18000000000000
+    training_tokens_note: "up to"
+    source: "Qwen2.5 technical report, arXiv:2412.15115 (pre-training data up to 18 trillion tokens); not on the model card"
+  - repo: Qwen/Qwen2.5-0.5B-Instruct
+    label: Qwen2.5-0.5B-Instruct
+    role: reference
+    training_tokens: 18000000000000
+    training_tokens_note: "up to"
+    source: "Qwen2.5 technical report, arXiv:2412.15115; not on the model card"
+  - repo: Qwen/Qwen3-0.6B-Base
+    label: Qwen3-0.6B-Base
+    role: reference
+    training_tokens: 36000000000000
+    source: "model card (pre-trained on 36 trillion tokens)"
+  - repo: Qwen/Qwen3-0.6B
+    label: Qwen3-0.6B (thinking off)
+    role: reference
+    training_tokens: 36000000000000
+    source: "model card (pre-trained on 36 trillion tokens)"
