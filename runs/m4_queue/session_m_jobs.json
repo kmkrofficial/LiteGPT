@@ -1,0 +1,311 @@
+[
+ {
+  "id": "sft-sweep-a",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-a --lr 6e-05 --keep-fraction 0.03 --epochs 1"
+ },
+ {
+  "id": "sft-sweep-b",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-b --lr 0.0002 --keep-fraction 0.03 --epochs 1"
+ },
+ {
+  "id": "sft-sweep-c",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-c --lr 0.0006 --keep-fraction 0.03 --epochs 1"
+ },
+ {
+  "id": "sft-choose-lr",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --choose-lr m4-sft-sweep-a m4-sft-sweep-b m4-sft-sweep-c --out runs/m4_queue/sft_lr.json"
+ },
+ {
+  "id": "sft",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft --lr-from runs/m4_queue/sft_lr.json"
+ },
+ {
+  "id": "backup-sft",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/cloud/m4_backup.py --session m",
+  "quiet": true
+ },
+ {
+  "id": "fetch-models",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/cloud/m4_fetch_models.py",
+  "quiet": true,
+  "timeout": 3600
+ },
+ {
+  "id": "g2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/m4_g2.py gate",
+  "quiet": true,
+  "timeout": 14400
+ },
+ {
+  "id": "speed",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py speed --config benchmarks/m4/t2d.yaml --arm v2-base",
+  "quiet": true,
+  "timeout": 3600,
+  "tolerate": true
+ },
+ {
+  "id": "speed-rule",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/m4_g2.py speed-rule"
+ },
+ {
+  "id": "fit-v2-base-lr1e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-base --lr 1e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-base-lr3e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-base --lr 3e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-base-lr0.0001-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-base --lr 0.0001 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "choose-lr-v2-base",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py choose-lr --config benchmarks/m4/t2d.yaml --arm v2-base",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-base-chosen-s2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-base --lr-from-choice --seed 2",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-base-chosen-s3",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-base --lr-from-choice --seed 3",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-chat-lr1e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-chat --lr 1e-05 --seed 1",
+  "unless": "runs/m4_queue/g2_failed",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-chat-lr3e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-chat --lr 3e-05 --seed 1",
+  "unless": "runs/m4_queue/g2_failed",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-chat-lr0.0001-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-chat --lr 0.0001 --seed 1",
+  "unless": "runs/m4_queue/g2_failed",
+  "tolerate": true
+ },
+ {
+  "id": "choose-lr-v2-chat",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py choose-lr --config benchmarks/m4/t2d.yaml --arm v2-chat",
+  "unless": "runs/m4_queue/g2_failed",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-chat-chosen-s2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-chat --lr-from-choice --seed 2",
+  "unless": "runs/m4_queue/g2_failed",
+  "tolerate": true
+ },
+ {
+  "id": "fit-v2-chat-chosen-s3",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm v2-chat --lr-from-choice --seed 3",
+  "unless": "runs/m4_queue/g2_failed",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-base-lr1e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-base --lr 1e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-base-lr3e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-base --lr 3e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-base-lr0.0001-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-base --lr 0.0001 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "choose-lr-smollm2-base",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py choose-lr --config benchmarks/m4/t2d.yaml --arm smollm2-base",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-base-chosen-s2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-base --lr-from-choice --seed 2",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-base-chosen-s3",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-base --lr-from-choice --seed 3",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-chat-lr1e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-chat --lr 1e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-chat-lr3e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-chat --lr 3e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-chat-lr0.0001-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-chat --lr 0.0001 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "choose-lr-smollm2-chat",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py choose-lr --config benchmarks/m4/t2d.yaml --arm smollm2-chat",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-chat-chosen-s2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-chat --lr-from-choice --seed 2",
+  "tolerate": true
+ },
+ {
+  "id": "fit-smollm2-chat-chosen-s3",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm smollm2-chat --lr-from-choice --seed 3",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-base-lr1e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-base --lr 1e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-base-lr3e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-base --lr 3e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-base-lr0.0001-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-base --lr 0.0001 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "choose-lr-gemma-base",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py choose-lr --config benchmarks/m4/t2d.yaml --arm gemma-base",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-base-chosen-s2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-base --lr-from-choice --seed 2",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-base-chosen-s3",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-base --lr-from-choice --seed 3",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-chat-lr1e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-chat --lr 1e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-chat-lr3e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-chat --lr 3e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-chat-lr0.0001-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-chat --lr 0.0001 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "choose-lr-gemma-chat",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py choose-lr --config benchmarks/m4/t2d.yaml --arm gemma-chat",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-chat-chosen-s2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-chat --lr-from-choice --seed 2",
+  "tolerate": true
+ },
+ {
+  "id": "fit-gemma-chat-chosen-s3",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm gemma-chat --lr-from-choice --seed 3",
+  "tolerate": true
+ },
+ {
+  "id": "fit-qwen3-base-lr1e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm qwen3-base --lr 1e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-qwen3-base-lr3e-05-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm qwen3-base --lr 3e-05 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "fit-qwen3-base-lr0.0001-s1",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm qwen3-base --lr 0.0001 --seed 1",
+  "tolerate": true
+ },
+ {
+  "id": "choose-lr-qwen3-base",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py choose-lr --config benchmarks/m4/t2d.yaml --arm qwen3-base",
+  "tolerate": true
+ },
+ {
+  "id": "fit-qwen3-base-chosen-s2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm qwen3-base --lr-from-choice --seed 2",
+  "tolerate": true
+ },
+ {
+  "id": "fit-qwen3-base-chosen-s3",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py fit --config benchmarks/m4/t2d.yaml --arm qwen3-base --lr-from-choice --seed 3",
+  "tolerate": true
+ },
+ {
+  "id": "routes",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py routes --config benchmarks/m4/t2d.yaml"
+ },
+ {
+  "id": "backup-weights",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/cloud/m4_backup.py --session m --weights",
+  "quiet": true
+ },
+ {
+  "id": "test",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py test --config benchmarks/m4/t2d.yaml",
+  "unless": "runs/m4_queue/test_on_laptop"
+ },
+ {
+  "id": "backup-test",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/cloud/m4_backup.py --session m",
+  "quiet": true,
+  "unless": "runs/m4_queue/test_on_laptop"
+ },
+ {
+  "id": "billsum-v2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py billsum --config benchmarks/m4/t2d.yaml --model v2",
+  "tolerate": true
+ },
+ {
+  "id": "billsum-smollm2",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py billsum --config benchmarks/m4/t2d.yaml --model smollm2",
+  "tolerate": true
+ },
+ {
+  "id": "billsum-gemma",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py billsum --config benchmarks/m4/t2d.yaml --model gemma",
+  "tolerate": true
+ },
+ {
+  "id": "billsum-qwen3",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/run_t2d.py billsum --config benchmarks/m4/t2d.yaml --model qwen3",
+  "tolerate": true
+ },
+ {
+  "id": "backup",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/cloud/m4_backup.py --session m --weights",
+  "quiet": true
+ }
+]

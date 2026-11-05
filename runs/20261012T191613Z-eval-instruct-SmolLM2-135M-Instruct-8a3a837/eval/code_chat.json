@@ -1,0 +1,78 @@
+{
+  "batch_size": 16,
+  "results": {
+    "humaneval_instruct_litegpt": {
+      "name": "humaneval_instruct_litegpt",
+      "alias": "humaneval_instruct_litegpt",
+      "sample_len": 164,
+      "pass@1,create_test": 0.0,
+      "pass@1_stderr,create_test": 0.0
+    },
+    "mbpp_instruct_litegpt": {
+      "name": "mbpp_instruct_litegpt",
+      "alias": "mbpp_instruct_litegpt",
+      "sample_len": 500,
+      "pass_at_1,extract_code": 0.098,
+      "pass_at_1_stderr,extract_code": 0.0133096315721049
+    }
+  },
+  "n_samples": {
+    "humaneval_instruct_litegpt": {
+      "original": 164,
+      "effective": 164
+    },
+    "mbpp_instruct_litegpt": {
+      "original": 500,
+      "effective": 500
+    }
+  },
+  "versions": {
+    "humaneval_instruct_litegpt": 1.0,
+    "mbpp_instruct_litegpt": 1.0
+  },
+  "configs": {
+    "humaneval_instruct_litegpt": {
+      "task": "humaneval_instruct_litegpt",
+      "dataset_path": "openai/openai_humaneval",
+      "test_split": "test",
+      "doc_to_text": "Write a solution to the following problem and make sure that it passes the tests:\n```python\n{{ prompt }}\n```\n",
+      "doc_to_target": "{{test}}\ncheck({{entry_point}})",
+      "unsafe_code": "True",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": "{'sampler': 'default', 'split': None, 'process_docs': None, 'fewshot_indices': None, 'samples': None, 'doc_to_text': 'Write a solution to the following problem and make sure that it passes the tests:\\n```python\\n{{ prompt }}\\n```\\n', 'doc_to_choice': None, 'doc_to_target': '{{test}}\\ncheck({{entry_point}})', 'gen_prefix': 'Here is the completed function:\\n```python\\n{{ prompt }}\\n', 'fewshot_delimiter': '\\n\\n', 'target_delimiter': ' '}",
+      "num_fewshot": "0",
+      "metric_list": "[{'metric': 'def pass_at_k(references, predictions, k=None):\\n    from lm_eval.tasks.humaneval.utils import pass_at_k as metric\\n    return metric(references, predictions, k)\\n', 'aggregation': 'mean', 'higher_is_better': True, 'k': [1]}]",
+      "output_type": "generate_until",
+      "generation_kwargs": "{'until': [], 'max_gen_toks': 512, 'do_sample': False, 'max_new_tokens': 512}",
+      "repeats": "1",
+      "filter_list": "[{'name': 'create_test', 'filter': [{'function': 'custom', 'filter_fn': <function build_predictions_humaneval at 0x7563d82d53a0>}]}]",
+      "should_decontaminate": "False",
+      "gen_prefix": "Here is the completed function:\n```python\n{{ prompt }}\n",
+      "metadata": "{'version': 1.0, 'config_source': '/home/user/LiteGPT/litegpt/eval/tasks/code_chat/humaneval_instruct_litegpt.yaml'}"
+    },
+    "mbpp_instruct_litegpt": {
+      "task": "mbpp_instruct_litegpt",
+      "dataset_path": "google-research-datasets/mbpp",
+      "dataset_name": "full",
+      "test_split": "test",
+      "doc_to_text": "You are an expert Python programmer, and here is your task:\n{{text}}\nYour code should pass these tests:\n{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}",
+      "doc_to_target": "{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}",
+      "unsafe_code": "True",
+      "description": "",
+      "target_delimiter": "",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": "{'sampler': 'default', 'split': None, 'process_docs': None, 'fewshot_indices': None, 'samples': None, 'doc_to_text': 'You are an expert Python programmer, and here is your task:\\n{{text}}\\nYour code should pass these tests:\\n{{test_list[0]}}\\n{{test_list[1]}}\\n{{test_list[2]}}', 'doc_to_choice': None, 'doc_to_target': '{{test_list[0]}}\\n{{test_list[1]}}\\n{{test_list[2]}}', 'gen_prefix': '\\n```python\\n', 'fewshot_delimiter': '\\n\\n', 'target_delimiter': ''}",
+      "num_fewshot": "0",
+      "metric_list": "[{'metric': 'def pass_at_1(references, predictions):\\n    from lm_eval.tasks.mbpp.utils import pass_at_1 as metric\\n    return metric(references, predictions)\\n', 'aggregation': 'mean', 'higher_is_better': True}]",
+      "output_type": "generate_until",
+      "generation_kwargs": "{'max_gen_toks': 512, 'until': [], 'do_sample': False, 'max_new_tokens': 512}",
+      "repeats": "1",
+      "filter_list": "[{'name': 'extract_code', 'filter': [{'function': 'custom', 'filter_fn': <function build_predictions_mbpp at 0x7563d805be20>}]}]",
+      "should_decontaminate": "False",
+      "gen_prefix": "\n```python\n",
+      "metadata": "{'version': 1.0, 'config_source': '/home/user/LiteGPT/litegpt/eval/tasks/code_chat/mbpp_instruct_litegpt.yaml'}"
+    }
+  }
+}

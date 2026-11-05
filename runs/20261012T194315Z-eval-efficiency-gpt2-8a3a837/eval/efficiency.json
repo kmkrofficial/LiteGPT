@@ -1,0 +1,69 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "gated": false,
+    "license": "mit"
+  },
+  "dtype": "bfloat16",
+  "rows": [
+    {
+      "prompt_tokens": 128,
+      "prompt_bytes": 736,
+      "batch": 1,
+      "new_tokens": 128,
+      "prefill_s": 0.006183745000271301,
+      "prefill_tok_s": 20699.43052218101,
+      "ttft_s": 0.011997034765897752,
+      "decode_tok_s": 172.01963781556626,
+      "decode_bytes_s": 958.2031387695214,
+      "peak_vram_GiB": 0.262270450592041
+    },
+    {
+      "prompt_tokens": 128,
+      "prompt_bytes": 736,
+      "batch": 8,
+      "new_tokens": 128,
+      "prefill_s": 0.010828758000570815,
+      "prefill_tok_s": 94563.01451616353,
+      "ttft_s": 0.015616660891190293,
+      "decode_tok_s": 1670.8776645561684,
+      "decode_bytes_s": 9307.310740848032,
+      "peak_vram_GiB": 0.37893009185791016
+    },
+    {
+      "prompt_tokens": 512,
+      "prompt_bytes": 2960,
+      "batch": 1,
+      "new_tokens": 128,
+      "prefill_s": 0.0051772790002360125,
+      "prefill_tok_s": 98893.64663883478,
+      "ttft_s": 0.010033026476797602,
+      "decode_tok_s": 205.94151669273202,
+      "decode_bytes_s": 1205.0796562723149,
+      "peak_vram_GiB": 0.3119678497314453
+    },
+    {
+      "prompt_tokens": 512,
+      "prompt_bytes": 2960,
+      "batch": 8,
+      "new_tokens": 128,
+      "prefill_s": 0.026259150999976555,
+      "prefill_tok_s": 155983.71782864028,
+      "ttft_s": 0.031239751226536328,
+      "decode_tok_s": 1606.2321077967351,
+      "decode_bytes_s": 9398.967568279333,
+      "peak_vram_GiB": 0.7756595611572266
+    }
+  ],
+  "gpu_power_limit_w": 146.066,
+  "params": {
+    "total": 124439808,
+    "embedding": 39383808,
+    "non_embedding": 85056000,
+    "tied_output": true,
+    "vocab_size": 50257
+  },
+  "note": "HF transformers generate with KV cache; decode = total - one prefill"
+}

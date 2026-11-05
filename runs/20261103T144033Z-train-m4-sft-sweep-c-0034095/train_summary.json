@@ -1,0 +1,31 @@
+{
+  "status": "completed",
+  "step": 139,
+  "total_steps": 139,
+  "tokens": 18219008,
+  "real_tokens": 14811414,
+  "lr": 0.0006,
+  "best": {
+    "epoch": 0,
+    "loss": 1.4130596426499593,
+    "step": 139
+  },
+  "history": [
+    {
+      "epoch": 0,
+      "step": 139,
+      "tokens": 18219008,
+      "loss": 1.4130596426499593,
+      "target_tokens": 4218558,
+      "conversations": 3846,
+      "seconds": 39.438010931015015
+    }
+  ],
+  "stopped_early": false,
+  "skipped_steps": 0,
+  "mean_tok_per_s": 49708.70817500139,
+  "row_fill_epoch0": 0.8129648990768323,
+  "micro_batch_used": 8,
+  "config_hash": "d334dba2d5754e5ec32f5a77164725cbc85c212353e543bb0712070eb92e9e5a",
+  "run": "20261103T144033Z-train-m4-sft-sweep-c-0034095"
+}

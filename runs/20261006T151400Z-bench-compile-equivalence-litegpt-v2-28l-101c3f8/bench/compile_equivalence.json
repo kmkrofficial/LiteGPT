@@ -1,0 +1,24 @@
+{
+  "config": "litegpt-v2-28l",
+  "micro_batch": 3,
+  "seq_len": 2048,
+  "backend": "sdpa",
+  "loss_eager": 10.55767822265625,
+  "loss_compiled": 10.558076858520508,
+  "loss_abs_diff": 0.0003986358642578125,
+  "logits_rel_l2_diff": 0.008832200430333614,
+  "logits_max_abs_diff": 0.03125,
+  "grad_norm_eager": 8.791024208068848,
+  "grad_norm_compiled": 8.791253089904785,
+  "grad_norm_rel_diff": 2.60358554953609e-05,
+  "last_layer_grad_rel_l2_diff": {
+    "model.layers.27.self_attn.q_proj.weight": 0.020894430577754974,
+    "model.layers.27.mlp.down_proj.weight": 0.013375719077885151
+  },
+  "all_finite": true,
+  "tolerance": {
+    "logits_rel_l2_diff_max": 0.05,
+    "grad_norm_rel_diff_max": 0.05
+  },
+  "passed": true
+}

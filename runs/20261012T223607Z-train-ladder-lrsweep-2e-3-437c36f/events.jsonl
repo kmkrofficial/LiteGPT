@@ -1,0 +1,8 @@
+{"t": 1791844572.3119895, "event": "micro_batch_halved", "configured": 16, "used": 8, "accum_used": 16}
+{"t": 1791844573.3185031, "event": "start", "step": 0, "total_steps": 953, "params": 62015040, "params_non_embedding": 31860288, "tokens_per_step": 262144}
+{"t": 1791847292.5721633, "event": "micro_batch_halved", "configured": 16, "used": 8, "accum_used": 16}
+{"t": 1791847293.1472466, "event": "resumed", "step": 574, "tokens": 150470656}
+{"t": 1791847293.986099, "event": "start", "step": 574, "total_steps": 953, "params": 62015040, "params_non_embedding": 31860288, "tokens_per_step": 262144}
+{"t": 1791853550.9240713, "event": "micro_batch_halved", "configured": 16, "used": 8, "accum_used": 16}
+{"t": 1791853551.517765, "event": "resumed", "step": 863, "tokens": 226230272}
+{"t": 1791853552.269136, "event": "start", "step": 863, "total_steps": 953, "params": 62015040, "params_non_embedding": 31860288, "tokens_per_step": 262144}

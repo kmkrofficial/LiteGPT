@@ -1,0 +1,24 @@
+{
+ "model": "qwen3",
+ "arm": "qwen3-base",
+ "threads": 8,
+ "tasks": {
+  "cuad": {
+   "items": 10,
+   "documents_per_minute": 4.26842231499912,
+   "time_to_first_token_s": 8.883117542000036
+  },
+  "massive": {
+   "items": 100,
+   "documents_per_minute": 66.97780094607138,
+   "time_to_first_token_s": 0.4380798590000268
+  },
+  "banking77": {
+   "items": 100,
+   "documents_per_minute": 125.13106758032842,
+   "time_to_first_token_s": 0.2880618089998279
+  }
+ },
+ "peak_ram_gib": 4.272006988525391,
+ "note": "bfloat16, one document at a time, same laptop and thread count"
+}

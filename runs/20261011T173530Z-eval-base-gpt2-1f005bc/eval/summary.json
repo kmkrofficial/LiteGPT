@@ -1,0 +1,24 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "gated": false,
+    "license": "mit"
+  },
+  "suite_version": "0.1.0",
+  "task_dataset_revisions": {},
+  "headline": {
+    "humaneval": {
+      "metric": "pass@1",
+      "value": 0.0,
+      "stderr": 0.0
+    },
+    "mbpp": {
+      "metric": "pass_at_1",
+      "value": 0.0,
+      "stderr": 0.0
+    }
+  },
+  "comparable": true
+}

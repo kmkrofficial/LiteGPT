@@ -1,0 +1,24 @@
+{
+ "model": "gemma",
+ "arm": "gemma-base",
+ "threads": 8,
+ "tasks": {
+  "cuad": {
+   "items": 10,
+   "documents_per_minute": 13.729110545229748,
+   "time_to_first_token_s": 2.4369021040001826
+  },
+  "massive": {
+   "items": 100,
+   "documents_per_minute": 154.38761240004135,
+   "time_to_first_token_s": 0.18616165899993575
+  },
+  "banking77": {
+   "items": 100,
+   "documents_per_minute": 245.77177976460047,
+   "time_to_first_token_s": 0.13891993700008243
+  }
+ },
+ "peak_ram_gib": 2.6162033081054688,
+ "note": "bfloat16, one document at a time, same laptop and thread count"
+}

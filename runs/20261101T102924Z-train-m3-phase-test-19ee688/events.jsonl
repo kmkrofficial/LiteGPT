@@ -1,0 +1,9 @@
+{"t": 1793528971.4794672, "event": "start", "step": 0, "total_steps": 32, "params": 201373952, "params_non_embedding": 176208128, "tokens_per_step": 524288}
+{"t": 1793529419.7577152, "event": "gate", "step": 20, "decision": "extend", "delta": 0.0306575738540813, "stable_end_tokens": 15000000.0, "reason": "delta at or above the threshold"}
+{"t": 1793529634.924387, "event": "phase", "step": 29, "tokens": 15204352, "phase": "decay"}
+{"t": 1793529731.1045706, "event": "context_extension", "step": 31, "seq_len": 4096, "rope_theta": 100000.0, "micro_batch": 2, "accum": 64, "probe": {"free_GiB": 14.63, "cap_fraction": 0.8521, "optimizer_reserve_GiB": 0.0, "tried": [{"micro_batch": 2, "fits": true, "peak_GiB": 10.71}]}}
+{"t": 1793529731.1092498, "event": "phase", "step": 31, "tokens": 16252928, "phase": "extension"}
+{"t": 1793529909.5453186, "event": "resumed", "step": 37, "tokens": 19398656}
+{"t": 1793529913.4626172, "event": "context_extension", "step": 37, "seq_len": 4096, "rope_theta": 100000.0, "micro_batch": 2, "accum": 64, "probe": {"free_GiB": 14.63, "cap_fraction": 0.8522, "optimizer_reserve_GiB": 0.0, "tried": [{"micro_batch": 2, "fits": true, "peak_GiB": 10.15}]}}
+{"t": 1793529913.4627082, "event": "phase", "step": 37, "tokens": 19398656, "phase": "extension"}
+{"t": 1793529913.58853, "event": "start", "step": 37, "total_steps": 41, "params": 201373952, "params_non_embedding": 176208128, "tokens_per_step": 524288}

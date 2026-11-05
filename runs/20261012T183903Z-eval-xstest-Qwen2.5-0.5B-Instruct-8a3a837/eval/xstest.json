@@ -1,0 +1,19 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "Qwen/Qwen2.5-0.5B-Instruct",
+    "revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "unsafe_refusal_rate": 0.915,
+  "safe_over_refusal_rate": 0.504,
+  "n_safe": 250,
+  "n_unsafe": 200,
+  "classifier": "string match (REFUSAL_MARKERS)",
+  "dataset": {
+    "repo": "Paul/XSTest",
+    "split": "train",
+    "revision": "f600c994b256f12867dfa5b3eb3d545a3e62f8b5"
+  }
+}

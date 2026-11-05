@@ -1,0 +1,27 @@
+[
+ {
+  "id": "sft-sweep-a",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-a --lr 6e-05 --keep-fraction 0.03 --epochs 1"
+ },
+ {
+  "id": "sft-sweep-b",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-b --lr 0.0002 --keep-fraction 0.03 --epochs 1"
+ },
+ {
+  "id": "sft-sweep-c",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-c --lr 0.0006 --keep-fraction 0.03 --epochs 1"
+ },
+ {
+  "id": "sft-choose-lr",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --choose-lr m4-sft-sweep-a m4-sft-sweep-b m4-sft-sweep-c --out runs/m4_queue/sft_lr.json"
+ },
+ {
+  "id": "sft",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft --lr-from runs/m4_queue/sft_lr.json"
+ },
+ {
+  "id": "backup",
+  "cmd": "/data/LiteGPT/.venv/bin/python scripts/cloud/m4_backup.py --session a",
+  "quiet": true
+ }
+]

@@ -1,0 +1,316 @@
+{
+  "source": "fineweb_edu",
+  "file": "fineweb-edu-dedup/train-00000-of-00234.parquet",
+  "docs": 200000,
+  "hit_docs": 154,
+  "hit_bytes_fraction": 0.002864807065627718,
+  "windows_by_benchmark": {
+    "mmlu": 957,
+    "truthfulqa": 7,
+    "triviaqa": 200,
+    "hellaswag": 1
+  },
+  "median_hits_per_doc": 3.0,
+  "top_ngrams": [
+    {
+      "ngram": "we hold these truths to be self evident that all men are created",
+      "docs_windows": 50,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "hold these truths to be self evident that all men are created equal",
+      "docs_windows": 50,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "conceived in liberty and dedicated to the proposition that all men are created",
+      "docs_windows": 11,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "in liberty and dedicated to the proposition that all men are created equal",
+      "docs_windows": 11,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "nation conceived in liberty and dedicated to the proposition that all men are",
+      "docs_windows": 10,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "to authors and inventors the exclusive right to their respective writings and discoveries",
+      "docs_windows": 9,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "a new nation conceived in liberty and dedicated to the proposition that all",
+      "docs_windows": 9,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "new nation conceived in liberty and dedicated to the proposition that all men",
+      "docs_windows": 9,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "this continent a new nation conceived in liberty and dedicated to the proposition",
+      "docs_windows": 8,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "continent a new nation conceived in liberty and dedicated to the proposition that",
+      "docs_windows": 8,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "by the senate and house of representatives of the united states of america",
+      "docs_windows": 8,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "the senate and house of representatives of the united states of america in",
+      "docs_windows": 8,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "senate and house of representatives of the united states of america in congress",
+      "docs_windows": 8,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "and house of representatives of the united states of america in congress assembled",
+      "docs_windows": 8,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "fathers brought forth on this continent a new nation conceived in liberty and",
+      "docs_windows": 7,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "brought forth on this continent a new nation conceived in liberty and dedicated",
+      "docs_windows": 7,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "forth on this continent a new nation conceived in liberty and dedicated to",
+      "docs_windows": 7,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "on this continent a new nation conceived in liberty and dedicated to the",
+      "docs_windows": 7,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "house of representatives of the united states of america in congress assembled that",
+      "docs_windows": 7,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "be it enacted by the senate and house of representatives of the united",
+      "docs_windows": 6,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "it enacted by the senate and house of representatives of the united states",
+      "docs_windows": 6,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "enacted by the senate and house of representatives of the united states of",
+      "docs_windows": 6,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "four score and seven years ago our fathers brought forth on this continent",
+      "docs_windows": 6,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "score and seven years ago our fathers brought forth on this continent a",
+      "docs_windows": 6,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "and seven years ago our fathers brought forth on this continent a new",
+      "docs_windows": 6,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "seven years ago our fathers brought forth on this continent a new nation",
+      "docs_windows": 6,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "years ago our fathers brought forth on this continent a new nation conceived",
+      "docs_windows": 6,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "ago our fathers brought forth on this continent a new nation conceived in",
+      "docs_windows": 6,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "our fathers brought forth on this continent a new nation conceived in liberty",
+      "docs_windows": 6,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "do all other acts and things which independent states may of right do",
+      "docs_windows": 6,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "provide for the common defence promote the general welfare and secure the blessings",
+      "docs_windows": 5,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "for the common defence promote the general welfare and secure the blessings of",
+      "docs_windows": 5,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "the common defence promote the general welfare and secure the blessings of liberty",
+      "docs_windows": 5,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "that s one small step for a man one giant leap for mankind",
+      "docs_windows": 4,
+      "benchmark": "truthfulqa"
+    },
+    {
+      "ngram": "in the field of public education the doctrine of separate but equal has",
+      "docs_windows": 4,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "the field of public education the doctrine of separate but equal has no",
+      "docs_windows": 4,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "field of public education the doctrine of separate but equal has no place",
+      "docs_windows": 4,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "caught in an inescapable network of mutuality tied in a single garment of",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "in an inescapable network of mutuality tied in a single garment of destiny",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "full power to levy war conclude peace contract alliances establish commerce and to",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "power to levy war conclude peace contract alliances establish commerce and to do",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "to levy war conclude peace contract alliances establish commerce and to do all",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "levy war conclude peace contract alliances establish commerce and to do all other",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "war conclude peace contract alliances establish commerce and to do all other acts",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "conclude peace contract alliances establish commerce and to do all other acts and",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "peace contract alliances establish commerce and to do all other acts and things",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "contract alliances establish commerce and to do all other acts and things which",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "alliances establish commerce and to do all other acts and things which independent",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "establish commerce and to do all other acts and things which independent states",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "commerce and to do all other acts and things which independent states may",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "and to do all other acts and things which independent states may of",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "to do all other acts and things which independent states may of right",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "that in the field of public education the doctrine of separate but equal",
+      "docs_windows": 3,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "be interpreted in good faith in accordance with the ordinary meaning to be",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "interpreted in good faith in accordance with the ordinary meaning to be given",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "in good faith in accordance with the ordinary meaning to be given to",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "good faith in accordance with the ordinary meaning to be given to the",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "faith in accordance with the ordinary meaning to be given to the terms",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "in accordance with the ordinary meaning to be given to the terms of",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "accordance with the ordinary meaning to be given to the terms of the",
+      "docs_windows": 2,
+      "benchmark": "mmlu"
+    }
+  ]
+}

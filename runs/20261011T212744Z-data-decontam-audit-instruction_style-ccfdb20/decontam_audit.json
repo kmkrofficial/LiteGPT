@@ -1,0 +1,314 @@
+{
+  "source": "instruction_style",
+  "file": "data/smol-constraints/train-00000-of-00001.parquet",
+  "docs": 34424,
+  "hit_docs": 16256,
+  "hit_bytes_fraction": 0.5059481813444235,
+  "windows_by_benchmark": {
+    "ifeval": 66677,
+    "triviaqa": 1
+  },
+  "median_hits_per_doc": 4.0,
+  "top_ngrams": [
+    {
+      "ngram": "at the end of your response please explicitly add a postscript starting with",
+      "docs_windows": 7731,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "the end of your response please explicitly add a postscript starting with p",
+      "docs_windows": 7710,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "end of your response please explicitly add a postscript starting with p s",
+      "docs_windows": 7166,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "your answer must contain a title wrapped in double angular brackets such as",
+      "docs_windows": 5935,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "response must contain at least 2 placeholders represented by square brackets such as",
+      "docs_windows": 4626,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "be in english and in all lowercase letters no capital letters are allowed",
+      "docs_windows": 4418,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "should be in english and in all lowercase letters no capital letters are",
+      "docs_windows": 4390,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "the response must contain at least 2 placeholders represented by square brackets such",
+      "docs_windows": 4381,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "response should be in english and in all lowercase letters no capital letters",
+      "docs_windows": 4377,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "must contain at least 2 placeholders represented by square brackets such as address",
+      "docs_windows": 4362,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "entire response should be in english and in all lowercase letters no capital",
+      "docs_windows": 4208,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "your entire response should be in english and in all lowercase letters no",
+      "docs_windows": 3973,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "end of your response please explicitly add a postscript starting with p p",
+      "docs_windows": 544,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "of your response please explicitly add a postscript starting with p p s",
+      "docs_windows": 544,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "must contain at least 3 placeholders represented by square brackets such as address",
+      "docs_windows": 441,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "response must contain at least 3 placeholders represented by square brackets such as",
+      "docs_windows": 357,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "the response must contain at least 3 placeholders represented by square brackets such",
+      "docs_windows": 260,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "of your response please explicitly add a postscript starting with p s the",
+      "docs_windows": 109,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "answer must contain a title wrapped in double angular brackets such as title",
+      "docs_windows": 93,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "response must contain at least 1 placeholders represented by square brackets such as",
+      "docs_windows": 79,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "must contain at least 1 placeholders represented by square brackets such as address",
+      "docs_windows": 77,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "the response must contain at least 1 placeholders represented by square brackets such",
+      "docs_windows": 70,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "answer must contain a title wrapped in double angular brackets such as my",
+      "docs_windows": 52,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "i e highlighted section your entire response should be in english and in",
+      "docs_windows": 51,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "e highlighted section your entire response should be in english and in all",
+      "docs_windows": 51,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "highlighted section your entire response should be in english and in all lowercase",
+      "docs_windows": 43,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "section your entire response should be in english and in all lowercase letters",
+      "docs_windows": 43,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "your response please explicitly add a postscript starting with p p s your",
+      "docs_windows": 35,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "at least 2 sections in your answer with markdown i e highlighted section",
+      "docs_windows": 32,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "highlight at least 2 sections in your answer with markdown i e highlighted",
+      "docs_windows": 31,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "your entire response should be in english and in all capital letters your",
+      "docs_windows": 28,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "exact phrase is there anything else i can help with no other words",
+      "docs_windows": 21,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "phrase is there anything else i can help with no other words should",
+      "docs_windows": 21,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "is there anything else i can help with no other words should follow",
+      "docs_windows": 21,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "there anything else i can help with no other words should follow this",
+      "docs_windows": 21,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "anything else i can help with no other words should follow this phrase",
+      "docs_windows": 21,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "is in english and in all lowercase letters no capital letters are allowed",
+      "docs_windows": 21,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "response is in english and in all lowercase letters no capital letters are",
+      "docs_windows": 20,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "with one of the following options my answer is yes my answer is",
+      "docs_windows": 15,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "one of the following options my answer is yes my answer is no",
+      "docs_windows": 15,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "of the following options my answer is yes my answer is no my",
+      "docs_windows": 15,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "the following options my answer is yes my answer is no my answer",
+      "docs_windows": 15,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "following options my answer is yes my answer is no my answer is",
+      "docs_windows": 15,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "options my answer is yes my answer is no my answer is maybe",
+      "docs_windows": 15,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "answer with one of the following options my answer is yes my answer",
+      "docs_windows": 14,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "finally at the end of your response please explicitly add a postscript starting",
+      "docs_windows": 13,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "response with the exact phrase is there anything else i can help with",
+      "docs_windows": 11,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "must contain a title wrapped in double angular brackets such as title of",
+      "docs_windows": 11,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "contain a title wrapped in double angular brackets such as title of the",
+      "docs_windows": 10,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "a postscript starting with p p s your entire response should be in",
+      "docs_windows": 10,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "postscript starting with p p s your entire response should be in english",
+      "docs_windows": 9,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "starting with p p s your entire response should be in english and",
+      "docs_windows": 9,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "with p p s your entire response should be in english and in",
+      "docs_windows": 9,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "p p s your entire response should be in english and in all",
+      "docs_windows": 9,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "response please explicitly add a postscript starting with p p s your entire",
+      "docs_windows": 9,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "please explicitly add a postscript starting with p p s your entire response",
+      "docs_windows": 9,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "explicitly add a postscript starting with p p s your entire response should",
+      "docs_windows": 9,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "add a postscript starting with p p s your entire response should be",
+      "docs_windows": 9,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "add a postscript starting with p p s the response must contain at",
+      "docs_windows": 5,
+      "benchmark": "ifeval"
+    },
+    {
+      "ngram": "a postscript starting with p p s the response must contain at least",
+      "docs_windows": 5,
+      "benchmark": "ifeval"
+    }
+  ]
+}

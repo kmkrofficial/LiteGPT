@@ -1,0 +1,64 @@
+{
+  "status": "completed",
+  "step": 3814,
+  "total_steps": 3814,
+  "tokens": 999817216,
+  "skipped_steps": 0,
+  "loss_spikes": 0,
+  "final_eval": {
+    "t": 1793443270.4826672,
+    "step": 3814,
+    "tokens": 999817216,
+    "val": {
+      "loss": 3.390579603612423,
+      "bpb": 1.0568760090896971,
+      "tokens": 1048576
+    },
+    "text_web": {
+      "bpb": 1.0592796544849297,
+      "bytes": 2015797,
+      "docs": 423
+    },
+    "text_synthetic": {
+      "bpb": 0.9458686823923601,
+      "bytes": 2004110,
+      "docs": 540
+    },
+    "text_code": {
+      "bpb": 1.8463165787249705,
+      "bytes": 2042477,
+      "docs": 448
+    },
+    "text_math": {
+      "bpb": 1.4879786775979524,
+      "bytes": 2003305,
+      "docs": 422
+    },
+    "text_chat": {
+      "bpb": 1.0653472943057414,
+      "bytes": 2000241,
+      "docs": 1049
+    }
+  },
+  "mean_tok_per_s": 88366.00959500988,
+  "params": 60836416,
+  "params_non_embedding": 31861312,
+  "telemetry": {
+    "available": true,
+    "n_samples": 11580,
+    "duration_s": 11628.31,
+    "energy_wh": 400.4079,
+    "power_w_mean": 123.96,
+    "power_w_max": 128.027,
+    "temp_c_max": 84,
+    "sm_clock_mhz_mean_busy": 1610.0,
+    "sm_clock_mhz_min_busy": 1080,
+    "frac_power_capped": 0.989,
+    "frac_thermal_throttled": 0.0,
+    "mem_used_mib_max": 12280.7,
+    "power_limit_w_min": 125.0,
+    "power_limit_w_max": 125.0
+  },
+  "micro_batch_used": 8,
+  "accum_used": 16
+}

@@ -1,0 +1,19 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "koganrath/LiteGPT-Instruct",
+    "revision": "a9fe728b9f2e4547913afb0fa4a867ad030d7280",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "unsafe_refusal_rate": 0.0,
+  "safe_over_refusal_rate": 0.0,
+  "n_safe": 250,
+  "n_unsafe": 200,
+  "classifier": "string match (REFUSAL_MARKERS)",
+  "dataset": {
+    "repo": "Paul/XSTest",
+    "split": "train",
+    "revision": "f600c994b256f12867dfa5b3eb3d545a3e62f8b5"
+  }
+}

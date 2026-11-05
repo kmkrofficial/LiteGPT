@@ -1,0 +1,43 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "koganrath/LiteGPT-Instruct",
+    "revision": "a9fe728b9f2e4547913afb0fa4a867ad030d7280",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "window": 1024,
+  "stride": 512,
+  "domains": {
+    "chat": {
+      "docs": 1049,
+      "bytes": 2000241,
+      "nll_nats": 1409899.671619162,
+      "bpb": 1.0169050951340077
+    },
+    "code": {
+      "docs": 448,
+      "bytes": 2042477,
+      "nll_nats": 2323286.12443161,
+      "bpb": 1.6410433852051325
+    },
+    "math": {
+      "docs": 422,
+      "bytes": 2003305,
+      "nll_nats": 2205417.6099290065,
+      "bpb": 1.5882479447382043
+    },
+    "synthetic": {
+      "docs": 540,
+      "bytes": 2004110,
+      "nll_nats": 1271791.7687540054,
+      "bpb": 0.915522440297592
+    },
+    "web": {
+      "docs": 423,
+      "bytes": 2015797,
+      "nll_nats": 1632810.7499938011,
+      "bpb": 1.1685938473597521
+    }
+  }
+}

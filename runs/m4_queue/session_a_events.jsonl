@@ -1,0 +1,11 @@
+{"t": 1793715995.6867855, "event": "queue_start", "finished": 0, "total": 6}
+{"t": 1793715995.6868663, "event": "job_start", "job": "sft-sweep-a"}
+{"t": 1793716412.3564334, "event": "job_end", "job": "sft-sweep-a", "code": 0, "seconds": 416.7}
+{"t": 1793716412.3568249, "event": "job_start", "job": "sft-sweep-b"}
+{"t": 1793716828.7728696, "event": "job_end", "job": "sft-sweep-b", "code": 0, "seconds": 416.4}
+{"t": 1793716828.7734213, "event": "job_start", "job": "sft-sweep-c"}
+{"t": 1793717249.019531, "event": "job_end", "job": "sft-sweep-c", "code": 0, "seconds": 420.2}
+{"t": 1793717249.020151, "event": "job_start", "job": "sft-choose-lr"}
+{"t": 1793717250.9381728, "event": "job_end", "job": "sft-choose-lr", "code": 0, "seconds": 1.9}
+{"t": 1793717250.9391356, "event": "job_start", "job": "sft"}
+{"t": 1793717448.7045426, "event": "job_end", "job": "sft", "code": 1, "seconds": 197.8}

@@ -1,0 +1,244 @@
+{
+ "sft-sweep-a": {
+  "seconds": 416.7,
+  "t": 1793716412.3565452
+ },
+ "sft-sweep-b": {
+  "seconds": 416.4,
+  "t": 1793716828.7729864
+ },
+ "sft-sweep-c": {
+  "seconds": 420.2,
+  "t": 1793717249.019642
+ },
+ "sft-choose-lr": {
+  "seconds": 1.9,
+  "t": 1793717250.938484
+ },
+ "sft": {
+  "seconds": 36588.9,
+  "t": 1793754037.7845747
+ },
+ "backup-sft": {
+  "seconds": 82.2,
+  "t": 1793754120.0123167
+ },
+ "fetch-models": {
+  "seconds": 0.4,
+  "t": 1793754120.3784325
+ },
+ "g2": {
+  "seconds": 410.1,
+  "t": 1793754530.443859
+ },
+ "speed": {
+  "seconds": 278.2,
+  "t": 1793754808.6180258
+ },
+ "speed-rule": {
+  "seconds": 0.1,
+  "t": 1793754808.6840942
+ },
+ "fit-v2-base-lr1e-05-s1": {
+  "seconds": 478.5,
+  "t": 1793755287.2258782
+ },
+ "fit-v2-base-lr3e-05-s1": {
+  "seconds": 472.5,
+  "t": 1793755759.7691765
+ },
+ "fit-v2-base-lr0.0001-s1": {
+  "seconds": 474.3,
+  "t": 1793756234.06259
+ },
+ "choose-lr-v2-base": {
+  "seconds": 2.0,
+  "t": 1793756236.0818238
+ },
+ "fit-v2-base-chosen-s2": {
+  "seconds": 472.3,
+  "t": 1793756708.4231021
+ },
+ "fit-v2-base-chosen-s3": {
+  "seconds": 475.5,
+  "t": 1793757183.9171178
+ },
+ "fit-v2-chat-lr1e-05-s1": {
+  "seconds": 476.5,
+  "t": 1793757660.4204319
+ },
+ "fit-v2-chat-lr3e-05-s1": {
+  "seconds": 475.1,
+  "t": 1793758135.523276
+ },
+ "fit-v2-chat-lr0.0001-s1": {
+  "seconds": 477.9,
+  "t": 1793758613.4319463
+ },
+ "choose-lr-v2-chat": {
+  "seconds": 2.0,
+  "t": 1793758615.4522665
+ },
+ "fit-v2-chat-chosen-s2": {
+  "seconds": 476.6,
+  "t": 1793759092.058144
+ },
+ "fit-v2-chat-chosen-s3": {
+  "seconds": 486.9,
+  "t": 1793759578.9570923
+ },
+ "fit-smollm2-base-lr1e-05-s1": {
+  "seconds": 565.7,
+  "t": 1793760144.6433842
+ },
+ "fit-smollm2-base-lr3e-05-s1": {
+  "seconds": 577.8,
+  "t": 1793760722.4032826
+ },
+ "fit-smollm2-base-lr0.0001-s1": {
+  "seconds": 565.1,
+  "t": 1793761287.470519
+ },
+ "choose-lr-smollm2-base": {
+  "seconds": 2.0,
+  "t": 1793761289.4427128
+ },
+ "fit-smollm2-base-chosen-s2": {
+  "seconds": 574.3,
+  "t": 1793761863.7076206
+ },
+ "fit-smollm2-base-chosen-s3": {
+  "seconds": 574.7,
+  "t": 1793762438.3950496
+ },
+ "fit-smollm2-chat-lr1e-05-s1": {
+  "seconds": 574.1,
+  "t": 1793763012.479782
+ },
+ "fit-smollm2-chat-lr3e-05-s1": {
+  "seconds": 581.6,
+  "t": 1793763594.0550213
+ },
+ "fit-smollm2-chat-lr0.0001-s1": {
+  "seconds": 578.5,
+  "t": 1793764172.5568511
+ },
+ "choose-lr-smollm2-chat": {
+  "seconds": 2.0,
+  "t": 1793764174.5293005
+ },
+ "fit-smollm2-chat-chosen-s2": {
+  "seconds": 579.4,
+  "t": 1793764753.934062
+ },
+ "fit-smollm2-chat-chosen-s3": {
+  "seconds": 577.3,
+  "t": 1793765331.2792954
+ },
+ "fit-gemma-base-lr1e-05-s1": {
+  "seconds": 441.9,
+  "t": 1793765773.2242033
+ },
+ "fit-gemma-base-lr3e-05-s1": {
+  "seconds": 444.6,
+  "t": 1793766217.7876363
+ },
+ "fit-gemma-base-lr0.0001-s1": {
+  "seconds": 447.0,
+  "t": 1793766664.798364
+ },
+ "choose-lr-gemma-base": {
+  "seconds": 2.0,
+  "t": 1793766666.8214371
+ },
+ "fit-gemma-base-chosen-s2": {
+  "seconds": 448.4,
+  "t": 1793767115.2342017
+ },
+ "fit-gemma-base-chosen-s3": {
+  "seconds": 445.6,
+  "t": 1793767560.8547497
+ },
+ "fit-gemma-chat-lr1e-05-s1": {
+  "seconds": 453.0,
+  "t": 1793768013.826189
+ },
+ "fit-gemma-chat-lr3e-05-s1": {
+  "seconds": 453.7,
+  "t": 1793768467.5584207
+ },
+ "fit-gemma-chat-lr0.0001-s1": {
+  "seconds": 455.4,
+  "t": 1793768923.0017405
+ },
+ "choose-lr-gemma-chat": {
+  "seconds": 2.0,
+  "t": 1793768925.0251482
+ },
+ "fit-gemma-chat-chosen-s2": {
+  "seconds": 455.8,
+  "t": 1793769380.8658836
+ },
+ "fit-gemma-chat-chosen-s3": {
+  "seconds": 455.8,
+  "t": 1793769836.7054539
+ },
+ "fit-qwen3-base-lr1e-05-s1": {
+  "seconds": 684.0,
+  "t": 1793770520.6909888
+ },
+ "fit-qwen3-base-lr3e-05-s1": {
+  "seconds": 678.5,
+  "t": 1793771199.2031093
+ },
+ "fit-qwen3-base-lr0.0001-s1": {
+  "seconds": 682.9,
+  "t": 1793771882.144938
+ },
+ "choose-lr-qwen3-base": {
+  "seconds": 2.0,
+  "t": 1793771884.1185625
+ },
+ "fit-qwen3-base-chosen-s2": {
+  "seconds": 683.4,
+  "t": 1793772567.5664396
+ },
+ "fit-qwen3-base-chosen-s3": {
+  "seconds": 683.4,
+  "t": 1793773251.0145934
+ },
+ "routes": {
+  "seconds": 2.1,
+  "t": 1793773253.1356337
+ },
+ "backup-weights": {
+  "seconds": 468.0,
+  "t": 1793773721.097428
+ },
+ "test": {
+  "seconds": 0.0,
+  "t": 1793773721.0983102,
+  "skipped": "runs/m4_queue/test_on_laptop"
+ },
+ "backup-test": {
+  "seconds": 0.0,
+  "t": 1793773721.098854,
+  "skipped": "runs/m4_queue/test_on_laptop"
+ },
+ "billsum-v2": {
+  "seconds": 891.2,
+  "t": 1793774612.3455977
+ },
+ "billsum-smollm2": {
+  "seconds": 1102.5,
+  "t": 1793775714.824614
+ },
+ "billsum-gemma": {
+  "seconds": 1766.3,
+  "t": 1793777481.1170003
+ },
+ "billsum-qwen3": {
+  "seconds": 2731.2,
+  "t": 1793780212.3040287
+ }
+}
