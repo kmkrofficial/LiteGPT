@@ -1,10 +1,10 @@
-# LiteGPT V2 Instruct (draft model card, not released)
+# LiteGPT-Llama-V2-Instruct (draft model card, not released)
 
 > Draft for owner review. The licence is proposed, not decided ([ADR-011](../decisions/ADR-011-model-licence.md)). The export format is not built yet.
 
 **Built with Llama. Built with Qwen.** See Training data.
 
-LiteGPT V2 after chat fine-tuning. It follows instructions better than V1-Instruct, and it has no safety behaviour.
+LiteGPT V2 after chat fine-tuning, called V2-Instruct in our results. It follows instructions better than V1-Instruct, and it has no safety behaviour.
 
 ## Should you use it?
 
@@ -15,6 +15,10 @@ LiteGPT V2 after chat fine-tuning. It follows instructions better than V1-Instru
 - **For studying chat fine-tuning on a small model: yes.** That is what this release is for.
 
 ## Results
+
+![IFEval, GSM8K chat, HumanEval chat and MBPP chat for 7 models](../figures/chat_tasks.svg)
+
+![XSTest refusal rates for 7 models](../figures/chat_xstest.svg)
 
 Higher is better, except safe prompts refused.
 
@@ -60,7 +64,7 @@ Everything in the [Base card](model_card_base.md), then these chat conversations
 
 Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved. Use of this model should follow the [Llama Acceptable Use Policy](https://llama.meta.com/llama3_1/use-policy).
 
-**On the name:** Llama 3.1's licence asks that a distributed model trained on Llama outputs start its name with "Llama". This model does not. The project's reasoning and the risk are in [ADR-011](../decisions/ADR-011-model-licence.md).
+**On the name:** this model trained on Llama outputs, so its name includes "Llama". The licence asks for the word at the beginning of the name. See [ADR-011](../decisions/ADR-011-model-licence.md).
 
 ## Limits
 

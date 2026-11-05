@@ -1,10 +1,11 @@
 # Documentation
 
-**Start here:** [results.md](results.md) for every benchmark, and [history.md](history.md) for how V2 was built.
+**Start here:** [results.md](results.md) for every benchmark, [figures](figures/README.md) for every chart, and [history.md](history.md) for how V2 was built.
 
 | Page | What it covers |
 |---|---|
 | [results.md](results.md) | Benchmarks and comparisons, where V2 leads and where it loses |
+| [figures/](figures/README.md) | All charts, generated from the run records |
 | [history.md](history.md) | Milestones, decisions, deviations, failures and cost |
 | [architecture.md](architecture.md) | The model |
 | [inference.md](inference.md) | Engine, Python API and CLI |

@@ -11,7 +11,7 @@ Implementation: [`litegpt/model.py`](../litegpt/model.py) (single file, architec
 | Positions | RoPE (rotate-half layout), theta 10,000, kept at 4,096 context ([ADR-009](decisions/ADR-009-m3-cloud-budget-context-and-mixture.md)) |
 | Norm | RMSNorm (eps 1e-6) + per-head QK-norm applied before RoPE |
 | FFN | SwiGLU, hidden 2048 |
-| Vocabulary / context | 32,768 (custom byte-level BPE) / 4,096 (2,048 until the last pretraining phase) |
+| Vocabulary / context | 32,768 (byte-level BPE, trained on our data with Hugging Face `tokenizers`) / 4,096 (2,048 until the last pretraining phase) |
 | Init | N(0, 0.02); `o_proj` and `down_proj` scaled by 1/sqrt(2 * n_layer) |
 
 ## Attention backends
@@ -32,3 +32,7 @@ a tensor copy plus a config. The implementation is our own. The logit-parity tes
 
 `KVCache` preallocates `[n_layer, B, n_kv_head, max_len, head_dim]`. `forward(idx, kv_cache=...)` handles prefill, chunked
 continuation and single-token decode; tests assert incremental decoding equals a full forward pass.
+
+## Size
+
+![Parameters of V2 against other models](../runs/report-latest/figures/params.svg)

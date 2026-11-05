@@ -1,6 +1,6 @@
 # Results
 
-Every number here comes from a run record in `runs/` and was measured by us, under thresholds registered before the measurement ([`docs/spec/registry.yaml`](spec/registry.yaml)). Models we did not measure are not listed. This is not a survey of all small models.
+Every number here comes from a run record in `runs/` and was measured by us, under thresholds registered before the measurement ([`docs/spec/registry.yaml`](spec/registry.yaml)). Models we did not measure are not listed. This is not a survey of all small models. **[All charts](figures/README.md)** are generated from the records. V2 is always blue and V1 orange.
 
 ## Short version
 
@@ -15,9 +15,11 @@ Every number here comes from a run record in `runs/` and was measured by us, und
 
 Each model was fine-tuned the same way on the same real tasks, and its better route was chosen on dev only. The test set was scored once. Scores are the mean of 3 seeds. The score is the plain mean of CUAD field micro-F1, MASSIVE slot micro-F1 and Banking77 accuracy.
 
+![V2 scored lowest of the four on every seed](figures/t2d_scores.svg)
+
 | Model | Parameters | Route, learning rate | Score | CUAD | MASSIVE | Banking77 | Zero-match score |
 |---|---:|---|---:|---:|---:|---:|---:|
-| Qwen3-0.6B (reference) | 596.0M | base, 1e-5 | 0.851 | 0.809 | 0.813 | 0.931 | 0.834 |
+| Qwen3-0.6B (reference) | 596.0M | base, 1e-5 | 0.851 | 0.809 | 0.812 | 0.931 | 0.834 |
 | Gemma 3 270M | 268.1M | base, 1e-5 | 0.822 | 0.768 | 0.778 | 0.919 | 0.791 |
 | SmolLM2-135M | 134.5M | chat, 1e-4 | 0.817 | 0.745 | 0.787 | 0.920 | 0.789 |
 | **LiteGPT V2** | 201.4M | base, 1e-4 | **0.800** | 0.711 | 0.775 | 0.914 | **0.776** |
@@ -32,11 +34,21 @@ V2 against each model, by paired bootstrap (10,000 rounds, win or loss beyond 2 
 | Gemma 3 270M | -0.0221, loss (4.6 SE) | -0.057, loss | -0.003, tie | -0.006, tie | -0.0153, loss (2.1 SE) |
 | Qwen3-0.6B | -0.0508, loss (9.2 SE) | -0.098, loss | -0.038, loss | -0.017, loss | -0.0583, loss (6.0 SE) |
 
+![V2's gap to each model, with 2 standard errors](figures/t2d_gap.svg)
+
 Gemma against SmolLM2 is a tie (+0.0047, 1.0 SE). This one comparison is exploratory, not registered.
+
+![Each task's score by model and seed](figures/t2d_tasks.svg)
+
+![Contract field scores and valid JSON by model](figures/t2d_cuad_fields.svg)
 
 **Limits:**
 - Rivals may have seen these public datasets in their own pretraining. V2's overlap is measured and removed; theirs cannot be.
 - The learning-rate grid was fixed. V2 and SmolLM2 chose its top, Gemma and Qwen3 its bottom, so each might have scored more just past it.
+
+![Dev score against learning rate for each model](figures/t2d_lr_grid.svg)
+
+![Dev and test scores for each model](figures/t2d_dev_vs_test.svg)
 
 The test text comes from CUAD, MASSIVE and Banking77 (CC BY 4.0) and BillSum (CC0).
 
@@ -49,6 +61,8 @@ The test text comes from CUAD, MASSIVE and Banking77 (CC BY 4.0) and BillSum (CC
 | Gemma 3 270M | 0.442 | 0.424 | 125 |
 | **LiteGPT V2** | 0.429 | 0.412 | 103 |
 
+![BillSum scores and generation time](figures/t2d_billsum.svg)
+
 **CPU** (8 threads, bfloat16, one document at a time, chosen route, seed 1; one run on small samples, 10 CUAD and 100 of each other):
 
 | Model | Peak RAM, GiB | CUAD docs/min | MASSIVE docs/min | Banking77 docs/min | First token, s: CUAD, MASSIVE, Banking77 |
@@ -58,11 +72,21 @@ The test text comes from CUAD, MASSIVE and Banking77 (CC BY 4.0) and BillSum (CC
 | **LiteGPT V2** | 1.66 | 10.0 | 142.0 | 237.0 | 3.47, 0.15, 0.11 |
 | Qwen3-0.6B | 4.27 | 4.3 | 67.0 | 125.1 | 8.88, 0.44, 0.29 |
 
+![CPU speed and first token by task](figures/t2d_cpu.svg)
+
+![Score against parameters and RAM](figures/t2d_size.svg)
+
 ## Base models
 
 Suite 0.1.1, on one RTX 4090 Laptop. Records for V2: `20261103T040059Z-eval-base-litegpt-final-a5ee51a`. Earlier models were scored on suite 0.1.0, which differs only in the chat code tasks.
 
 **Zero-shot (higher is better).** The mean is an orientation figure, not a registered metric.
+
+![Zero-shot mean for 11 base models](figures/base_zero_shot_mean.svg)
+
+![Each zero-shot task with chance levels](figures/base_zero_shot_tasks.svg)
+
+![Zero-shot mean against parameters](figures/base_size_vs_quality.svg)
 
 | Model | Parameters | HellaSwag | ARC-E | ARC-C | PIQA | OBQA | CSQA | Winogrande | MMLU | TQA MC1 | TQA MC2 | Mean |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -80,6 +104,8 @@ Suite 0.1.1, on one RTX 4090 Laptop. Records for V2: `20261103T040059Z-eval-base
 
 **Few-shot and code (higher is better).**
 
+![TriviaQA, GSM8K, HumanEval and MBPP for 11 models](figures/base_few_shot_code.svg)
+
 | Model | TriviaQA | GSM8K | HumanEval | MBPP |
 |---|---:|---:|---:|---:|
 | Qwen3-0.6B-Base | 0.188 | 0.490 | 0.293 | 0.400 |
@@ -96,13 +122,15 @@ Suite 0.1.1, on one RTX 4090 Laptop. Records for V2: `20261103T040059Z-eval-base
 
 **Bits per byte (lower is better).** Chat is left out: V2's chat validation text shares system prompts and wording with its training mix, so that score measures familiarity with one dataset, not chat ability.
 
+![Bits per byte by domain for 11 models](figures/base_bits_per_byte.svg)
+
 | Model | Web | Synthetic | Code | Math |
 |---|---:|---:|---:|---:|
 | Qwen3-0.6B-Base | 0.816 | 0.486 | 0.372 | 0.716 |
 | Qwen2.5-0.5B | 0.823 | 0.525 | 0.412 | 0.761 |
 | SmolLM2-360M | 0.793 | 0.397 | 0.464 | 0.767 |
 | Pythia-410M | 0.895 | 0.694 | 0.494 | 0.972 |
-| **LiteGPT V2** | **0.912** | **0.511** | **0.516** | **0.928** |
+| **LiteGPT V2** | **0.912** | **0.511** | **0.515** | **0.928** |
 | SmolLM2-135M | 0.865 | 0.492 | 0.559 | 0.892 |
 | Gemma 3 270M | 0.893 | 0.650 | 0.617 | 0.991 |
 | Pythia-160M | 1.169 | 0.952 | 0.790 | 1.301 |
@@ -113,6 +141,10 @@ Suite 0.1.1, on one RTX 4090 Laptop. Records for V2: `20261103T040059Z-eval-base
 **Note on chat:** chat bits per byte is not compared for V2. 87% of its chat validation tokens in system prompts, and 15% of the rest, repeat training text. A low code figure means the model predicts code text well. It does not mean it writes working programs: see HumanEval above.
 
 **Speed on the laptop GPU** (bf16, prompt 512, 128 new tokens). V2 runs on LiteGPT's own engine and the others on Hugging Face `generate`, so this compares what a user of each would get, not the models alone. Other runtimes may change the rivals' figures.
+
+![Decode, prefill, first token and memory for 11 models](figures/base_speed.svg)
+
+![Zero-shot mean against decode speed](figures/base_speed_vs_quality.svg)
 
 | Model | Prefill tok/s | First token, ms | Decode tok/s | Decode tok/s, batch 8 | Peak VRAM, GiB, batch 8 |
 |---|---:|---:|---:|---:|---:|
@@ -130,7 +162,7 @@ Suite 0.1.1, on one RTX 4090 Laptop. Records for V2: `20261103T040059Z-eval-base
 
 ## Chat models
 
-V2-Instruct is V2 after 3 epochs of chat fine-tuning. It passed its registered gate (IFEval above V1-Instruct by more than 2 standard errors: 0.1312 on the A100, 2.56 SE). The figures below are from the laptop, where IFEval scored one question lower. V2-Instruct is not distributed.
+V2-Instruct, to be released as LiteGPT-Llama-V2-Instruct, is V2 after 3 epochs of chat fine-tuning. It passed its registered gate (IFEval above V1-Instruct by more than 2 standard errors: 0.1312 on the A100, 2.56 SE). The figures below are from the laptop, where IFEval scored one question lower. V2-Instruct is not distributed.
 
 | Model | IFEval | GSM8K chat | HumanEval chat | MBPP chat | XSTest unsafe refused | XSTest safe refused |
 |---|---:|---:|---:|---:|---:|---:|
@@ -142,7 +174,19 @@ V2-Instruct is V2 after 3 epochs of chat fine-tuning. It passed its registered g
 | **V2-Instruct** | **0.129** | **0.022** | **0.043** | **0.042** | **0%** | **0%** |
 | LiteGPT V1-Instruct | 0.083 | 0.021 | 0.000 | 0.000 | 0% | 0% |
 
+![IFEval, GSM8K chat, HumanEval chat and MBPP chat for 7 models](figures/chat_tasks.svg)
+
+![XSTest refusal rates for 7 models](figures/chat_xstest.svg)
+
 V2-Instruct refuses nothing, so it has no safety behaviour.
+
+## V2 against V1
+
+![V2 against V1 on every benchmark](figures/v1_vs_v2.svg)
+
+Architecture, tokenizer, data and size all changed between versions, so this shows the whole model improving and can't credit any one part. The [design ladder](history.md#the-design-ladder-m2) tested the parts one at a time.
+
+![Scores at the 2.5B, 5B, 9B and final checkpoints](figures/m3_checkpoints.svg)
 
 ## Where V2 leads, and how far that goes
 
@@ -150,7 +194,7 @@ V2-Instruct refuses nothing, so it has no safety behaviour.
 |---|---:|---:|---|
 | GPU memory, batch of 8 | 0.59 GiB, lowest of all 11 | SmolLM2-135M 0.73 | Different engines |
 | GPU decode against SmolLM2, Gemma and Qwen | 86 tok/s | Qwen2.5-0.5B 64 | Different engines; older, shallower models are faster; not faster on CPU |
-| Code bits per byte, under 300M parameters | 0.516 | SmolLM2-135M 0.559 | Does not mean working code |
+| Code bits per byte, under 300M parameters | 0.515 | SmolLM2-135M 0.559 | Does not mean working code |
 | First token on CPU, short documents | MASSIVE 0.15 s, Banking77 0.11 s | SmolLM2 0.18 s, Gemma 0.14 s | Small samples; slower than SmolLM2 and Gemma on CUAD |
 | Generation speed on BillSum | 103 s | Gemma 125 s | V2's summaries scored lowest |
 | Against V1 | Clearly better on 5 tasks, none clearly worse | | V1 is 124.5M parameters, V2 201.4M |

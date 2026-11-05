@@ -6,10 +6,10 @@ Spec fields: `licensing`
 
 ## Context
 
-LiteGPT is derived from nanoGPT, which is MIT-licensed, copyright (c) 2022 Andrej Karpathy. Commit `8b8f4df` removed the repository's LICENSE file. The MIT licence requires the copyright and permission notice to be kept in copies and substantial portions. The V2 model weights will be trained on many datasets, each with its own licence and terms.
+LiteGPT V1's initial design came from nanoGPT, which is MIT-licensed, copyright (c) 2022 Andrej Karpathy, and V1's code is kept in this repository. Commit `8b8f4df` removed the repository's LICENSE file. The MIT licence requires the copyright and permission notice to be kept in copies and substantial portions. The V2 model weights will be trained on many datasets, each with its own licence and terms.
 
 ## Decision
-- **Code:** restore the **MIT** licence in M0. It includes the nanoGPT notice (Copyright (c) 2022 Andrej Karpathy) alongside the LiteGPT copyright, and the README gets an attribution section.
+- **Code:** restore the **MIT** licence in M0. It includes that notice alongside the LiteGPT copyright, and the README gets an attribution section.
 - **Model weights:** **not finalised.** The status is `pending-dataset-audit` until:
   1. every dataset used in pretraining, SFT, reasoning and DPO is listed in `docs/data_licenses.md` with its licence, terms, redistribution and derivative-work constraints, and terms-of-use origin flags;
   2. compatibility is confirmed and a model licence is chosen in a new ADR.

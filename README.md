@@ -2,17 +2,19 @@
 
 A small language model trained from scratch, with its whole build on record: every dataset revision, every threshold set before the run, and every result, including the comparison it lost.
 
-**LiteGPT V2** has 201M parameters and was designed on one laptop and trained on one rented GPU. It is a research model. **No V2 weights are public yet**: the release is being prepared.
+**LiteGPT V2** has 201M parameters. It is a new implementation with its own trained tokenizer and weights, designed on one laptop and trained on one rented GPU. It is a research model. **No V2 weights are public yet**: the release is being prepared.
 
 ## Should you use it?
 
 | You want | Use |
 |---|---|
 | To extract data from text, offline | SmolLM2-135M or Gemma 3 270M, or Qwen3-0.6B if you have the memory. V2 lost to all three |
-| A good small chat model | Gemma 3 270M-it or Qwen3-0.6B. V2-Instruct scores well below them and refuses nothing |
+| A good small chat model | Gemma 3 270M-it or Qwen3-0.6B. Our chat model scores well below them and refuses nothing |
 | To see how a small model gets built and tested, failures included | **LiteGPT V2** |
 
 ## Results
+
+![V2 scored lowest of four models in the text-to-data comparison](docs/figures/t2d_scores.svg)
 
 | Text-to-data, after fine-tuning | V2 | SmolLM2-135M | Gemma 3 270M | Qwen3-0.6B |
 |---|---:|---:|---:|---:|
@@ -28,7 +30,9 @@ A small language model trained from scratch, with its whole build on record: eve
 | Decode speed on a laptop GPU, tok/s | 86 | 213 | 46 | 46 |
 | GPU memory at batch 8, GiB | 0.59 | 0.78 | 0.73 | 2.59 |
 
-V2 is clearly better than V1 on five tasks and clearly worse on none. Its speed and memory figures use its own engine and the others use Hugging Face `generate`, so they aren't like for like. It can't yet do math or write working code. **[All benchmarks and limits](docs/results.md)**.
+![V2 against V1 on every benchmark](docs/figures/v1_vs_v2.svg)
+
+V2 is clearly better than V1 on five tasks and clearly worse on none. Its speed and memory figures use its own engine and the others use Hugging Face `generate`, so they aren't like for like. It can't yet do math or write working code. **[All benchmarks and limits](docs/results.md)**, and [every chart](docs/figures/README.md).
 
 ## Use it
 
@@ -82,13 +86,14 @@ V1 is GPT-2 Small (124M), trained on FineWeb-Edu and fine-tuned on Alpaca, publi
 
 ## Licence and attribution
 
-Code is MIT licensed ([`LICENSE`](LICENSE)). LiteGPT is derived from [nanoGPT](https://github.com/karpathy/nanoGPT) (Copyright (c) 2022 Andrej Karpathy, MIT), whose copyright notice is retained.
+Code is MIT licensed ([`LICENSE`](LICENSE)).
 
 The licence of the V2 weights isn't final: Apache-2.0 is proposed in [ADR-011](docs/decisions/ADR-011-model-licence.md), and no weights are published before it is accepted. Datasets and their terms are in [docs/data_licenses.md](docs/data_licenses.md).
 
 ## Acknowledgements
 
-- [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy
+- [PyTorch](https://pytorch.org), [flash-attn](https://github.com/Dao-AILab/flash-attention), Hugging Face [`tokenizers`](https://github.com/huggingface/tokenizers) and [`transformers`](https://github.com/huggingface/transformers), and [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness), which V2 is built and scored with
+- [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy, the starting point for V1's initial design
 - [SmolLM corpus, FineMath and SmolTalk](https://huggingface.co/HuggingFaceTB) by Hugging Face
 - [github-code-clean](https://huggingface.co/datasets/codeparrot/github-code-clean) by CodeParrot
 - [CUAD](https://huggingface.co/datasets/theatticusproject/cuad), [MASSIVE](https://huggingface.co/datasets/AmazonScience/massive), [Banking77](https://huggingface.co/datasets/PolyAI/banking77) and [BillSum](https://huggingface.co/datasets/FiscalNote/billsum), used for the comparison

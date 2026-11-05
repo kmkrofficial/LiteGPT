@@ -1,4 +1,4 @@
-LiteGPT V2 Instruct (draft notice, not released)
+LiteGPT-Llama-V2-Instruct (draft notice, not released)
 Copyright (c) 2025-2026 Keerthi Raajan K M
 
 Built with Llama.
@@ -15,4 +15,4 @@ Code data: github-code-clean (https://huggingface.co/datasets/codeparrot/github-
 
 SmolTalk: https://huggingface.co/datasets/HuggingFaceTB/smoltalk (Apache-2.0 per its card, for these subsets).
 
-The LiteGPT code is derived from nanoGPT, Copyright (c) 2022 Andrej Karpathy, MIT licence.
+The initial design of LiteGPT V1 came from nanoGPT, Copyright (c) 2022 Andrej Karpathy, MIT licence.

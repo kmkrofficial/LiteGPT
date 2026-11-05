@@ -33,7 +33,13 @@ Each step changed one thing on a small proxy model, 1B tokens each. Web bits per
 | s7 | + 32k tokenizer | 1.0632 | 1.8957 |
 | s8a | + full data mixture | 1.0958 | 0.7123 |
 
+![Bits per byte at each ladder step](figures/ladder_steps.svg)
+
 s7 and s8a were labelled "hurts" on web by the registered rule. The owner kept both: the mixture cut code bits per byte by more than half, and web was not the only goal.
+
+![The ladder's learning-rate sweep](figures/ladder_lr_sweep.svg)
+
+![Three baseline seeds, one of which diverged](figures/ladder_seed_divergence.svg)
 
 ## Decisions that shaped the model
 
@@ -48,7 +54,7 @@ s7 and s8a were labelled "hurts" on web by the registered rule. The owner kept b
 | M4 scope | Chat fine-tuning and a real comparison; reasoning and preference tuning deferred | A comparison tells us more than more stages | [ADR-010](decisions/ADR-010-m4-scope-text-to-data-comparison-and-cloud.md) |
 | Autonomy | M4 ran without owner stops; registered rules decided | Owner's choice, made before any G2 or test result | EXP-M4-SFT |
 | After the loss | No plan for more tokens or longer training | Owner's decision. What comes next is open | This page |
-| Release | Base and Instruct, Instruct without the "Llama" prefix | Owner's decision, with a known licence risk | [ADR-011](decisions/ADR-011-model-licence.md) |
+| Release | `LiteGPT-V2-Base` and `LiteGPT-Llama-V2-Instruct` | Owner's decision. The Llama licence asks for the word at the start of the name | [ADR-011](decisions/ADR-011-model-licence.md) |
 | Repository | Development history squashed for release | Owner's decision; also removes personal paths from history | [runs/README.md](../runs/README.md) |
 
 ## Recorded deviations
@@ -57,7 +63,7 @@ s7 and s8a were labelled "hurts" on web by the registered rule. The owner kept b
 - **M2 noise floor:** s1 seed 2 diverged during decay. Taken at face value, it would have set a threshold no step could pass. A divergence rule and a third seed were added, recorded before use.
 - **M4 speed check:** real packed steps ran at 46.7k tokens per second, under the registered 55k stop. The owner chose to continue on flash attention.
 - **M4 evaluation machine:** G2 was measured on the A100, its baselines on the laptop. A later laptop run differed by one question of 541.
-- **Instruct name:** see [ADR-011](decisions/ADR-011-model-licence.md).
+- **Instruct name:** "Llama" is in the name but not at the start: see [ADR-011](decisions/ADR-011-model-licence.md).
 
 ## What went wrong
 
@@ -73,6 +79,8 @@ s7 and s8a were labelled "hurts" on web by the registered rule. The owner kept b
 | M4 | The backup list missed G2's evaluation run, and the A100 was then rented out | Recovered from the volume by a cheap second server. Backup fixed |
 | M4 | Test scoring died 5 minutes in and went unnoticed for a day | Resumed from saved outputs. Nothing had been scored |
 | M5 | Safe checkpoint loading refused real training checkpoints | Caught only by testing real weights. Tests now cover it |
+
+![Scores at the 2.5B, 5B, 9B and final checkpoints](figures/m3_checkpoints.svg)
 
 ## Cost
 

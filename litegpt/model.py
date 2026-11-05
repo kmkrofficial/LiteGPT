@@ -4,7 +4,7 @@ LiteGPT V2 model: a decoder-only transformer with RoPE, RMSNorm + QK-norm, SwiGL
 Everything architectural lives in this file; it knows nothing about tokenizers, sampling or chat templates.
 Module / parameter names deliberately mirror HF `Qwen3ForCausalLM` (model.embed_tokens, model.layers.N.self_attn.q_proj,
 ..., model.norm, lm_head) so that export to Hugging Face is a plain tensor copy (see ADR-005). The implementation itself
-is our own. Structure follows nanoGPT/V1 (pre-norm residual blocks, tied embeddings, no biases).
+is our own: pre-norm residual blocks, tied embeddings, no biases.
 
 Attention backends (ADR-006): PyTorch SDPA is mandatory and always available. flash-attn is optional; it was adopted for
 'auto' on measured evidence (EXP-M0-FLASH: parity tests pass, +12% tok/s). 'auto' uses flash only when flash-attn is installed,
@@ -250,7 +250,7 @@ class LiteGPT(nn.Module):
         return n
 
     def flops_per_token(self, seq_len: int | None = None, attention: str = "full") -> float:
-        """Training FLOPs per token (fwd+bwd). 'full' = PaLM/nanoGPT convention (6N + 12*L*H*hd*T, used for MFU);
+        """Training FLOPs per token (fwd+bwd). 'full' = the PaLM convention (6N + 12*L*H*hd*T, used for MFU);
         'causal' halves the attention term (what a causal kernel actually computes)."""
         c = self.config
         T = seq_len or c.block_size

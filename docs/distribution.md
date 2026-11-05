@@ -6,7 +6,7 @@
 
 | Item | State |
 |---|---|
-| `LiteGPT-V2-Base` and `LiteGPT-V2-Instruct` weights as safetensors, with `litegpt.json` metadata | Not built |
+| `LiteGPT-V2-Base` and `LiteGPT-Llama-V2-Instruct` weights as safetensors, with `litegpt.json` metadata | Not built |
 | `litegpt/export/to_hf.py` with a logit-parity test | Not built. Parameter names mirror `Qwen3ForCausalLM`, but whether that class reproduces V2's QK-norm is untested. If logits don't match, the release loads through the `litegpt` package instead, and says so |
 | Model cards | Drafts: [Base](release/model_card_base.md), [Instruct](release/model_card_instruct.md) |
 | Notice files | Drafts: [Base](release/NOTICE.txt), [Instruct](release/NOTICE_instruct.txt) |

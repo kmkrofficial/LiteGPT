@@ -1,6 +1,6 @@
 # LiteGPT V1 (preserved baseline)
 
-GPT-2 Small (124M), trained on FineWeb-Edu and fine-tuned on Alpaca. Published as `koganrath/LiteGPT-Base` and `koganrath/LiteGPT-Instruct`. It is kept only to reproduce V1 baselines, and `litegpt/` doesn't import it. Tested on Windows with Python 3.11.9; the package list is in `test_env_requirements.txt`.
+GPT-2 Small (124M), trained on FineWeb-Edu and fine-tuned on Alpaca. Published as `koganrath/LiteGPT-Base` and `koganrath/LiteGPT-Instruct`. Its initial design came from [nanoGPT](https://github.com/karpathy/nanoGPT) (MIT). It is kept only to reproduce V1 baselines, and `litegpt/` doesn't import it. Tested on Windows with Python 3.11.9; the package list is in `test_env_requirements.txt`.
 
 Run everything from inside this folder, in its own environment:
 

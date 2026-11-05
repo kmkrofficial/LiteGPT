@@ -6,7 +6,7 @@ Format: newest first. Spec changes are recorded with their ADR (docs/decisions/)
 
 ### 2026-11-05
 - **M4 done** (EXP-M4-SFT, EXP-M4-T2D): G2 passed; V2 lost the registered text-to-data comparison (0.800 against SmolLM2-135M 0.817, Gemma 3 270M 0.822, Qwen3-0.6B 0.851). Python API and CLI added. All benchmarks in `docs/results.md`.
-- M5 documentation and clean-up: READMEs in every top-level folder, `docs/results.md`, `docs/history.md`, draft model cards and notices for Base and Instruct. ADR-011: both models released, no Llama name (owner); licence proposed. Personal paths removed from run records. Backup now covers G2's evaluation run. Development history squashed for release.
+- M5 documentation and clean-up: READMEs in every top-level folder, `docs/results.md`, `docs/history.md`, draft model cards and notices for Base and Instruct. ADR-011: `LiteGPT-V2-Base` and `LiteGPT-Llama-V2-Instruct` to be released (owner); licence proposed. All charts generated from run records in `docs/figures/`. Personal paths removed from run records. Backup now covers G2's evaluation run. Development history squashed for release.
 
 ### 2026-10-13
 - **M1b done** (EXP-M1B-SUITE final at suite 0.1.1, EXP-M1B-BASELINES): 16 models (10 base, 6 instruct) measured on this laptop;
@@ -58,11 +58,11 @@ Format: newest first. Spec changes are recorded with their ADR (docs/decisions/)
   Sustained 30-min throughput with flash: 17,553 tok/s (>= the 16.5k requirement; 10B tokens ~ 6.6 days).
 - **Spec 2.0.0-spec.1 approved** (ADR-000..005): 28-layer / 201.4M architecture, 10B-token budget with the pre-registered
   10B -> 15B extension gate (G1, threshold 0.010 BPB), SDPA mandatory / flash-attn optional, public synthetic datasets allowed
-  but no external teacher models, MIT code licence with nanoGPT notice and model licence pending dataset audit.
+  but no external teacher models, MIT code licence with the upstream notice and model licence pending dataset audit.
 - **Spec 2.0.0-spec.2** (ADR-006): toolchain update - Python 3.12, uv + `uv.lock`, torch 2.14.1+cu130, transformers 5.18.0,
   tokenizers 0.23.2, safetensors 0.8.0, numpy 2.5.3, datasets 5.1.0, trl 1.14.1, peft 0.21.2, accelerate 1.15.0,
   lm-eval 0.4.13, matplotlib 3.11.2; flash-attn 2.8.3.post1 optional/experimental.
 - Spec file fix (no semantic change): floats written as `9.0e+9` instead of `9.0e9` because PyYAML loads the latter as a
   string. Guarded by `tests/test_spec.py::test_no_numeric_value_silently_loaded_as_string`. The gate values are unchanged.
 - M0 foundations: `litegpt/` package (config, model, spec, records, checkpoint), `benchmarks/`, tests, `LICENSE` restored
-  (MIT, nanoGPT notice), `pyproject.toml` + `uv.lock`.
+  (MIT, upstream notice), `pyproject.toml` + `uv.lock`.

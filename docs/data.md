@@ -66,3 +66,7 @@ python scripts/prepare_data.py mix --run <data run>          # indexes, checks, 
 
 Run in WSL2 on the ext4 disk (about 143 GB downloaded and deleted file by file, about 31 GB of shards). The same inputs give
 bit-identical shards and indexes.
+
+## The mixture
+
+![Share of each data source by training phase](../runs/report-latest/figures/data_mixture.svg)

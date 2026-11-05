@@ -10,10 +10,14 @@ A 201M-parameter language model trained from scratch, with its build on record: 
 
 - **For extracting data from text: no.** In our registered comparison it lost to SmolLM2-135M, Gemma 3 270M and Qwen3-0.6B. Use one of those. [Full results](../results.md).
 - **For math or code: no.** GSM8K 0.008, HumanEval 2 of 164 problems, MBPP 0.004.
-- **For chat: no.** This is a base model: it continues text and has no chat or safety training. V2 Instruct is the [chat version](model_card_instruct.md), and it is weak too.
+- **For chat: no.** This is a base model: it continues text and has no chat or safety training. LiteGPT-Llama-V2-Instruct is the [chat version](model_card_instruct.md), and it is weak too.
 - **For studying how a small model is built and tested: yes.** That is what this release is for.
 
 ## Results
+
+![V2 scored lowest of the four on every seed](../figures/t2d_scores.svg)
+
+![Zero-shot mean for 11 base models](../figures/base_zero_shot_mean.svg)
 
 | Text-to-data, after fine-tuning | V2 | SmolLM2-135M | Gemma 3 270M | Qwen3-0.6B |
 |---|---:|---:|---:|---:|
@@ -36,7 +40,7 @@ V1 has 124.5M parameters, SmolLM2-135M 134.5M, Gemma 3 270M 268.1M. Scores are o
 | Shape | 28 layers, 768 wide, 12 heads, 4 KV heads |
 | Parts | RoPE, RMSNorm, QK-norm, SwiGLU, grouped-query attention |
 | Context | 4,096 tokens |
-| Tokenizer | Own 32,768-token byte-level BPE |
+| Tokenizer | 32,768-token byte-level BPE, trained on our data with Hugging Face `tokenizers` |
 
 ## Use
 

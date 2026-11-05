@@ -10,4 +10,4 @@ FineWeb-Edu and FineMath derive from Common Crawl and are subject to its terms o
 
 Code data: github-code-clean (https://huggingface.co/datasets/codeparrot/github-code-clean), restricted to repositories labelled MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, CC0-1.0 or Unlicense. The labels are repository-level; the attributions of individual files are not reproduced.
 
-The LiteGPT code is derived from nanoGPT, Copyright (c) 2022 Andrej Karpathy, MIT licence.
+The initial design of LiteGPT V1 came from nanoGPT, Copyright (c) 2022 Andrej Karpathy, MIT licence.

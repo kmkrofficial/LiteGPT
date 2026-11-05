@@ -15,6 +15,7 @@ Run from the repository root with `uv run python`. Each script's first lines giv
 | Scoring | `run_t2d.py` | Text-to-data: fit, choose learning rate and route, score test once, CPU numbers |
 | Scoring | `m4_g2.py` | The G2 chat gate and the test-machine speed rule |
 | Reports | `build_report.py` | Generate `runs/report-latest/REPORT.md` from run records |
+| Reports | `build_figures.py` | Generate every chart in `docs/figures/` from run records. `--check` finds stale charts |
 
 Evaluation runs through `python -m litegpt.eval.run` and `python -m litegpt.eval.native` ([docs/evaluation.md](../docs/evaluation.md)).
 

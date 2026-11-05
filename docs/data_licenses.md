@@ -172,7 +172,7 @@ Read from the licence files, not summaries. This records what the text says. It 
 
 | Terms | Applies to | Text |
 |---|---|---|
-| Llama 3.1, section 1(b)(i) | V2-Instruct | Using outputs to train a distributed AI model: "include 'Llama' at the beginning of any such AI model name", and prominently display "Built with Llama". The owner chose not to use the name: [ADR-011](decisions/ADR-011-model-licence.md) |
+| Llama 3.1, section 1(b)(i) | V2-Instruct | Using outputs to train a distributed AI model: "include 'Llama' at the beginning of any such AI model name", and prominently display "Built with Llama". The release name includes the word: [ADR-011](decisions/ADR-011-model-licence.md) |
 | Qwen licence, section 5(b) | Base and Instruct | Using outputs to train a distributed AI model: prominently display "Built with Qwen" or "Improved using Qwen" in the related product documentation |
 | ODC-By 1.0, section 4.3 | Base and Instruct | Publicly using a produced work needs a notice that content came from the database; the licence gives the wording |
 | Common Crawl terms of use | Base and Instruct | Name AI training in an indemnity clause, and carry a binding arbitration provision |
