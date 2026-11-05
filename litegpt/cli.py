@@ -48,7 +48,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="litegpt", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="command", required=True)
     base = argparse.ArgumentParser(add_help=False)
-    base.add_argument("--model", required=True, help="a LiteGPT checkpoint")
+    base.add_argument("--model", required=True, help="an exported model folder, or a LiteGPT checkpoint file")
     base.add_argument("--device", default=None, help="default: the GPU if there is one")
     sample = argparse.ArgumentParser(add_help=False)
     sample.add_argument("--max-new-tokens", type=int, default=256)

@@ -1,7 +1,7 @@
 """Offline Python API on the inference engine: load a checkpoint, then generate, chat, stream or extract.
 
     import litegpt
-    m = litegpt.load("weights.pt")
+    m = litegpt.load("LiteGPT-V2-Base")        # an exported folder, or a checkpoint file
     litegpt.generate(m, "Once upon a time", max_new_tokens=32)
     litegpt.chat(m, "What is a contract?", system="Be brief.")
     litegpt.extract(m, "banking77", "My card has not arrived.")
@@ -45,14 +45,30 @@ class LoadedModel:
         return Engine(self.model, self.tok)
 
 
+def _read_folder(path: Path) -> dict:
+    """An exported folder as a checkpoint-shaped dict. Tied embeddings are stored once there."""
+    from safetensors.torch import load_file
+    meta_file = path / "litegpt.json"
+    if not meta_file.is_file():
+        raise FileNotFoundError(f"{path} has no litegpt.json, so it isn't an exported LiteGPT model")
+    meta = json.loads(meta_file.read_text(encoding="utf-8"))
+    weights = load_file(path / "model.safetensors")
+    if meta["model_config"].get("tie_embeddings", True):
+        weights["lm_head.weight"] = weights["model.embed_tokens.weight"]
+    return {"model": weights, "model_config": meta["model_config"], "step": meta.get("step", 0), "tokens": meta.get("tokens", 0)}
+
+
 def load(path, device=None, dtype=torch.bfloat16) -> LoadedModel:
-    """A LiteGPT checkpoint in eval mode, on the GPU if there is one. The optimizer state is not loaded."""
+    """A LiteGPT checkpoint or exported model folder in eval mode, on the GPU if there is one. The optimizer state is not loaded."""
     path = Path(path)
-    if not path.is_file():
-        raise FileNotFoundError(f"no checkpoint at {path}")
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-    with torch.serialization.safe_globals(CHECKPOINT_GLOBALS):
-        state = torch.load(path, map_location="cpu", weights_only=True, mmap=True)
+    if path.is_dir():
+        state = _read_folder(path)
+    elif path.is_file():
+        with torch.serialization.safe_globals(CHECKPOINT_GLOBALS):
+            state = torch.load(path, map_location="cpu", weights_only=True, mmap=True)
+    else:
+        raise FileNotFoundError(f"no checkpoint at {path}")
     model = LiteGPT(ModelConfig.from_dict({**state["model_config"], "attention_backend": "sdpa"}))
     model.load_state_dict({k.removeprefix("_orig_mod."): v for k, v in state["model"].items()})
     arm = (state.get("t2d") or {}).get("arm")
