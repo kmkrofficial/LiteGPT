@@ -1,0 +1,32 @@
+# EXP-M4-T2D: fixed before the first real fine-tune. Prompts are in litegpt/t2d.py. Rival revisions are the ones scored in the M1 and M3 baselines.
+manifest: benchmarks/m4/t2d_manifest.json
+items_dir: ~/m4_t2d/final
+results_dir: runs/m4_t2d
+recipe:
+  epochs: 3
+  max_examples: 32
+  max_chars: 16000
+  lr_grid: [1.0e-5, 3.0e-5, 1.0e-4]
+  seeds: [1, 2, 3]
+  weight_decay: 0.01
+  betas: [0.9, 0.999]
+  grad_clip: 1.0
+  new_tokens: 256
+  micro_tokens: 16384     # memory only: padded tokens per micro-batch, halved if it does not fit
+  gen_tokens: 262144      # memory only: batch size times (prompt + new tokens) during generation
+  gen_items: 64
+arms:
+  v2-base: {kind: litegpt, layout: plain, checkpoint: ~/m3_checkpoints/20261101T142254Z-train-m3-673cd85/milestone-final.pt}
+  v2-chat: {kind: litegpt, layout: chat, checkpoint: runs/m4_t2d/v2_instruct.pt}
+  smollm2-base: {kind: hf, layout: plain, repo: HuggingFaceTB/SmolLM2-135M, revision: 93efa2f097d58c2a74874c7e644dbc9b0cee75a2}
+  smollm2-chat: {kind: hf, layout: chat, repo: HuggingFaceTB/SmolLM2-135M-Instruct, revision: 12fd25f77366fa6b3b4b768ec3050bf629380bac}
+  gemma-base: {kind: hf, layout: plain, repo: google/gemma-3-270m, revision: 9b0cfec892e2bc2afd938c98eabe4e4a7b1e0ca1}
+  gemma-chat: {kind: hf, layout: chat, repo: google/gemma-3-270m-it, revision: ac82b4e820549b854eebf28ce6dedaf9fdfa17b3, stop_token: <end_of_turn>}
+  qwen3-base: {kind: hf, layout: plain, repo: Qwen/Qwen3-0.6B-Base, revision: da87bfb608c14b7cf20ba1ce41287e8de496c0cd}
+models:
+  v2: [v2-base, v2-chat]
+  smollm2: [smollm2-base, smollm2-chat]
+  gemma: [gemma-base, gemma-chat]
+  qwen3: [qwen3-base]
+compare_against: [smollm2, gemma, qwen3]     # qwen3 is a reference, three times the size, not a rival
+cpu_items: {cuad: 10, massive: 100, banking77: 100}
