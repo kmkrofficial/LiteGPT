@@ -8,10 +8,10 @@ Implementation: [`litegpt/model.py`](../litegpt/model.py) (single file, architec
 |---|---|
 | Layout | decoder-only, pre-norm residual blocks, tied input/output embeddings, no biases |
 | Shape | 28 layers x d_model 768, 12 query heads / 4 KV heads (GQA 3:1), head_dim 64 |
-| Positions | RoPE (rotate-half layout), theta 10,000 (100,000 for the 4096 extension) |
+| Positions | RoPE (rotate-half layout), theta 10,000, kept at 4,096 context ([ADR-009](decisions/ADR-009-m3-cloud-budget-context-and-mixture.md)) |
 | Norm | RMSNorm (eps 1e-6) + per-head QK-norm applied before RoPE |
 | FFN | SwiGLU, hidden 2048 |
-| Vocabulary / context | 32,768 (custom byte-level BPE) / 2,048 (4,096 extension) |
+| Vocabulary / context | 32,768 (custom byte-level BPE) / 4,096 (2,048 until the last pretraining phase) |
 | Init | N(0, 0.02); `o_proj` and `down_proj` scaled by 1/sqrt(2 * n_layer) |
 
 ## Attention backends
@@ -26,7 +26,7 @@ block-diagonal causal mask, flash uses its varlen kernel; RoPE positions restart
 
 Module and parameter names mirror `Qwen3ForCausalLM` (`model.embed_tokens`, `model.layers.N.self_attn.{q,k,v,o}_proj`,
 `q_norm`, `k_norm`, `mlp.{gate,up,down}_proj`, `input_layernorm`, `post_attention_layernorm`, `model.norm`, `lm_head`) so export is
-a tensor copy plus a config. The implementation is our own; the logit-parity test arrives with the export (M5).
+a tensor copy plus a config. The implementation is our own. The logit-parity test arrives with the export and is not built yet ([distribution](distribution.md)).
 
 ## KV cache
 

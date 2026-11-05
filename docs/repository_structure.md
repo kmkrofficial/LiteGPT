@@ -3,7 +3,7 @@
 Decision record: [ADR-007](decisions/ADR-007-repository-structure.md).
 
 ```
-litegpt/        canonical production source (the only importable package)
+litegpt/        canonical production source (the only importable package); api.py and cli.py are the user-facing entry points
 tests/          canonical tests
 benchmarks/     reusable benchmark scripts and tooling (results go to runs/)
 scripts/        reusable utilities; scripts/legacy_v1/ is the preserved V1 baseline

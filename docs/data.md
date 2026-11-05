@@ -1,6 +1,6 @@
 # Data
 
-**Status: M1.** Binding configuration: [`docs/spec/data_sources.yaml`](spec/data_sources.yaml) and spec `data.*` / `tokenizer.*`
+**Status: final; used for M3 and M4.** Binding configuration: [`docs/spec/data_sources.yaml`](spec/data_sources.yaml) and spec `data.*` / `tokenizer.*`
 (2.0.0-spec.6, [ADR-008](decisions/ADR-008-data-sources-mixture-and-freeze.md)). Measured numbers (tokens per source,
 filter and decontamination rates, duplicates, frozen hashes) are in section 3c of the generated report
 (`runs/report-latest/REPORT.md`); licences and provenance are in [data_licenses.md](data_licenses.md).

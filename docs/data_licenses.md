@@ -1,6 +1,6 @@
 # Data licence and provenance register
 
-Status: **final for M1 (2026-10-12): the prepared data matches this register.** Feeds the D4 release gate: the model licence is decided at M5 only
+Status: **final for M1 (2026-10-12): the prepared data matches this register. Licence files read 2026-11-05: see the last section.** Feeds the D4 release gate: the model licence is decided at M5 only
 after this register is complete. Facts come from the Hub dataset cards/API and from reading the data itself at the exact
 revisions below. Evidence records (in `runs/`): `20261007T025701Z-data-verify-sources` (availability, gating),
 `20261007T124946Z-data-audit-code`, `20261007T125037Z-data-audit-pretrain`, `20261007T125330Z-data-audit-smoltalk`.
@@ -81,6 +81,8 @@ Read from the Llama 3.1 Community License text on 2026-10-07 (a summary of the f
   must be retained in distributed copies of Llama materials.
 - Use must comply with Meta's Acceptable Use Policy.
 - A licence from Meta is needed above 700 million monthly active users.
+
+**Correction (2026-11-05):** smol-magpie-ultra is `m4_sft_only`, and the prepared decay slice holds only the three Qwen-generated subsets. So this question applies to V2-Instruct, not the base model.
 
 **Open question for the M5 release gate (the owner's call):** whether outputs of Llama 3.1 used inside the 5% decay slice and the SFT data make
 the released model subject to the "Llama" naming requirement (for example `Llama-LiteGPT-V2-Instruct` instead of `LiteGPT-V2-Instruct`).
@@ -163,3 +165,14 @@ Used only to build the 13-gram filter and for scoring, never as training data. R
 5b. Qwen2.5-72B-Instruct display requirement (smol-summarize / rewrite / constraints), above.
 5. Wikipedia: excluded, nothing carried.
 6. Text-to-data fine-tunes: credit for the CC BY 4.0 datasets (CUAD, MASSIVE, Banking77) if a model fine-tuned on them is released.
+
+## Licence files read (2026-11-05)
+
+Read from the licence files, not summaries. This records what the text says. It is not legal advice, and it does not settle whether a licence on a generator's outputs binds someone who only trained on a public dataset of them. Proposal: [ADR-011](decisions/ADR-011-model-licence.md).
+
+| Terms | Applies to | Text |
+|---|---|---|
+| Llama 3.1, section 1(b)(i) | V2-Instruct | Using outputs to train a distributed AI model: "include 'Llama' at the beginning of any such AI model name", and prominently display "Built with Llama" |
+| Qwen licence, section 5(b) | Base and Instruct | Using outputs to train a distributed AI model: prominently display "Built with Qwen" or "Improved using Qwen" in the related product documentation |
+| ODC-By 1.0, section 4.3 | Base and Instruct | Publicly using a produced work needs a notice that content came from the database; the licence gives the wording |
+| Common Crawl terms of use | Base and Instruct | Name AI training in an indemnity clause, and carry a binding arbitration provision |

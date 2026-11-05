@@ -1,7 +1,7 @@
 # Evaluation
 
-**Status: suite v0 final at 0.1.1; baselines done for 16 models (M1b, report section 3d).** Registry: `EXP-M1B-SUITE`,
-`EXP-M1B-BASELINES`.
+**Status: suite v0 final at 0.1.1; baselines done for 16 models, and V2 scored.** All results: [`results.md`](results.md). Registry: `EXP-M1B-SUITE`,
+`EXP-M1B-BASELINES`, `EXP-M3-CHECKPOINT-EVAL`, `EXP-M4-SFT`, `EXP-M4-T2D`.
 
 ## What is measured
 
@@ -58,5 +58,9 @@ lm-eval HF convention (continuation = tail of encode(context + continuation)); e
 
 ## Deferred
 
-Spider execution accuracy and MultiPL-E JS/TS execution move to M4 (they need databases outside the Hub and Node.js in WSL).
+Spider execution accuracy and MultiPL-E JS/TS execution were not run (they need databases outside the Hub and Node.js in WSL).
 Both stay in the decontamination reference list.
+
+## Text-to-data comparison
+
+EXP-M4-T2D, scored by `litegpt/t2d.py` and run by `scripts/run_t2d.py`. Test items are frozen in `benchmarks/m4/t2d_manifest.json` (`scripts/freeze_t2d.py` rebuilds them byte for byte). Text is compared after lowercasing, removing punctuation and collapsing whitespace. Invalid JSON misses every gold value of that output. Decoding is greedy with no grammar help.

@@ -3,15 +3,16 @@
 A small language model (SLM) trained from scratch, derived from Andrej Karpathy's [nanoGPT](https://github.com/karpathy/nanoGPT).
 
 - **V1**: GPT-2 Small (124M), trained on FineWeb-Edu and fine-tuned on Alpaca. Preserved in [`scripts/legacy_v1/`](scripts/legacy_v1) as the baseline.
-- **V2** (in development): an independently implemented modern architecture, trained on a single RTX 4090 Laptop (16 GB).
+- **V2**: an independently implemented modern architecture, designed on an RTX 4090 Laptop and trained on one rented A100. Not released yet.
 
-## LiteGPT V2 (in development)
+## LiteGPT V2
 
-RoPE, RMSNorm + QK-norm, SwiGLU, grouped-query attention, a 32k tokenizer, 28 layers x 768, 2048 context, ~201M parameters,
-with a reproducible pipeline and an evaluation / benchmarking layer.
+RoPE, RMSNorm + QK-norm, SwiGLU, grouped-query attention, a 32k tokenizer, 28 layers x 768, 4,096 context, 201M parameters.
+Every experiment was registered before it ran, and the results are published whichever way they went.
 
-- **Result so far:** in the registered text-to-data comparison (EXP-M4-T2D), V2 scored 0.800 against SmolLM2-135M 0.817, Gemma 3 270M 0.822 and Qwen3-0.6B 0.851, and won nothing. For that job, use one of those. V2's case is that every step of building it is on record.
+- **Result:** in the registered text-to-data comparison, V2 scored 0.800 against SmolLM2-135M 0.817, Gemma 3 270M 0.822 and Qwen3-0.6B 0.851, and won nothing. For that job, use one of those. V2 is better than V1, and its case is that every step of building it is on record. All benchmarks: [`docs/results.md`](docs/results.md).
 - Offline Python API and CLI: [`docs/inference.md`](docs/inference.md).
+- Training: [`docs/training.md`](docs/training.md). Release plan: [`docs/distribution.md`](docs/distribution.md).
 - Specification: [`docs/spec/v2.yaml`](docs/spec/v2.yaml); decisions: [`docs/decisions/`](docs/decisions/README.md).
 - Repository layout: [`docs/repository_structure.md`](docs/repository_structure.md).
 - Environment (Python 3.12 + uv, locked): [`docs/reproduce.md`](docs/reproduce.md).
@@ -23,7 +24,7 @@ uv run python -m benchmarks.train_mem single       # training throughput / VRAM 
 uv run python -m scripts.build_report              # regenerate runs/report-latest/REPORT.md from runs/
 ```
 
-Status: M0 (foundations) in progress. No V2 model has been trained yet.
+Status: pretraining (M3) and chat fine-tuning with the comparison (M4) are done. The release (M5) is being prepared; no V2 weights are public yet.
 
 ## Repository layout
 
@@ -61,8 +62,7 @@ Checkpoints are written to `out-fineweb/` and `out-instruct/` inside `scripts/le
 ### V1 on Hugging Face
 
 The published V1 models are `koganrath/LiteGPT-Instruct` (fine-tuned on Alpaca) and `koganrath/LiteGPT-Base` (pre-trained on
-FineWeb). The V1 export script (`export_to_hub.py`) is not part of this repository (it is git-ignored); V2 will ship a tested
-export (`litegpt/export/to_hf.py`) with a logit-parity check.
+FineWeb). The V1 export script (`export_to_hub.py`) is not part of this repository (it is git-ignored).
 
 ```bash
 cd scripts/legacy_v1/hugging_face_inference
@@ -84,10 +84,10 @@ V1 was tested on Windows with Python 3.11.9; the full package list is in `script
 
 Code is MIT licensed (see [`LICENSE`](LICENSE)). LiteGPT is derived from [nanoGPT](https://github.com/karpathy/nanoGPT)
 (Copyright (c) 2022 Andrej Karpathy, MIT), whose copyright notice is retained. The licence of the V2 model weights is not
-final: it will be chosen only after every training dataset's licence has been audited ([ADR-004](docs/decisions/ADR-004-licensing.md)).
+final: Apache-2.0 is proposed in [ADR-011](docs/decisions/ADR-011-model-licence.md), and no weights are published before it is accepted ([ADR-004](docs/decisions/ADR-004-licensing.md)).
 
 ## Acknowledgements
 
 - [nanoGPT](https://github.com/karpathy/nanoGPT) by Andrej Karpathy
-- [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu) Dataset
+- [FineWeb-Edu](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu) Dataset, and the other sources in [`docs/data_licenses.md`](docs/data_licenses.md)
 - [Alpaca](https://github.com/tatsu-lab/stanford_alpaca) Dataset

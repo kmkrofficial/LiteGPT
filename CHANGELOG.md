@@ -4,6 +4,10 @@ Format: newest first. Spec changes are recorded with their ADR (docs/decisions/)
 
 ## Unreleased (V2 development)
 
+### 2026-11-05
+- **M4 done** (EXP-M4-SFT, EXP-M4-T2D): G2 passed; V2 lost the registered text-to-data comparison (0.800 against SmolLM2-135M 0.817, Gemma 3 270M 0.822, Qwen3-0.6B 0.851). Python API and CLI added. All benchmarks in `docs/results.md`.
+- M5 documentation pass: public docs brought up to date. ADR-011 (model licence) proposed, not accepted. Draft model card and notice in `docs/release/`.
+
 ### 2026-10-13
 - **M1b done** (EXP-M1B-SUITE final at suite 0.1.1, EXP-M1B-BASELINES): 16 models (10 base, 6 instruct) measured on this laptop;
   report section 3d with counted parameters, published context, base / instruct / XSTest / bits-per-byte / efficiency tables.
