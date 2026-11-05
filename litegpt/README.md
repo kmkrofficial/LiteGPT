@@ -15,6 +15,7 @@ Start with [`api.py`](api.py) and [`cli.py`](cli.py). Docs: [inference](../docs/
 | `eval/` | Evaluation suite and the adapter for lm-evaluation-harness |
 | `t2d.py`, `t2d_run.py` | The text-to-data comparison: prompts and scoring, and running every model the same way |
 | `data.py`, `dataprep.py`, `datafilters.py`, `datacheck.py`, `decontam.py`, `sft.py` | Data preparation, licence and secret filters, checks, benchmark overlap removal, chat data |
+| `export/` | Export to the Hugging Face Qwen3 layout, with parity checks |
 | `checkpoint.py` | Atomic, resumable training checkpoints |
 | `records.py` | Run records, the source of every reported number |
 | `spec.py` | Reads and checks the specification |

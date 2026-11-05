@@ -62,3 +62,14 @@ litegpt extract --model weights.pt --task cuad --input contract.txt
 Everything runs offline. Options are the fields of `GenerationConfig`; greedy by default. A prompt that does not fit the context is an error, never cut silently. `load` reads a checkpoint with `weights_only`, allowing only the numpy types of a training checkpoint's RNG state, so a file that would run code is refused.
 
 `extract` takes `cuad`, `massive` or `banking77` and uses the exact prompt and greedy decoding of EXP-M4-T2D. It refuses a checkpoint that was not fine-tuned for these tasks and never repairs invalid JSON: `valid` is false and `output` keeps the text. Exit code 2 from the CLI means invalid output. It runs one document at a time, where scoring ran batches: on real V2 weights it reproduced 209 of 210 saved dev outputs. For this job, see the result in the README first.
+
+## Through Transformers
+
+An exported model loads with `AutoModelForCausalLM` and needs no remote code ([distribution](distribution.md)). In float32, logits and greedy output are identical to LiteGPT's on the registered prompts (EXP-M5-EXPORT).
+
+| Difference | Why | Effect |
+|---|---|---|
+| At bfloat16, numbers differ slightly | Transformers computes RMSNorm in float32, LiteGPT in bfloat16 | Greedy output usually matches and can part ways. All benchmarks used LiteGPT's engine |
+| Literal control tokens | Transformers reads `<|im_end|>` in text as a control token, which its chat template relies on. LiteGPT's `render_ids` reads it as text | Clean untrusted input when using Transformers |
+
+`litegpt.load` and the `litegpt` command also read an exported folder.

@@ -12,15 +12,20 @@
 
 V2's commits go on top of V1's, so V1's history stays. V1's models stay at `koganrath/LiteGPT-Base` and `koganrath/LiteGPT-Instruct` on Hugging Face. The V2 model repos above don't exist yet, and no V2 code is public yet.
 
-## Planned
+## State
 
 | Item | State |
 |---|---|
-| `LiteGPT-V2-Base` and `LiteGPT-Llama-V2-Instruct` weights as safetensors, with `litegpt.json` metadata | Not built |
-| `litegpt/export/to_hf.py` with a logit-parity test | Not built. Parameter names mirror `Qwen3ForCausalLM`, but whether that class reproduces V2's QK-norm is untested. If logits don't match, the release loads through the `litegpt` package instead, and says so |
+| `litegpt/export/to_hf.py` | Built. Writes safetensors at bfloat16, config, tokenizer, chat template, `litegpt.json`, model card, notice and licence files |
+| Both models exported | Done locally, 387 MB each. To be rebuilt once more when the cards are final |
+| Parity with Transformers (EXP-M5-EXPORT) | Logits and greedy output identical in float32. **One rule failed as written:** tokenizer ids matched on 195 of 200 strings, all 5 holding literal control-token text. Awaiting the owner's decision |
 | Model cards | Drafts: [Base](release/model_card_base.md), [Instruct](release/model_card_instruct.md) |
 | Notice files | Drafts: [Base](release/NOTICE.txt), [Instruct](release/NOTICE_instruct.txt) |
 | Frozen report `runs/report-v2.0.0/` | Not built |
+
+```bash
+uv run --group hf python -m litegpt.export.to_hf --checkpoint milestone-final.pt --kind base --out LiteGPT-V2-Base
+```
 
 ## Not distributed
 

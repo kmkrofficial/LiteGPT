@@ -44,10 +44,32 @@ It passed its registered gate: IFEval above V1-Instruct by more than 2 standard 
 
 ## Use
 
-```text
-uv sync --locked                   # from the repository; not on PyPI
-uv run litegpt chat --model weights.pt
+With Transformers (no remote code needed):
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+name = "kmkrworks/LiteGPT-Llama-V2-Instruct"
+tokenizer = AutoTokenizer.from_pretrained(name)
+model = AutoModelForCausalLM.from_pretrained(name)
+inputs = tokenizer.apply_chat_template([{"role": "user", "content": "What is the capital of France?"}], add_generation_prompt=True, return_tensors="pt", return_dict=True)
+output = model.generate(**inputs, max_new_tokens=48)
+print(tokenizer.decode(output[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True))
 ```
+
+With LiteGPT's own engine, from a [clone of the repository](https://github.com/kmkrofficial/LiteGPT):
+
+```text
+uv sync --locked
+uv run litegpt chat --model LiteGPT-Llama-V2-Instruct
+```
+
+## Transformers and LiteGPT
+
+The weights load exactly: in float32, both give identical logits and greedy output. Two differences remain:
+
+- **At the default bfloat16, numbers differ slightly**, because Transformers computes RMSNorm in float32 and LiteGPT in bfloat16, so outputs can part ways. Our benchmarks used LiteGPT's engine.
+- **Literal control tokens:** through Transformers, text containing `<|im_end|>` or similar is read as a control token. LiteGPT reads it as plain text. Clean untrusted input if you use Transformers.
 
 ## Training
 

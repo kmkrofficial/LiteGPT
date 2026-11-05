@@ -79,6 +79,8 @@ s7 and s8a were labelled "hurts" on web by the registered rule. The owner kept b
 | M4 | The backup list missed G2's evaluation run, and the A100 was then rented out | Recovered from the volume by a cheap second server. Backup fixed |
 | M4 | Test scoring died 5 minutes in and went unnoticed for a day | Resumed from saved outputs. Nothing had been scored |
 | M5 | Safe checkpoint loading refused real training checkpoints | Caught only by testing real weights. Tests now cover it |
+| M5 | My first export check compared rounded RoPE tables by mistake | Caught on a tiny model and corrected in the registry before any real export |
+| M5 | The tokenizer check failed as written: 195 of 200 strings matched | All 5 hold literal control-token text. Recorded as a failure, with the difference documented |
 
 ![Scores at the 2.5B, 5B, 9B and final checkpoints](figures/m3_checkpoints.svg)
 

@@ -44,10 +44,31 @@ V1 has 124.5M parameters, SmolLM2-135M 134.5M, Gemma 3 270M 268.1M. Scores are o
 
 ## Use
 
-```text
-uv sync --locked                   # from the repository; not on PyPI
-uv run litegpt generate --model weights.pt "The capital of France is"
+With Transformers (no remote code needed):
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+name = "kmkrworks/LiteGPT-V2-Base"
+tokenizer = AutoTokenizer.from_pretrained(name)
+model = AutoModelForCausalLM.from_pretrained(name)
+inputs = tokenizer("The capital of France is", return_tensors="pt")
+print(tokenizer.decode(model.generate(**inputs, max_new_tokens=32)[0], skip_special_tokens=True))
 ```
+
+With LiteGPT's own engine, from a [clone of the repository](https://github.com/kmkrofficial/LiteGPT):
+
+```text
+uv sync --locked
+uv run litegpt generate --model LiteGPT-V2-Base "The capital of France is"
+```
+
+## Transformers and LiteGPT
+
+The weights load exactly: in float32, both give identical logits and greedy output. Two differences remain:
+
+- **At the default bfloat16, numbers differ slightly**, because Transformers computes RMSNorm in float32 and LiteGPT in bfloat16, so outputs can part ways. Our benchmarks used LiteGPT's engine.
+- **Literal control tokens:** through Transformers, text containing `<|im_end|>` or similar is read as a control token. LiteGPT reads it as plain text. Clean untrusted input if you use Transformers.
 
 ## Training data
 

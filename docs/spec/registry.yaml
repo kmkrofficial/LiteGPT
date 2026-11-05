@@ -628,8 +628,8 @@ experiments:
     hypothesis: "Exported to the Hugging Face Qwen3 layout, each V2 model gives the same outputs through Transformers as through LiteGPT's own code."
     config: litegpt/export/to_hf.py
     parent: EXP-M4-SFT
-    status: registered 2026-11-05 before any export; the owner asked for the export the same day
-    runs: []
+    status: measured 2026-11-05; one rule failed as written, and the owner decides how to treat it
+    runs: [20261105T171709Z-export-LiteGPT-V2-Base-ff62167, 20261105T171910Z-export-LiteGPT-Llama-V2-Instruct-ff62167]
     decisions:   # PRE-REGISTERED 2026-11-05 before any export
       models: "LiteGPT-V2-Base from the M3 milestone-final.pt, LiteGPT-Llama-V2-Instruct from the M4 SFT milestone-final.pt"
       format: "safetensors at bfloat16, the dtype every benchmark was scored at, with tied embeddings stored once; Qwen3 config, tokenizer, chat template, litegpt.json metadata, model card, notice and licence files"
@@ -643,4 +643,4 @@ experiments:
       tokenizer: "PASS if ids are identical on 200 validation-independent strings from docs/ and the chat template gives the ids of chat_template.render_ids"
       round_trip: "PASS if litegpt.load on the exported folder gives logits identical to the source checkpoint rounded to bfloat16"
       on_failure: "The release loads through the litegpt package only and says so. No remote code is added without asking the owner"
-    conclusion: "not started"
+    conclusion: "MEASURED 2026-11-05, both models. PASS: parameters 201,373,952 on both sides; largest logit difference 0.0 on all five prompts, in float32; greedy 64 tokens identical on all three prompts; round trip identical; chat template ids identical. FAIL as written: tokenizer ids identical on 195 of 200 strings, so `passed` is false in both records. All 5 contain literal special-token text such as <|im_end|>: Transformers reads that as a control token, which its chat template needs, and LiteGPT's own code reads it as text on purpose (docs/chat_template.md). The on_failure line was written for a model mismatch, which did not happen. Reported at bfloat16, no pass line: Transformers computes RMSNorm in float32 and LiteGPT in bfloat16, so numbers differ from the first norm layer. Largest logit difference 1.27 Base, 0.91 Instruct, on random-token prompts; greedy matched 64 of 64 on all three Base prompts and two Instruct prompts, and 2 of 64 on the third; 64 of 64 on one real-text Instruct prompt. All benchmarks were scored through LiteGPT's engine."
