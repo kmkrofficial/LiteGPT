@@ -97,7 +97,7 @@ def _as_values(v) -> list[str]:
     return [n] if n else []
 
 
-def _first_json(text: str):
+def first_json(text: str):
     """The output parsed as JSON. Trailing text after a complete value is tolerated; anything else is invalid."""
     try:
         value, _ = json.JSONDecoder().raw_decode(text.strip())
@@ -112,7 +112,7 @@ def _prf_counts(pred: Counter, gold: Counter) -> tuple[int, int, int]:
 
 
 def score_cuad(output: str, gold: dict) -> dict:
-    data = _first_json(output)
+    data = first_json(output)
     valid = isinstance(data, dict)
     tp = fp = fn = 0
     per = {}
@@ -125,7 +125,7 @@ def score_cuad(output: str, gold: dict) -> dict:
 
 
 def score_massive(output: str, gold: list) -> dict:
-    data = _first_json(output)
+    data = first_json(output)
     valid = isinstance(data, list) and all(isinstance(x, dict) and "type" in x and "value" in x for x in data)
     p = Counter((norm(x["type"]), norm(x["value"])) for x in data) if valid else Counter()
     tp, fp, fn = _prf_counts(p, Counter((norm(x["type"]), norm(x["value"])) for x in gold))

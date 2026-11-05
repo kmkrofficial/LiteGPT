@@ -1,6 +1,6 @@
 # Inference engine
 
-**Status: core built (M1b).** The Python API (`load` / `generate` / `chat` / `chat_stream`) and the CLI build on it in M4.
+**Status: built.** Engine in M1b; Python API and CLI in M4 (end of this page).
 
 `litegpt/inference/` works on token ids; text handling is limited to what stop strings and streaming need.
 
@@ -40,3 +40,25 @@ assert [len(r.ids) for r in results] == [8, 8] and results[0].finish_reason == "
 
 Not yet: continuous batching, paged KV cache, speculative decoding, context management (dropping old turns), which come with
 the API in M4 or later.
+
+## Python API and CLI
+
+```text
+import litegpt
+m = litegpt.load("weights.pt")                                   # GPU if there is one, bfloat16
+litegpt.generate(m, "Once upon a time", max_new_tokens=32)
+litegpt.chat(m, "What is a contract?", system="Be brief.")
+for piece in litegpt.chat_stream(m, "Name three colours."): ...
+litegpt.extract(m, "banking77", "My card has not arrived.")      # a text-to-data fine-tune only
+```
+
+```text
+litegpt info --model weights.pt
+litegpt generate --model weights.pt "Once upon a time"
+litegpt chat --model milestone-final.pt
+litegpt extract --model weights.pt --task cuad --input contract.txt
+```
+
+Everything runs offline. Options are the fields of `GenerationConfig`; greedy by default. A prompt that does not fit the context is an error, never cut silently. `load` reads a checkpoint with `weights_only`, allowing only the numpy types of a training checkpoint's RNG state, so a file that would run code is refused.
+
+`extract` takes `cuad`, `massive` or `banking77` and uses the exact prompt and greedy decoding of EXP-M4-T2D. It refuses a checkpoint that was not fine-tuned for these tasks and never repairs invalid JSON: `valid` is false and `output` keeps the text. Exit code 2 from the CLI means invalid output. It runs one document at a time, where scoring ran batches: on real V2 weights it reproduced 209 of 210 saved dev outputs. For this job, see the result in the README first.
