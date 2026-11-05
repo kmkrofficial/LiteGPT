@@ -1,0 +1,24 @@
+{
+ "model": "smollm2",
+ "arm": "smollm2-chat",
+ "threads": 8,
+ "tasks": {
+  "cuad": {
+   "items": 10,
+   "documents_per_minute": 12.504744902140445,
+   "time_to_first_token_s": 2.8440574549999837
+  },
+  "massive": {
+   "items": 100,
+   "documents_per_minute": 146.33106932982082,
+   "time_to_first_token_s": 0.1788529790001121
+  },
+  "banking77": {
+   "items": 100,
+   "documents_per_minute": 207.34501836061793,
+   "time_to_first_token_s": 0.22333512999966842
+  }
+ },
+ "peak_ram_gib": 1.6147651672363281,
+ "note": "bfloat16, one document at a time, same laptop and thread count"
+}

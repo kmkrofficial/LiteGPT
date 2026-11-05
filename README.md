@@ -10,6 +10,8 @@ A small language model (SLM) trained from scratch, derived from Andrej Karpathy'
 RoPE, RMSNorm + QK-norm, SwiGLU, grouped-query attention, a 32k tokenizer, 28 layers x 768, 2048 context, ~201M parameters,
 with a reproducible pipeline and an evaluation / benchmarking layer.
 
+- **Result so far:** in the registered text-to-data comparison (EXP-M4-T2D), V2 scored 0.800 against SmolLM2-135M 0.817, Gemma 3 270M 0.822 and Qwen3-0.6B 0.851, and won nothing. For that job, use one of those. V2's case is that every step of building it is on record.
+- Offline Python API and CLI: [`docs/inference.md`](docs/inference.md).
 - Specification: [`docs/spec/v2.yaml`](docs/spec/v2.yaml); decisions: [`docs/decisions/`](docs/decisions/README.md).
 - Repository layout: [`docs/repository_structure.md`](docs/repository_structure.md).
 - Environment (Python 3.12 + uv, locked): [`docs/reproduce.md`](docs/reproduce.md).

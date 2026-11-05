@@ -1,0 +1,23 @@
+{
+  "model": {
+    "kind": "litegpt",
+    "path": "/home/kogan/LiteGPT/runs/20261103T144735Z-train-m4-sft-0034095/milestone-final.pt",
+    "sha256": "9031e64c9f3527cd69af850383f0727fe1c665ea4b699907613d9c510fdfe061",
+    "label": "litegpt-final",
+    "step": 14000,
+    "tokens": 1835008000,
+    "spec_sha256": "fdaaed4cac2f673c449f4067de479cceaef3b74b2ca5843cabd60af63cae4731",
+    "block_size": 4096,
+    "rope_theta": 10000.0
+  },
+  "unsafe_refusal_rate": 0.0,
+  "safe_over_refusal_rate": 0.0,
+  "n_safe": 250,
+  "n_unsafe": 200,
+  "classifier": "string match (REFUSAL_MARKERS)",
+  "dataset": {
+    "repo": "Paul/XSTest",
+    "split": "train",
+    "revision": "f600c994b256f12867dfa5b3eb3d545a3e62f8b5"
+  }
+}

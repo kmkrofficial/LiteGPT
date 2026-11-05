@@ -569,8 +569,8 @@ experiments:
     hypothesis: "Assistant-only SFT from the M3 final checkpoint on the reserved SmolTalk data gives a chat model that clearly beats V1-Instruct on IFEval, without divergence."
     config: benchmarks/m4/sft.yaml (Phase 1)
     parent: EXP-G1-EXTENSION-GATE
-    status: approved by the owner 2026-11-03 (ADR-010, spec 2.0.0-spec.8); nothing has run
-    runs: []
+    status: done 2026-11-05
+    runs: [20261103T144735Z-train-m4-sft-0034095, 20261103T142640Z-train-m4-sft-sweep-a-0034095, 20261103T143337Z-train-m4-sft-sweep-b-0034095, 20261103T144033Z-train-m4-sft-sweep-c-0034095, 20261104T010206Z-eval-instruct-litegpt-final-15e8937, 20261105T131002Z-eval-instruct-litegpt-final-c79680a, 20261105T133546Z-eval-xstest-litegpt-final-c79680a]
     decisions:   # PRE-REGISTERED 2026-11-03 before any SFT run
       data: "sft_reserved (15% of smol-summarize, smol-rewrite, smol-constraints) + smol-magpie-ultra at smoltalk revision 5feaf2fd; conversations over 2,048 tokens dropped; 13-gram decontamination against the spec's reference sets; 1% held out"
       training: "from milestone-final.pt of 20261101T142254Z-train-m3-673cd85; assistant-only loss from chat_template; whole-conversation packing with cu_seqlens; batch 131,072 tokens; AdamW; warm-up 5M tokens; final LR 10% of peak"
@@ -589,14 +589,14 @@ experiments:
       sft_result: "2026-11-04: 3 epochs, 14,000 steps, peak LR 6e-4 (top of the grid: sweep held-out 1.5240, 1.4641, 1.4131). Held-out assistant-only loss 1.1323, 1.0518, 1.0238; epoch 3 chosen. No skipped steps. Mean 50.1k token slots per second"
       chat_bpb: "not evidence for V2-Instruct: it measures familiarity with this dataset family (progress report 15.7); shown in tables, labelled as such"
       safety: "D5: a safety slice only if a cleanly licensed training source exists. Phase 0 found none, so none is planned; stated on the model card"
-    conclusion: "not started"
+    conclusion: "DONE 2026-11-05. G2 PASSED on the A100 by the registered rule: IFEval 0.1312 (71 of 541) against V1-Instruct 0.0832, 2.56 standard errors, no divergence. 3 epochs, 14,000 steps, peak LR 6e-4, held-out assistant-only loss 1.1323, 1.0518, 1.0238, epoch 3 chosen. Rest of the suite on the laptop: IFEval 0.1294 (70 of 541, one question from the A100, so the machine difference is negligible), GSM8K chat 0.0220, HumanEval chat 0.0427, MBPP chat 0.0420, XSTest unsafe refused 0%, safe refused 0%. Beats V1-Instruct on IFEval, HumanEval and MBPP, level on GSM8K. Well behind SmolLM2-135M-Instruct (IFEval 0.220, MBPP 0.098) and Gemma 3 270M-it (0.251, 0.154). It has no safety behaviour, as D5 expected; that must be disclosed. Deviation: the speed check was below the 55k line (owner chose to continue, flash, micro-batch 8)."
   - id: EXP-M4-T2D
     milestone: M4
     hypothesis: "Fine-tuned on the same real text-to-data tasks by the same recipe, V2 is at least level with SmolLM2-135M and Gemma 3 270M on the mean of field F1, slot F1 and intent accuracy."
     config: benchmarks/m4/t2d.yaml (Phase 1)
     parent: EXP-M4-SFT
-    status: approved by the owner 2026-11-03 (ADR-010, spec 2.0.0-spec.8); nothing has run
-    runs: []
+    status: done 2026-11-05
+    runs: [every runs/*-train-m4-t2d-*-15e8937 and runs/*-train-m4-billsum-*-15e8937, results in runs/m4_t2d/test_results.json]
     decisions:   # PRE-REGISTERED 2026-11-03 before any fine-tune
       arms: "from base: V2 M3 final, SmolLM2-135M, Gemma 3 270M, Qwen3-0.6B-Base (reference only). From chat version: V2-Instruct, SmolLM2-135M-Instruct, Gemma 3 270M-it"
       tasks: "CUAD (document name, parties, agreement date, governing law), MASSIVE en-US slots, Banking77 intents; one model fine-tuned jointly on the three primary tasks. BillSum separately, on each model's chosen route, one seed, last"
@@ -622,4 +622,4 @@ experiments:
       strict_check: "the score and each comparison are also reported on zero-match test items only (CUAD 42, MASSIVE 2,973, Banking77 3,080; BillSum 302), next to the main score. The decision above uses the main score"
       headline: "win or tie and faster or smaller on CPU: a credible private text-to-data base, stated with its numbers. Tie and slower: as accurate, with the speed cost. Loss to either: publish it, recommend the winner for this job, and rest V2's case on reproducibility only"
       deviation: "a recipe change after seeing test scores voids the comparison and is recorded as a deviation"
-    conclusion: "not started"
+    conclusion: "DONE 2026-11-05: HYPOTHESIS REJECTED. Test scored once, on the laptop by the registered rule. Score, mean of 3 seeds: V2 0.7999, SmolLM2-135M 0.8172, Gemma 3 270M 0.8220, Qwen3-0.6B reference 0.8507. V2 lost to each by more than 2 SE: -0.0173 (3.4 SE), -0.0221 (4.6 SE), -0.0508 (9.2 SE). No win on any task or on the zero-match items: on zero-match items V2 0.7758 ties SmolLM2 0.7893 (1.6 SE) and loses to Gemma 0.7911 (2.1 SE) and Qwen3 0.8341. Routes chosen on dev: V2 base, SmolLM2 chat, Gemma base, Qwen3 base. CPU at 8 threads, reported: V2 is slower than Gemma on all three tasks and than SmolLM2 on two; peak RAM V2 1.66 GiB, SmolLM2 1.61, Gemma 2.62, Qwen3 4.27. BillSum, reported only, ROUGE-L: V2 0.429, Gemma 0.442, SmolLM2 0.448, Qwen3 0.482. Headline by the registered rule, a loss to either rival: publish it, recommend the winner for this job, rest V2's case on full reproducibility only. Exploratory and not registered: Gemma against SmolLM2 from the saved predictions is a tie (+0.0047, 1.0 SE), so neither rival is the single winner. Limits: rivals may have seen these public datasets in pretraining and that cannot be measured; both V2 routes and both SmolLM2 routes chose the top of the learning-rate grid, and Gemma and Qwen3 the bottom. Nothing was changed after seeing test scores. No run left out. Test scoring was interrupted once before any score existed and resumed from saved outputs."

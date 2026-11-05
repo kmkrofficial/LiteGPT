@@ -1,0 +1,24 @@
+{
+ "model": "v2",
+ "arm": "v2-base",
+ "threads": 8,
+ "tasks": {
+  "cuad": {
+   "items": 10,
+   "documents_per_minute": 9.95925844899259,
+   "time_to_first_token_s": 3.469360496000263
+  },
+  "massive": {
+   "items": 100,
+   "documents_per_minute": 141.95504488184997,
+   "time_to_first_token_s": 0.15399350100005904
+  },
+  "banking77": {
+   "items": 100,
+   "documents_per_minute": 237.01692253892614,
+   "time_to_first_token_s": 0.10569326499989984
+  }
+ },
+ "peak_ram_gib": 1.6637611389160156,
+ "note": "bfloat16, one document at a time, same laptop and thread count"
+}

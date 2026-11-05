@@ -1,0 +1,29 @@
+{
+ "model": "gemma",
+ "arm": "gemma-base",
+ "lr": 1e-05,
+ "seed": 1,
+ "status": "completed",
+ "rouge_l": 0.4417874913823888,
+ "rouge_l_zero_match": 0.42437509655411654,
+ "items": 1000,
+ "zero_match_items": 302,
+ "generation": {
+  "items": 1000,
+  "seconds": 124.61168265342712,
+  "items_per_s": 8.024929755432506,
+  "output_chars": 875615,
+  "chars_per_s": 7026.748867803034,
+  "gen_tokens_budget_final": 262144
+ },
+ "train": {
+  "status": "completed",
+  "steps": 8016,
+  "total_steps": 8016,
+  "tokens": 23866836,
+  "seconds": 1607.9983613491058,
+  "skipped_steps": 0,
+  "micro_tokens_final": 4096
+ },
+ "run": "20261104T070156Z-train-m4-billsum-gemma-15e8937"
+}

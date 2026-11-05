@@ -1,0 +1,29 @@
+{
+ "model": "v2",
+ "arm": "v2-base",
+ "lr": 0.0001,
+ "seed": 1,
+ "status": "completed",
+ "rouge_l": 0.4288861034031744,
+ "rouge_l_zero_match": 0.4116621270805631,
+ "items": 1000,
+ "zero_match_items": 302,
+ "generation": {
+  "items": 1000,
+  "seconds": 103.26159811019897,
+  "items_per_s": 9.684142200983732,
+  "output_chars": 785268,
+  "chars_per_s": 7604.646977882094,
+  "gen_tokens_budget_final": 262144
+ },
+ "train": {
+  "status": "completed",
+  "steps": 8016,
+  "total_steps": 8016,
+  "tokens": 25104741,
+  "seconds": 755.7801096439362,
+  "skipped_steps": 0,
+  "micro_tokens_final": 16384
+ },
+ "run": "20261104T062843Z-train-m4-billsum-v2-15e8937"
+}
