@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REPO = "kmkrworks/litegpt-v2-m3-runs"
-RECORD_IGNORE = ["checkpoints/*", "weights/*"]
+RECORD_IGNORE = ["checkpoints/*", "weights/*"]      # evaluation samples are records and do go up
 
 
 def git_blob_sha1(path: Path) -> str:
@@ -54,7 +54,14 @@ def upload_verified(api, local: Path, dest: str) -> bool:
 
 
 def m4_runs(root: Path) -> list[Path]:
-    return sorted(p for p in root.glob("runs/*-train-m4-*") if p.is_dir())
+    """Every M4 training run, and the evaluation run behind G2, whose name carries no M4 marker."""
+    runs = [p for p in root.glob("runs/*-train-m4-*") if p.is_dir()]
+    g2 = root / "runs" / "m4_queue" / "g2.json"
+    if g2.exists():
+        record = json.loads(g2.read_text(encoding="utf-8")).get("record")
+        if record and (root / "runs" / record).is_dir():
+            runs.append(root / "runs" / record)
+    return sorted(runs)
 
 
 def chosen_weight_dirs(root: Path, seeds: list[int]) -> list[Path]:
