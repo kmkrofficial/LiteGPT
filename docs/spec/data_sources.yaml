@@ -4,7 +4,7 @@
 # Token counts below are estimates with the GPT-2 tokenizer as a proxy; checkpoint B (tokenizer freeze) re-derives file lists
 # with the real tokenizer (EXP-M1-PREFLIGHT, C9). YAML note: floats are plain decimals or signed exponents.
 data_sources_version: "1.1.0"   # 1.1.0: text_to_data added (ADR-010); nothing used by M1-M3 changed
-spec_version: "2.0.0-spec.8"
+spec_version: "2.0.0-spec.9"
 status: approved   # owner decisions 2026-10-07 (Wikipedia excluded, Apache-2.0 SmolTalk subsets only) and 2026-10-11 (focused code mix; C5 clause not treated as a blocker)
 
 partitioning:
