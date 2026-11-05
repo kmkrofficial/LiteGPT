@@ -1,0 +1,27 @@
+# EXP-M2-M3LR (pre-registered grid 6e-4 / 1.2e-3 / 2.4e-3 via --lr)
+name: m3lr
+model_kind: litegpt
+model:
+  preset: litegpt-v2-28l
+  attention_backend: sdpa
+tokenizer: litegpt
+data_run: runs/20261011T173054Z-data-prepare-1f005bc
+train_index: stable
+val_index: val_core
+tokens: 200000000.0
+micro_batch: 4
+accum: 64
+lr: 0.0012
+val_text_dir: runs/20261011T173054Z-data-prepare-1f005bc/shards/val_text
+val_text_domains:
+- web
+- code
+- math
+warmup_frac: 0.02
+decay_frac: 0.25
+final_lr_frac: 0.1
+eval_every_tokens: 100000000.0
+eval_blocks: 10240
+compile: true
+seed: 1
+checkpoint_every_minutes: 15

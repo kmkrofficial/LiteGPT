@@ -1,0 +1,45 @@
+# Correctness on the server: litegpt-tiny through every M3 phase on the real data and indexes, about a minute. Not a result.
+name: m3-smoke-tiny
+model_kind: litegpt
+model:
+  preset: litegpt-tiny
+  attention_backend: sdpa
+tokenizer: litegpt
+data_run: runs/20261011T173054Z-data-prepare-1f005bc
+train_index: stable_v2
+val_index: val_core
+tokens: 300000.0
+micro_batch: 4
+accum: 4
+lr: 0.0024
+val_text_dir: runs/20261011T173054Z-data-prepare-1f005bc/shards/val_text
+val_text_domains: [code]
+final_lr_frac: 0.1
+eval_every_tokens: 65536.0
+eval_blocks: 64
+eval_micro_batch: 8
+eval_fast: true
+compile: true
+seed: 1
+checkpoint_every_minutes: 30
+keep_last: 2
+telemetry: false
+schedule:
+  warmup_tokens: 32768.0
+  stable_end_tokens: 131072.0
+  decay_tokens: 163840.0
+  decay_index: decay_v2
+  extension:
+    seq_len: 4096
+    rope_theta: 10000.0
+    tokens: 65536.0
+    micro_batch: 2
+    accum: 4
+  gate:
+    window_a: [65536.0]
+    window_b: [131072.0]
+    threshold_bpb: -1000000.0     # always "extend" here, so the extension path runs
+    max_stable_end_tokens: 196608.0
+    step_tokens: 65536.0
+    speed_window_tokens: 65536.0
+  milestone_tokens: [65536.0]
