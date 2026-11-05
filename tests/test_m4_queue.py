@@ -226,3 +226,17 @@ def test_backup_trusts_only_the_hubs_own_hash(tmp_path):
     assert B.hub_matches(Info(blob_id=B.git_blob_sha1(f)), f)
     assert B.git_blob_sha1(f) == "b6fc4c620b67d95f953a5c1c1230aaab5db5a1b0"       # `git hash-object` of the same bytes
     assert not B.hub_matches(Info(blob_id="0" * 40), f)
+
+
+def test_backup_includes_the_g2_evaluation_run(tmp_path):
+    import importlib.util
+    import json
+    spec = importlib.util.spec_from_file_location("m4_backup", Path(__file__).resolve().parents[1] / "scripts" / "cloud" / "m4_backup.py")
+    backup = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(backup)
+    runs = tmp_path / "runs"
+    for name in ("20260101T000000Z-train-m4-sft-abc", "20260102T000000Z-eval-instruct-litegpt-final-abc", "20260103T000000Z-eval-base-other-abc", "m4_queue"):
+        (runs / name).mkdir(parents=True)
+    assert [p.name for p in backup.m4_runs(tmp_path)] == ["20260101T000000Z-train-m4-sft-abc"]
+    (runs / "m4_queue" / "g2.json").write_text(json.dumps({"record": "20260102T000000Z-eval-instruct-litegpt-final-abc"}), encoding="utf-8")
+    assert [p.name for p in backup.m4_runs(tmp_path)] == ["20260101T000000Z-train-m4-sft-abc", "20260102T000000Z-eval-instruct-litegpt-final-abc"]
