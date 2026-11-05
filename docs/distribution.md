@@ -2,6 +2,16 @@
 
 **Status: nothing is released, and export is not built.** Blocked by the licence gate ([ADR-004](decisions/ADR-004-licensing.md), proposal in [ADR-011](decisions/ADR-011-model-licence.md)).
 
+## Where it will be published
+
+| What | Where |
+|---|---|
+| Code | `github.com/kmkrworks/LiteGPT` |
+| Base weights | `huggingface.co/kmkrworks/LiteGPT-V2-Base` |
+| Instruct weights | `huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct` |
+
+V1 stays where it is: `kmkrofficial/LiteGPT` on GitHub, and `koganrath/LiteGPT-Base` and `koganrath/LiteGPT-Instruct` on Hugging Face. None of the V2 locations above exist yet.
+
 ## Planned
 
 | Item | State |
