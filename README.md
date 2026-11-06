@@ -24,6 +24,33 @@ LiteGPT V2 is a 201M-parameter model with its own architecture implementation, i
 
 ![Bits per byte by domain across pretraining](docs/figures/m3_bits_per_byte.svg)
 
+## How it compares
+
+V2 doesn't reach the top score in these comparisons. What it brings is the combination above: a model built entirely from scratch, light enough for a laptop, and open down to every run record.
+
+**Text-to-data, after fine-tuning each model the same way** (mean of 3 seeds, higher is better):
+
+| Model | Parameters | Score | Banking77 | MASSIVE | CUAD | Peak RAM on CPU |
+|---|---:|---:|---:|---:|---:|---:|
+| Qwen3-0.6B | 596M | 0.851 | 0.931 | 0.812 | 0.809 | 4.27 GiB |
+| Gemma 3 270M | 268M | 0.822 | 0.919 | 0.778 | 0.768 | 2.62 GiB |
+| SmolLM2-135M | 135M | 0.817 | 0.920 | 0.787 | 0.745 | 1.61 GiB |
+| **LiteGPT V2** | **201M** | **0.800** | **0.914** | **0.775** | **0.711** | **1.66 GiB** |
+
+**As a base model** (higher is better, except bits per byte and memory):
+
+| Model | Zero-shot mean, 10 tasks | Code bits per byte | GPU memory, batch 8 |
+|---|---:|---:|---:|
+| Qwen3-0.6B-Base | 0.489 | 0.372 | 2.72 GiB |
+| SmolLM2-135M | 0.403 | 0.559 | 0.73 GiB |
+| Gemma 3 270M | 0.393 | 0.617 | 2.59 GiB |
+| **LiteGPT V2** | **0.383** | **0.515** | **0.59 GiB** |
+| LiteGPT V1 | 0.371 | 1.612 | 0.78 GiB |
+
+**As a chat model** (IFEval, higher is better): Qwen3-0.6B 0.564, Gemma 3 270M-it 0.251, SmolLM2-135M-Instruct 0.220, **LiteGPT V2 Instruct 0.129**, LiteGPT V1 Instruct 0.083.
+
+V2's memory figures use its own engine and the others use Transformers. Every model, every task and the charts: [docs/results.md](docs/results.md).
+
 ## Use it
 
 With Transformers:

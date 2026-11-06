@@ -1,6 +1,6 @@
 # Distribution and export
 
-**Status: v2.0.0 is released.** The licence gate passed ([ADR-004](decisions/ADR-004-licensing.md), [ADR-011](decisions/ADR-011-model-licence.md)).
+**Status: both models are public on Hugging Face. The v2.0.0 release isn't marked yet.** The licence gate passed ([ADR-004](decisions/ADR-004-licensing.md), [ADR-011](decisions/ADR-011-model-licence.md)).
 
 ## Where it is
 
@@ -20,7 +20,7 @@ Weights as safetensors at bfloat16, config, tokenizer, chat template, `litegpt.j
 uv run --group hf python -m litegpt.export.to_hf --checkpoint milestone-final.pt --kind base --out LiteGPT-V2-Base
 ```
 
-The frozen report for this release is [`runs/report-v2.0.0/REPORT.md`](../runs/report-v2.0.0/REPORT.md).
+A frozen copy of the report is in [`runs/report-v2.0.0/REPORT.md`](../runs/report-v2.0.0/REPORT.md); it is refreshed when the release is marked.
 
 ## Not distributed
 

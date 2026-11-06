@@ -16,7 +16,7 @@ Every experiment was registered, with its thresholds, before it ran. The owner a
 | **M2** Experiments | Oct to Nov 2026 | Small proxy models, one design change per step; learning-rate sweep on the real V2 | Design and learning rate 2.4e-3 chosen |
 | **M3** Pretraining | Nov 1 to 3, 2026 | The real V2 on one rented A100 | 10.0B tokens, 37.2 h. Better than V1, behind SmolLM2-135M and Gemma 3 270M |
 | **M4** Chat and comparison | Nov 3 to 5, 2026 | Chat fine-tuning, registered text-to-data comparison, API and CLI | Chat gate passed. **Comparison lost** |
-| **M5** Release | Nov 2026 | Licence decision, export, model cards, this clean-up | v2.0.0 released |
+| **M5** Release | Nov 2026 | Licence decision, export, model cards, this clean-up | Models published; release to be marked |
 
 ## The design ladder (M2)
 
