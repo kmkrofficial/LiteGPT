@@ -1,0 +1,29 @@
+# EXP-M2-LADDER step s8a (pre-registered; lr is set by the proxy LR sweep via --lr)
+name: ladder-s8a
+model_kind: litegpt
+model:
+  proxy: true
+  attention_backend: sdpa
+tokenizer: litegpt
+train_index: proxy_1b
+val_index: val_core
+tokens: 1000000000.0
+micro_batch: 8
+accum: 16
+lr: 0.002
+val_text_dir: runs/20261011T173054Z-data-prepare-1f005bc/shards/val_text
+val_text_domains:
+- web
+- synthetic
+- code
+- math
+- chat
+warmup_frac: 0.01
+decay_frac: 0.2
+final_lr_frac: 0.1
+eval_every_tokens: 100000000.0
+eval_blocks: 512
+compile: true
+data_run: runs/20261011T173054Z-data-prepare-1f005bc
+seed: 1
+checkpoint_every_minutes: 15
