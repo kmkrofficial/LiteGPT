@@ -1,0 +1,187 @@
+# LiteGPT V2 data sources: binding configuration for M1 data preparation (ADR-008).
+# Referenced from docs/spec/v2.yaml (data.sources_file). Its sha256 is stored in every data manifest and record.
+# Every revision is the exact Hub commit SHA verified on 2026-10-07/11 (records runs/*data-verify-sources*, *data-audit-*).
+# Token counts below are estimates with the GPT-2 tokenizer as a proxy; checkpoint B (tokenizer freeze) re-derives file lists
+# with the real tokenizer (EXP-M1-PREFLIGHT, C9). YAML note: floats are plain decimals or signed exponents.
+data_sources_version: "1.1.0"   # 1.1.0: text_to_data added (ADR-010); nothing used by M1-M3 changed
+spec_version: "2.0.0-spec.9"
+status: approved   # owner decisions 2026-10-07 (Wikipedia excluded, Apache-2.0 SmolTalk subsets only) and 2026-10-11 (focused code mix; C5 clause not treated as a blocker)
+
+partitioning:
+  # u = int.from_bytes(sha256(f"{salt}:{source}:{key}").digest()[:8], "big") / 2**64; a document goes to val if u < val_fraction,
+  # to decay if it is decay-eligible and val_fraction <= u < val_fraction + decay_fraction, otherwise to stable.
+  salt: litegpt-v2-data-1
+  hash: sha256-first-8-bytes-big-endian
+  # keep_fraction (optional): after partitioning, a stable document is kept if a second hash u2 (salt + ":keep") < keep_fraction.
+  # It only bounds disk use for sources with far more supply than needed; it never changes the mix.
+  never_split_unit: {code: repo_name}   # F5: a repository goes to exactly one partition
+
+document_format: {prefix: "<|bos|>", suffix: "<|endoftext|>", encode_special_tokens: false, note: "special ids are inserted explicitly, never parsed from text"}
+block_tokens: 2048
+
+sources:
+  fineweb_edu:
+    domain: web
+    repo: HuggingFaceTB/smollm-corpus
+    config: fineweb-edu-dedup
+    revision: 3ba9d605774198c5868892d7a8deda78031a781f
+    licence: odc-by-1.0
+    original_generator: none
+    text_field: text
+    key_field: id
+    files: {pattern: "fineweb-edu-dedup/train-{i:05d}-of-00234.parquet", indices: [0, 18, 36, 54, 72, 90, 108, 125, 143, 161, 179, 197, 215, 233, 9, 27]}   # 9, 27 added after the first mix (decay margin, EXP-M1-DATA)
+    decay_eligible: {field: "metadata.int_score", min: 4}
+    partition: {val_fraction: 0.002, decay_fraction: 0.30, keep_fraction: 1.0}
+  cosmopedia_v2:
+    domain: synthetic
+    repo: HuggingFaceTB/smollm-corpus
+    config: cosmopedia-v2
+    revision: 3ba9d605774198c5868892d7a8deda78031a781f
+    licence: odc-by-1.0
+    original_generator: mistralai/Mixtral-8x7B-Instruct-v0.1
+    text_field: text
+    key_field: {content_hash: text}
+    files: {pattern: "cosmopedia-v2/train-{i:05d}-of-00104.parquet", indices: [0, 15, 29, 44, 59, 74, 88, 103]}
+    decay_eligible: null
+    partition: {val_fraction: 0.003, decay_fraction: 0.10, keep_fraction: 1.0}
+  math:
+    domain: math
+    repo: HuggingFaceTB/finemath
+    config: finemath-3plus          # finemath-4plus is a subset of 3plus: not used separately
+    revision: e92b25a616738fe95dc186b64dfb19f9c8525594
+    licence: odc-by-1.0
+    original_generator: none
+    text_field: text
+    key_field: url
+    files: {pattern: "finemath-3plus/train-{i:05d}-of-00128.parquet", indices: [0, 18, 36, 54, 73, 91, 109, 127]}
+    decay_eligible: {field: int_score, min: 4}
+    partition: {val_fraction: 0.003, decay_fraction: 0.45, keep_fraction: 1.0}
+  code:
+    domain: code
+    repo: codeparrot/github-code-clean
+    revision: c48d40f9e70f0196f8236901ee35807f7d6c44c0
+    licence: "per-file repository licence label; permissive only"
+    original_generator: none
+    text_field: code
+    key_field: repo_name
+    files: {pattern: "data/train-{i:05d}-of-00880.parquet", range: [0, 261]}     # F4 + file-count rule + C9 re-plan with the real tokenizer (SQL binds)
+    permissive_licences: [mit, apache-2.0, bsd-2-clause, bsd-3-clause, isc, cc0-1.0, unlicense]
+    filters_module: litegpt/datafilters.py   # rules, in order: size, longline, alnum, autogen, path, mirror, pyparse, sqldump, exportdump, copyleft, secret; e-mail redaction
+    languages:     # dataset language name -> weight inside the code share (F1 + C4 rule); keep_fraction re-derived at C9 from real-token supply (disk bound only)
+      Python:     {weight: 0.63, keep_fraction: 0.80}
+      JavaScript: {weight: 0.14, keep_fraction: 0.15}
+      TypeScript: {weight: 0.14, keep_fraction: 0.75}
+      SQL:        {weight: 0.04, keep_fraction: 1.00}
+      Shell:      {weight: 0.05, keep_fraction: 0.80}
+    partition: {val_fraction: 0.004, decay_fraction: 0.08, keep_fraction: 1.0}   # decay fraction set by the scarcest language (SQL); repo-level, never split
+  instruction_style:
+    domain: chat
+    repo: HuggingFaceTB/smoltalk
+    revision: 5feaf2fd3ffca7c237fc38d1861bc30365d48ffa
+    licence: apache-2.0                  # dataset card: these subsets only
+    original_generator: Qwen/Qwen2.5-72B-Instruct   # SmolLM2 paper (arXiv 2502.02737); owner 2026-10-11: clause not treated as a blocker, carried to M5
+    subsets: [smol-summarize, smol-rewrite, smol-constraints]
+    text_field: messages
+    key_field: {content_hash: messages}
+    rendering: litegpt-chat-v1           # litegpt/chat_template.py
+    partition: {decay_fraction_of_train: 0.85, remainder: "M4 SFT split (disjoint)", val: "the dataset's own test splits (domain chat)"}
+  smol_magpie_ultra:
+    domain: m4_sft_only
+    repo: HuggingFaceTB/smoltalk
+    subset: smol-magpie-ultra
+    revision: 5feaf2fd3ffca7c237fc38d1861bc30365d48ffa
+    licence: apache-2.0
+    original_generator: meta-llama/Llama-3.1-405B-Instruct   # Llama 3.1 Community License terms carried to M5
+    used_in: M4 (not in pretraining)
+
+mixture:
+  stable:
+    fineweb_edu: 0.72
+    cosmopedia_v2: 0.13
+    math: 0.075
+    code_python: 0.047250
+    code_javascript: 0.010500
+    code_typescript: 0.010500
+    code_sql: 0.003000
+    code_shell: 0.003750
+  decay:
+    fineweb_edu: 0.50
+    cosmopedia_v2: 0.20
+    math: 0.13
+    code_python: 0.075600
+    code_javascript: 0.016800
+    code_typescript: 0.016800
+    code_sql: 0.004800
+    code_shell: 0.006000
+    instruction_style: 0.050000
+  derivation: "ADR-009 (text-to-data use case, 2026-11-01): code + math 15% in stable, 25% in decay, indexes stable_v2 / decay_v2 over the shards prepared in M1 (which used the ADR-008 mixture, kept as indexes stable / decay); code split by F1 weights"
+  stable_tokens: 14.0e+9
+  decay_tokens: 1.0e+9
+  prepared_margin: 1.03
+  index: {kind: smooth-weighted-round-robin-over-sources, block_order: seeded-permutation, seed: 20261011, files: [stable.idx, decay.idx]}
+
+validation:
+  val_core: {min_tokens: 20.0e+6, blocks: 10240, composition: "stable mixture weights over each source's val partition", frozen_at: M1}
+  domains: {blocks_each: 1024, sets: [web, synthetic, code, math, chat]}
+  raw_text_copy: true                 # val documents are also stored as raw text (jsonl) so other tokenizers can score the same bytes
+  bpb: {numerator: "sum NLL / ln 2", denominator: "sum UTF-8 bytes of target tokens", special_tokens_excluded: true}
+
+decontamination:
+  method: 13-gram-word-overlap
+  normalisation: "lowercase, regex word characters"
+  applies_to: [pretraining_filter, sft, reasoning, dpo]
+  action: drop_document
+  audit_rule: "if one benchmark drops > 0.5% of a source's tokens, audit the n-gram set for boilerplate before training (EXP-M1-DECONTAM)"
+  reference:   # pinned by pre-flight check C7 (record 20261011T140319Z-data-preflight-evalsets); used for scoring only, never as training data
+    hellaswag: {repo: Rowan/hellaswag, config: null, split: validation, revision: 218ec52e09a7e7462a5400043bb9a69a41d06b76}
+    arc_easy: {repo: allenai/ai2_arc, config: ARC-Easy, split: test, revision: 210d026faf9955653af8916fad021475a3f00453}
+    arc_challenge: {repo: allenai/ai2_arc, config: ARC-Challenge, split: test, revision: 210d026faf9955653af8916fad021475a3f00453}
+    piqa: {repo: baber/piqa, config: null, split: validation, revision: 142f6d7367fd9877f0fb3b5734ea6a545f54cdd1}
+    openbookqa: {repo: allenai/openbookqa, config: main, split: test, revision: 388097ea7776314e93a529163e0fea805b8a6454}
+    commonsenseqa: {repo: tau/commonsense_qa, config: null, split: validation, revision: 94630fe30dad47192a8546eb75f094926d47e155}
+    mmlu: {repo: cais/mmlu, config: all, split: test, revision: c30699e8356da336a370243923dbaf21066bb9fe}
+    gsm8k: {repo: openai/gsm8k, config: main, split: test, revision: 740312add88f781978c0658806c59bc2815b9866}
+    winogrande: {repo: allenai/winogrande, config: winogrande_xl, split: validation, revision: 01e74176c63542e6b0bcb004dcdea22d94fb67b5}
+    humaneval: {repo: openai/openai_humaneval, config: null, split: test, revision: 7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544}
+    mbpp: {repo: google-research-datasets/mbpp, config: full, split: test, revision: 4bb6404fdc6cacfda99d4ac4205087b89d32030c}
+    ifeval: {repo: google/IFEval, config: null, split: train, revision: 966cd89545d6b6acfd7638bc708b98261ca58e84}
+    truthfulqa: {repo: truthfulqa/truthful_qa, config: generation, split: validation, revision: 741b8276f2d1982aa3d5b832d3ee81ed3b896490}
+    triviaqa: {repo: mandarjoshi/trivia_qa, config: rc.nocontext, split: validation, revision: 0f7faf33a3908546c6fd5b73a660e0f8ff173c2f}
+    xstest: {repo: Paul/XSTest, config: null, split: train, revision: f600c994b256f12867dfa5b3eb3d545a3e62f8b5}
+    multipl_e_humaneval_js: {repo: nuprl/MultiPL-E, config: humaneval-js, split: test, revision: 28441b6024e71d4a1c1c0f6bf171c935cd5a43f2}
+    multipl_e_humaneval_ts: {repo: nuprl/MultiPL-E, config: humaneval-ts, split: test, revision: 28441b6024e71d4a1c1c0f6bf171c935cd5a43f2}
+    text_to_sql_spider: {repo: xlangai/spider, config: null, split: validation, revision: 0c350918f3f29ec754f1181c65cdce76cd6c133c}
+
+proxy_slice:   # GPT-2-tokenized text for M2 steps 1-6
+  tokenizer: openai-community/gpt2
+  source: fineweb_edu
+  train_tokens: 1.0e+9
+  same_documents_as: "fineweb_edu stable and val partitions (first files in index order)"
+
+text_to_data:   # M4 comparison only (ADR-010, EXP-M4-T2D); never part of pretraining or SFT. Final hashes: benchmarks/m4/t2d_manifest.json
+  salt: litegpt-m4-t2d-20261103
+  cuad:
+    repo: theatticusproject/cuad
+    revision: a3c393f5d103fd0c516374e4fdff676c8176dcb1
+    licence: cc-by-4.0
+    files: [CUAD_v1/CUAD_v1.json, CUAD_v1/master_clauses.csv]
+    fields: [document_name, parties, agreement_date, governing_law]
+    input_chars: {head: 3000, window: 1500}
+    split: {by: filer, train: 356, dev: 51, test: 102, test_after_overlap: 98}
+  massive:
+    repo: AmazonScience/massive
+    revision: ed58ac423a2f4121720918bf5301577edce4ffd3   # refs/convert/parquet; the main branch (ff6bd8e4) needs a loader script
+    licence: cc-by-4.0
+    config: en-US
+    split: {train: 11514, dev: 2033, test: 2974, test_after_overlap: 2973}
+  banking77:
+    repo: PolyAI/banking77
+    revision: 1846984189f2bc0ac51c6fc3a600fa9e1714e0c6
+    licence: cc-by-4.0
+    split: {train: 9000, dev: 1003, test: 3080, test_after_overlap: 3080}
+  billsum:
+    repo: FiscalNote/billsum
+    revision: 3d8510441c06a3d9dfb32eb0d7f80151730bcc4f
+    licence: cc0-1.0
+    max_input_chars: 6000
+    split: {train: 5622, dev: 300, test: 1044, test_after_overlap: 1001, test_final: 1000}   # one item does not fit V2's context (EXP-M4-T2D context_removal)
