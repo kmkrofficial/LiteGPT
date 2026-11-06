@@ -5,8 +5,8 @@
     python -m benchmarks.cpu_bench bandwidth
     python -m benchmarks.cpu_bench pi                                # estimates from the newest records; measures nothing
 
-Batch 1, greedy, every row runs to the full number of new tokens. Decode time is total generation minus one prefill, as in
-litegpt/eval/native.py `cmd_efficiency`. Pi figures are estimates from laptop measurements and published Pi figures, never measurements.
+Batch 1, greedy, every row runs to the full number of new tokens. Prefill and decode are timed step by step inside one real
+generation (LiteGPT's engine path, or Transformers' generate() through its streamer hook), so both use the same code path. Pi figures are estimates from laptop measurements and published Pi figures, never measurements.
 """
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ def peak_rss_gib() -> float:
 
 
 def load(model: str, dtype):
-    """(prefill(ids), generate(ids, n) -> new token count, encode, weight bytes, parameters) for one model at one dtype, on CPU."""
+    """(timed(ids, n) -> (prefill s, decode s, decode steps), encode, weight bytes, parameters) for one model at one dtype, on CPU."""
     import torch
     spec = MODELS[model]
     if spec["kind"] == "litegpt":
@@ -68,11 +68,17 @@ def load(model: str, dtype):
         m = api.load(Path(spec["path"]).expanduser(), device="cpu", dtype=dtype)
         net = m.model
 
-        def prefill(ids):
-            net(torch.tensor([ids]))
-
-        def generate(ids, n):
-            return len(m.engine.generate_ids([ids], GenerationConfig(max_new_tokens=n, stop_token_ids=()))[0].ids)
+        def timed(ids, n):
+            # The engine's single-prompt path (as Engine.stream), greedy, with a clock read after the prefill and after each step.
+            cache = m.engine._cache(1, len(ids) + n)
+            t0 = time.perf_counter()
+            logits, _ = net(torch.tensor([ids]), kv_cache=cache, start_pos=0)
+            t = int(logits[0, -1].argmax())
+            t1 = time.perf_counter()
+            for _ in range(n - 1):
+                logits, _ = net(torch.tensor([[t]]), kv_cache=cache)
+                t = int(logits[0, -1].argmax())
+            return t1 - t0, time.perf_counter() - t1, n - 1
         encode = m.tok.encode_text
     else:
         from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -82,22 +88,34 @@ def load(model: str, dtype):
         net = AutoModelForCausalLM.from_pretrained(src, dtype=dtype, trust_remote_code=False, **kw).eval()
         pad = tok.pad_token_id if tok.pad_token_id is not None else tok.eos_token_id
 
-        def prefill(ids):
-            net(input_ids=torch.tensor([ids]), use_cache=False)
+        class Clock:                                        # generate() calls put() once with the prompt, then once per new token
+            def __init__(self):
+                self.stamps = []
 
-        def generate(ids, n):
-            x = torch.tensor([ids])
-            return int(net.generate(x, attention_mask=torch.ones_like(x), max_new_tokens=n, min_new_tokens=n, do_sample=False, pad_token_id=pad).shape[1] - len(ids))
+            def put(self, _):
+                self.stamps.append(time.perf_counter())
+
+            def end(self):
+                pass
+
+        def timed(ids, n):
+            # Transformers' own generate(), timed through its streamer hook: prefill = prompt put to first token, decode = the rest.
+            x, c = torch.tensor([ids]), Clock()
+            out = net.generate(x, attention_mask=torch.ones_like(x), max_new_tokens=n, min_new_tokens=n, do_sample=False,
+                               pad_token_id=pad, streamer=c)
+            assert out.shape[1] - len(ids) == n and len(c.stamps) == n + 1, "generation stopped early"
+            return c.stamps[1] - c.stamps[0], c.stamps[-1] - c.stamps[1], n - 1
 
         def encode(text):
             return tok(text, add_special_tokens=False)["input_ids"]
     params = sum(p.numel() for p in net.parameters())
     weight_bytes = sum(p.numel() * p.element_size() for p in net.parameters())
-    return prefill, generate, encode, weight_bytes, params
+    return timed, encode, weight_bytes, params
 
 
-def measure(prefill, generate, encode, threads=THREADS, prompts=PROMPTS, new_tokens=NEW_TOKENS, repeats=REPEATS) -> list[dict]:
-    """One row per thread count and prompt length: medians over repeats, with min and max."""
+def measure(timed, encode, threads=THREADS, prompts=PROMPTS, new_tokens=NEW_TOKENS, repeats=REPEATS) -> list[dict]:
+    """One row per thread count and prompt length: medians over repeats, with min and max.
+    Prefill and decode are both timed inside one real generation, so they share its code path (last-position logits only)."""
     import torch
     rows = []
     for t in threads:
@@ -107,17 +125,11 @@ def measure(prefill, generate, encode, threads=THREADS, prompts=PROMPTS, new_tok
             if len(ids) < length:
                 raise SystemExit(f"prompt text gives only {len(ids)} tokens")
             with torch.no_grad():
-                generate(ids, 4)                                    # warm-up
+                timed(ids, 4)                                       # warm-up
                 runs = []
                 for _ in range(repeats):
-                    t0 = time.perf_counter()
-                    prefill(ids)
-                    p = time.perf_counter() - t0
-                    t0 = time.perf_counter()
-                    n = generate(ids, new_tokens)
-                    total = time.perf_counter() - t0
-                    d = max(total - p, 1e-9)
-                    runs.append({"prefill_tok_s": length / p, "decode_tok_s": n / d, "ttft_s": p + d / n, "new_tokens": n})
+                    p, d, steps = timed(ids, new_tokens)
+                    runs.append({"prefill_tok_s": length / p, "decode_tok_s": steps / d, "ttft_s": p})
             row = {"threads": t, "prompt_tokens": length}
             for k in ("prefill_tok_s", "decode_tok_s", "ttft_s"):
                 vals = [r[k] for r in runs]
@@ -134,13 +146,13 @@ def cmd_run(a) -> int:
     dtype = getattr(torch, a.dtype)
     torch.set_num_interop_threads(1)
     t0 = time.perf_counter()
-    prefill, generate, encode, weight_bytes, params = load(a.model, dtype)
+    timed, encode, weight_bytes, params = load(a.model, dtype)
     load_s = time.perf_counter() - t0
     after_load = rss_gib()
-    rows = measure(prefill, generate, encode, a.threads, a.prompts, a.new_tokens, a.repeats)
+    rows = measure(timed, encode, a.threads, a.prompts, a.new_tokens, a.repeats)
     out = {"model": a.model, "label": MODELS[a.model]["label"], "dtype": a.dtype, "parameters": params, "weight_bytes": weight_bytes, "load_s": load_s,
            "rss_after_load_gib": after_load, "peak_rss_gib": peak_rss_gib(), "rows": rows, "cpu": cpu_name(), "logical_cpus": os.cpu_count(),
-           "note": "batch 1, greedy, full length; decode = total minus one prefill; RSS is the whole process"}
+           "note": "batch 1, greedy, full length; prefill and decode timed step by step inside one generation; ttft = prefill plus the first token pick; RSS is the whole process"}
     rec = create_run("bench", f"cpu-{a.model}-{a.dtype}", config={"experiment": "EXP-M5-CPU", "model": MODELS[a.model], "dtype": a.dtype, "threads": list(a.threads),
                                                                     "prompts": list(a.prompts), "new_tokens": a.new_tokens, "repeats": a.repeats})
     rec.write_json("bench/cpu.json", out)
@@ -194,7 +206,7 @@ def estimate_pi(model: dict, bandwidth_4t_gbs: float, threads: int = 4) -> dict:
             prefill = r["prefill_tok_s"] / pi["fp32_core_ratio"]
             per_prompt[length] = {"decode_tok_s": decode, "decode_ceiling_tok_s": ceiling, "prefill_tok_s": prefill,
                                   "prefill_tok_s_range": [prefill * PREFILL_RANGE[0], prefill * PREFILL_RANGE[1]],
-                                  "ttft_s": length / prefill + 1 / decode}
+                                  "ttft_s": length / prefill}
         fits = {ram: model["peak_rss_gib"] * 2 ** 30 / 1e9 <= usable for ram, usable in pi["usable_gb"].items()}
         out[name] = {"prompts": per_prompt, "fits_in_ram_gb": fits, "cpu": pi["cpu"], "source": pi["source"], "bandwidth_gbs": pi["bandwidth_gbs"],
                      "fp32_core_ratio": pi["fp32_core_ratio"]}

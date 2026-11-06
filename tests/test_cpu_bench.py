@@ -17,9 +17,11 @@ def test_measure_reports_medians_with_spread(tmp_path, monkeypatch):
     cfg = get_config("litegpt-tiny", vocab_size=32768, block_size=256, attention_backend="sdpa")
     torch.save({"format": 1, "model": LiteGPT(cfg).state_dict(), "model_config": cfg.to_dict(), "step": 1, "tokens": 1, "spec_sha256": None}, ck)
     monkeypatch.setitem(C.MODELS, "tiny", {"kind": "litegpt", "path": str(ck), "label": "tiny"})
-    prefill, generate, encode, weight_bytes, params = C.load("tiny", torch.float32)
+    timed, encode, weight_bytes, params = C.load("tiny", torch.float32)
     assert weight_bytes == params * 4
-    rows = C.measure(prefill, generate, encode, threads=(1,), prompts=(16,), new_tokens=3, repeats=2)
+    p, d, steps = timed(encode(C.TEXT)[:16], 3)
+    assert p > 0 and d > 0 and steps == 2
+    rows = C.measure(timed, encode, threads=(1,), prompts=(16,), new_tokens=3, repeats=2)
     assert len(rows) == 1
     r = rows[0]
     for k in ("prefill_tok_s", "decode_tok_s", "ttft_s"):
