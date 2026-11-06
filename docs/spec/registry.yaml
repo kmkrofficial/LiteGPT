@@ -1,0 +1,646 @@
+# Experiment registry: one entry per experiment. The report is built from this index plus run records.
+# Pre-registered thresholds live here (and in docs/spec/v2.yaml) BEFORE the corresponding runs start.
+registry_version: 1
+spec_version: "2.0.0-spec.9"
+experiments:
+  - id: EXP-M0-ENV
+    milestone: M0
+    hypothesis: "Python 3.12 + torch 2.14.1+cu130 from a single uv.lock reproduces on Windows and WSL2 and runs SDPA/bf16 on the RTX 4090 Laptop."
+    config: pyproject.toml
+    parent: null
+    status: windows-done-wsl-pending
+    runs: []
+    thresholds: {}
+    conclusion: "Windows: uv lock (118 packages, no conflicts), uv sync --locked OK, CUDA 13.0, SDPA+GQA and bf16 verified (ADR-006 evidence). WSL2 is not installed on this machine: WSL2 reproduction pending owner decision."
+  - id: EXP-M0-THROUGHPUT
+    milestone: M0
+    hypothesis: "28L V2 sustains >= 16,500 tok/s training on the RTX 4090 Laptop at a micro-batch that fits 16 GB (ADR-001)."
+    config: benchmarks/train_mem.py (preset m0)
+    parent: EXP-M0-ENV
+    status: done-requirement-met-with-flash
+    runs:
+      - 20261006T122603Z-bench-train_mem-m0-101c3f8   # first sweep (superseded matrix; records the OOM boundary)
+      - 20261006T122954Z-bench-train_mem-m0-101c3f8
+      - 20261006T130256Z-bench-sustained-28l-mb3-30min-101c3f8        # SDPA, 30 min
+      - 20261006T134753Z-bench-sustained-28l-mb3-flash-30min-101c3f8   # flash, 30 min
+    thresholds: {required_tok_per_s: 16500, vram_cap_rule: "free VRAM at start minus 1 GiB"}
+    conclusion: "Short runs reach 22.3k tok/s (28L, mb3x2048, 11.17 GiB) but the 30-min sustained mean is 15,553 tok/s (98% thermally throttled, 89 C): below 16,500. 10B tokens ~ 7.4 days. 4x2048 and 2x4096 OOM on Windows; 1x4096 fits (17.7k tok/s). With flash-attn (EXP-M0-FLASH) the 30-min sustained mean is 17,553 tok/s (stable, last/first 1.008, power-capped not thermally throttled, max 77 C): requirement MET; 10B tokens ~ 6.6 days, 15B ~ 9.9 days. Single run per backend; GPU was already warm at the start of the flash run. FINAL (production environment WSL2 + torch.compile + SDPA, mb4x2048): 30-min sustained mean 22,592 tok/s (stable, last/first 0.977, max 76 C): 10B tokens ~ 5.1 days, 15B ~ 7.7 days (EXP-M0-COMPILE)."
+  - id: EXP-M0-FLASH
+    milestone: M0
+    hypothesis: "A flash-attn build matches SDPA numerically and is measurably faster on the RTX 4090 Laptop (ADR-006). Otherwise SDPA stays the default."
+    config: litegpt/model.py (attention_backend=flash)
+    parent: EXP-M0-ENV
+    status: adopted
+    runs:
+      - 20261006T131103Z-bench-ab-sdpa-vs-flash-101c3f8
+      - 20261006T134753Z-bench-sustained-28l-mb3-flash-30min-101c3f8
+    wheel: {source: "https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.10.2/flash_attn-2.8.3+cu130torch2.14-cp312-cp312-win_amd64.whl",
+            version: "2.8.3", note: "community prebuilt wheel (not the spec's 2.8.3.post1 sdist, which cannot be built here); sha256 pinned in uv.lock"}
+    thresholds:   # PRE-REGISTERED 2026-10-06 before any flash measurement
+      parity: "flash vs sdpa logits within atol/rtol 5e-2 in bf16 (tests/test_model.py::test_flash_matches_sdpa_on_gpu) AND packed-sequence (cu_seqlens) parity"
+      speed: "adopt as default only if tok/s >= +5% vs sdpa at identical config (28L mb3x2048, alternating A/B runs); VRAM must not increase"
+    conclusion: "ADOPTED for attention_backend=auto (spec 2.0.0-spec.3). Parity passed (plain + packed). A/B (4 alternating rounds, 28L mb3x2048): SDPA 15,375 vs flash 17,250 tok/s mean = +12.2% (>= +5% rule), identical peak VRAM 11.17 GiB. Sustained 30-min flash: 17,553 tok/s."
+  - id: EXP-M0-COMPILE
+    milestone: M0
+    hypothesis: "torch.compile improves training throughput on WSL2 (Triton 3.8.0 is present there; absent on Windows)."
+    config: benchmarks/train_mem.py ab --compile-b (28L, micro-batch 3x2048, SDPA, WSL2)
+    parent: EXP-M0-ENV
+    status: adopted
+    runs:
+      - 20261006T122954Z-bench-train_mem-m0-101c3f8   # Windows: TritonMissing
+      - 20261006T143350Z-bench-ab-sdpa-vs-sdpa-compile-101c3f8   # A/B eager vs compile
+      - 20261006T151400Z-bench-compile-equivalence-litegpt-v2-28l-101c3f8   # 28L equivalence
+      - 20261006T143939Z-bench-compile-28l-mb4-2048-101c3f8
+      - 20261006T144041Z-bench-compile-28l-mb5-2048-101c3f8
+      - 20261006T144123Z-bench-compile-28l-mb6-2048-101c3f8
+      - 20261006T144221Z-bench-compile-28l-mb2-4096-101c3f8
+      - 20261006T151250Z-bench-sustained-28l-mb4-compile-wsl-30min-101c3f8   # sustained 30 min
+    thresholds:   # PRE-REGISTERED 2026-10-06 before any WSL2 compile measurement
+      correctness: "compiled vs eager logits within bf16 tolerance (atol/rtol 5e-2) on the tiny model and on 28L (tests/test_model.py::test_compiled_matches_eager_on_gpu)"
+      speed: "adopt for production training only if tok/s >= +5% vs eager at identical config (alternating A/B rounds, same WSL2 environment) AND peak VRAM within the free-VRAM cap"
+      cost: "compile warmup is recorded; it is accepted if <= 10 minutes (paid once per run/resume)"
+    conclusion: "ADOPTED for production training on WSL2 (spec 2.0.0-spec.5). Correctness: 28L compiled vs eager with identical weights: loss diff 0.0004, logits rel L2 0.88%, grad-norm rel diff 0.003%, all finite (plus tiny-model pytest). Speed (4 alternating rounds, 28L mb3x2048 SDPA): eager 18,561 vs compiled 22,997 tok/s = +23.9%; peak VRAM 11.17 -> 8.28 GiB; warmup 4 s -> 13 s. Larger batches (compiled): mb4 23,695 tok/s 10.14 GiB (best), mb5 23,441 tok/s 12.04 GiB, mb6 OOM, 2x4096 20,792 tok/s 10.14 GiB. Sustained 30 min, mb4x2048: 22,592 tok/s mean (first 22,850 / last 22,327), max 76 C. Windows: torch.compile fails (TritonMissing); WSL2 needs gcc (build-essential). Not tested: flash-attn + compile on Linux (no Linux flash wheel installed)."
+  - id: EXP-M0-FLASH-LINUX
+    milestone: M0
+    hypothesis: "flash-attn (Linux wheel) + torch.compile on WSL2 is correct and faster than the adopted SDPA + torch.compile setup."
+    config: litegpt/model.py attention_backend=flash + torch.compile, 28L mb4x2048, WSL2
+    parent: EXP-M0-COMPILE
+    status: correctness-passed-speed-inconclusive
+    runs:
+      - 20261006T155451Z-bench-compile-equivalence-litegpt-v2-28l-flash-101c3f8
+      - 20261006T162546Z-bench-sustained-28l-mb4-flash-compile-wsl-30min-101c3f8
+    wheel: {source: "https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.10.0/flash_attn-2.8.3+cu130torch2.14-cp312-cp312-linux_x86_64.whl",
+            version: "2.8.3", note: "community prebuilt Linux wheel; the only linux_x86_64 build for cu130/torch2.14/cp312 in that project; sha256 pinned in uv.lock"}
+    thresholds:   # PRE-REGISTERED 2026-10-06 before any WSL2 flash measurement
+      correctness: "flash parity tests pass on WSL2 (plain + packed), compiled flash matches eager SDPA, and benchmarks.compile_check --backend flash passes"
+      speed: "adopt flash for WSL2 production training only if the 30-min sustained flash+compile mean (28L mb4x2048) is >= +5% over the recorded SDPA+compile sustained mean (22,592 tok/s, run 20261006T151250Z) with peak VRAM within the cap"
+      caveat: "owner chose not to re-run SDPA, so this is a cross-run comparison (different times / thermal state), weaker than a same-session alternating A/B"
+    conclusion: "CORRECTNESS PASSED: 68/68 tests on WSL2 with flash + compile active (incl. compiled flash vs eager SDPA, plain + packed); 28L compiled-flash equivalence: loss diff 0.0002, logits rel L2 0.88%, grad-norm rel diff 0.0009%. SPEED INCONCLUSIVE (pre-registered comparison invalid): the sustained flash+compile run (28L mb4x2048) averaged 29,944 tok/s (+32.5% vs the recorded SDPA+compile 22,592), but the GPU's enforced power limit changed from 95 W (SDPA+compile run: mean draw 95 W, 1,427 MHz) to 155 W (this run: mean draw 151 W, 1,989 MHz; throughput ramped 23.7k -> ~30k over the first 4 minutes, then held ~30k with 0% thermal throttling, max 84 C). The gain cannot be attributed to flash vs the power change. Not adopted as the WSL2 default on this evidence; attributing it needs flash vs SDPA at the same power limit (same-session A/B), which the owner declined for now. Harness fixed: telemetry now records the enforced power limit."
+  - id: EXP-M0-POWER
+    milestone: M0
+    hypothesis: "There is a GPU operating point (power mode / factory-curve clock cap) with higher sustained tok/s, or equal tok/s at clearly lower thermal load, than the current 155 W setting, without thermal throttling."
+    config: benchmarks/power_sweep.py (28L, mb4x2048, bf16, torch.compile, SDPA, WSL2; same fixed workload for every point)
+    parent: EXP-M0-COMPILE
+    status: done-current-setting-retained
+    runs:
+      - 20261006T164224Z-bench-power-sweep-screen-101c3f8   # staged screen, non-elevated validation
+      - 20261006T165630Z-bench-power-sweep-screen-101c3f8   # staged screen, elevated, interrupted (no results)
+      - 20261006T170001Z-bench-power-sweep-auto-101c3f8   # auto smoke test
+      - 20261006T171445Z-bench-power-sweep-auto-101c3f8   # auto, defective loss signal (not used for selection)
+      - 20261006T173836Z-bench-power-sweep-auto-101c3f8   # auto smoke test after the fix
+      - 20261006T174824Z-bench-power-sweep-auto-101c3f8   # FINAL: auto, elevated, corrected
+    tooling_limits: "No voltage readout and no voltage-curve control on this GPU/driver without admin + extra tooling; the sweep uses observe / manual (Lenovo power modes) / lgc (nvidia-smi factory-curve clock caps, elevated session only). No voltage offsets, no power-limit raises, CPU untouched."
+    stages: {screen: "~5 min per point (30 s windows, first 2 discarded)", compare: "~10 min for the best 3 + current setting", soak: "60-120 min for the recommended point",
+             auto: "PREFERRED (added 2026-10-06 before any sweep result was used; rules unchanged): one continuous workload process; 4 min pre-heat (discarded), current setting 4 min (1 min settle + 3 min measured), caps at natural clock -100/-200/-300 MHz 4 min each, then 60 min soak of the selected point. Rationale: the validation screen showed a ~5 min thermal transient that dominates short cold-start points"}
+    thresholds:   # PRE-REGISTERED 2026-10-06 before any sweep measurement (mirrors benchmarks/power_sweep.THRESHOLDS)
+      invalid: "status != ok (CUDA error / crash / apply failure / thermal abort), non-finite loss, loss rising > 10% above its running minimum, tok/s CV > 0.08, temperature >= 90 C, any HW slowdown, or (lgc) observed clock > cap + 30 MHz"
+      candidate: "valid AND 0% thermal throttling AND max temperature <= 85 C target - 3 C margin (82 C) AND tok/s CV <= 0.03 AND last/first window >= 0.97"
+      selection: "highest sustained tok/s among candidates; within 1% of the best, prefer the lowest mean GPU power"
+      soak_pass: "the recommended point still meets the candidate rule over a 60-120 min soak"
+      adoption: "never automatic; the owner decides after seeing the evidence"
+    protocol_corrections:   # recorded BEFORE the corrected re-run; the thresholds above are unchanged
+      - date: 2026-10-06
+        run: 20261006T171445Z-bench-power-sweep-auto-101c3f8
+        defect: "The benchmark trained on ONE repeated random batch, so the model memorised it and the loss fell to ~1e-7 within ~1.5 min. The pre-registered 'loss > 10% above running minimum' check then fired on rounding-level wobble (e.g. 5.2e-8 -> 8.2e-8), marking pre-heat and all clock-cap segments invalid. Not a hardware or numerical-stability problem: throughput, power, clock and temperature were measured correctly."
+        correction: "Workload feeds fresh random tokens every micro-step (train_mem --fresh-batches): unlearnable, so the loss stays near ln(32768) ~ 10.4 and the unchanged 10% rule becomes a meaningful health check. Same kernels, same compute per step. Cap steps changed to natural clock -50/-100/-200 MHz to bracket the 82 C boundary (the current setting missed it by 1 C). The defective run is kept for provenance and is not used for selection."
+    conclusion: "Final run (28L mb4x2048, SDPA + compile, WSL2, 155 W limit): current setting 31,388 tok/s / 154.7 W / peak 83 C (not a candidate: peak > 82 C); cap 1980 MHz 30,774 (-2.0%) / 149 W / 83 C (not a candidate); cap 1935 MHz 30,204 (-3.8%) / 142.5 W / 82 C (candidate, SELECTED); cap 1830 MHz 28,923 (-7.9%) / 133 W / 80 C (candidate). 0% thermal throttling everywhere. 60-min soak at 1935 MHz: 29,650 tok/s, 141.8 W, mean 81.2 C / peak 82 C, 0% throttling, healthy loss, but FAILED the decay rule (last/first window 0.968 < 0.97): a one-time ~2% step after 10 min, then flat; GPU temperature, power, clock, memory clock and utilisation steady (cause not measurable: VRAM temperature unavailable / host activity). DECISION (owner, 2026-10-07): keep the current 155 W setting with no clock cap; 1935 MHz is the validated fallback. Full analysis: docs/m0_benchmark_findings.md section 5."
+  - id: EXP-G1-EXTENSION-GATE
+    milestone: M3
+    hypothesis: "Continuing the stable phase from 9B to 14B tokens is worth ~3.5 GPU-days only if val_bpb is still improving."
+    config: docs/spec/v2.yaml#training.extension_gate
+    parent: null
+    status: done
+    runs: [20261101T142254Z-train-m3-673cd85]
+    thresholds: {metric: val_bpb, windows_tokens_b: [[6.5, 6.75, 7.0], [8.5, 8.75, 9.0]], delta_ge_bpb_extend: 0.010}
+    owner_decisions:   # recorded 2026-11-01, before M3 and before any M3 measurement
+      - date: 2026-11-01
+        decision: "M3 runs on one rented A100 PCIe (Vast.ai). Budget approved with a hard cap of INR 2,500 on all M3 cloud spend (instance hours including setup, the throughput benchmark and any evaluation there; storage and transfer). At the current estimate (~$0.424/h, ~85-95k tok/s) 10B costs ~INR 1,550 and 15B ~INR 2,330, so the cap binds only if the measured rate or price is worse."
+        gate_rule_with_cap: "The BPB rule above is unchanged. If delta >= 0.010 at the 9.0B checkpoint, the projected total = M3 spend so far + the stable phase to 14.0B + the 1.0B decay, at the tok/s measured over the last 1.0B stable tokens and the instance's actual hourly price. If the projection is <= INR 2,500: extend as registered (15.0B). Otherwise the stable phase runs to the largest T in 0.5B steps (9.5B <= T < 14.0B) whose projection is <= INR 2,500, then the 1.0B decay (total T + 1.0B); if no such T exists: stop (decay from 9.0B, total 10.0B). The gate script computes and records the projection."
+        status: "to be written into the M3 environment ADR (ADR-009) and the spec (training.extension_gate, spec 2.0.0-spec.7) at the M3 freeze, before M3 starts"
+      - date: 2026-11-01
+        clarification: "Recorded before M3. The gate projects against INR 2,400, the server guard stops at INR 2,450, the owner's cap stays INR 2,500, so a run the gate allows is not cut off mid-decay by the guard. Also: price $0.60/h (A100 40 GB with 20 GB container disk). In ADR-009 (proposed)."
+    conclusion: "DECIDED at the 9.0B checkpoint (step 17,167, 2026-11-02): STOP, no extension. Mean val_core BPB 0.87182 at {6.5, 6.75, 7.0}B, 0.86484 at {8.5, 8.75, 9.0}B, delta 0.00698 < 0.010, recomputed independently from eval.jsonl. No divergence (no flagged steps). The run went to the 1.0B decay and finished 2026-11-03: 19,075 steps, 10.0008B tokens, final val_core BPB 0.8197. The 9B checkpoint is kept on the private backup repo, so an extension stays possible only through a new ADR recorded as a deviation."
+  - id: EXP-M1-CODE
+    milestone: M1
+    hypothesis: "At least one code dataset ships text inline, has an acceptable licence basis for training and release, and yields >= 2.0B tokens of ours after filtering."
+    config: docs/spec/data_sources.yaml (code source; written in M1 step 2)
+    parent: null
+    status: source-chosen-mixture-pending
+    runs:
+      - 20261007T025302Z-data-verify-sources-de1aefc   # first pass (stack-edu config missing, script dataset error)
+      - 20261007T025455Z-data-verify-sources-de1aefc   # intermediate
+      - 20261007T025542Z-data-verify-sources-de1aefc   # stack-edu Python config sampled
+      - 20261007T025701Z-data-verify-sources-de1aefc   # FINAL verification (github-code-clean read via its parquet files)
+      - 20261007T124946Z-data-audit-code-de1aefc       # language + licence audit, 12 evenly spaced files
+    thresholds:   # PRE-REGISTERED 2026-10-07 before any candidate was inspected
+      candidates: ["HuggingFaceTB/stack-edu", "bigcode/the-stack-dedup", "bigcode/starcoderdata", "codeparrot/github-code-clean"]
+      eligible: "ALL of: (a) text inline, no blob ids; (b) per-file licence available and restricted to permissive licences, or dataset terms allow training and model release; (c) >= 2.0B of our tokens remain after the filters; (d) any gate is one the owner accepts"
+      preference_order: ["educationally filtered over raw", "Python-heavy plus main languages (JS/TS, Java, C/C++, Go, Rust, Shell, SQL)", "smaller download"]
+      filters: "file <= 100 KB; longest line <= 1000 chars; alphanumeric fraction >= 0.25; drop auto-generated headers"
+      gated_terms: "the owner accepts any Hub terms; the assistant never does"
+    conclusion: "Applied the pre-registered rule on 2026-10-07 (final record 20261007T025701Z). (a) text inline: smollm-corpus python-edu FAILS (blob_id only) and HuggingFaceTB/stack-edu FAILS (columns are blob ids, no text; 17 GB total); codeparrot/github-code-clean PASSES (columns code, repo_name, path, language, license, size; ungated; its loader script is unsupported by datasets 5.1.0, so it is read through its 880 parquet files); bigcode/the-stack-dedup and bigcode/starcoderdata are gated (auto approval, licence 'other') and cannot be inspected until the owner accepts the Hub terms. (b) github-code-clean carries a per-file licence field: on 1 of 880 files (1.02 GB) permissive licences {mit, apache-2.0, bsd-2-clause, bsd-3-clause, isc, cc0-1.0, unlicense} are 54.9% of bytes, the rest is GPL/AGPL/LGPL/MPL/EPL and is dropped. (c) extrapolated permissive volume ~154B tokens (rough, 3.2 bytes/token) >> 2.0B. Language mix of the permissive part is HTML 16.6%, Java 14.5%, JavaScript 13.1%, C 10.0%, C++ 8.8%, Python 6.7%, PHP 5.5%, C# 5.3%, TypeScript 4.4%, Markdown 3.8%, CSS 2.9%, Go 2.8% (HTML/CSS/Markdown will be capped or dropped by a registered language list in data_sources.yaml). (d) no gate. RECOMMENDATION: github-code-clean with permissive-only + the registered filters (ungated, no terms to accept, immediately verifiable). Alternative if the owner prefers a more curated source: bigcode/starcoderdata after the owner accepts its terms; it would then be verified with the same rule. No edu-filtered inline option exists, so preference 1 is moot. OWNER DECISION PENDING (Checkpoint A). OWNER DECISION (2026-10-07): use github-code-clean (do not switch to starcoderdata unless the audit shows too few high-quality Python/code tokens); permissive licences only; keep Python, JS/TS, C/C++, Java, Go, Rust, SQL, Shell where available; report the token distribution before the mixture is finalised. AUDIT (record 20261007T124946Z-data-audit-code, revision c48d40f9e70f0196f8236901ee35807f7d6c44c0, 12 of 880 files, GPT-2 tokenizer as a PROXY; final counts come from the frozen tokenizer): permissive share 55.7% of bytes; after the registered filters (size, line length, alnum, auto-generated) 154.5B kept tokens over all 880 files, of which the retained languages are 116.4B (HTML/CSS/Markdown/TeX/other 38.1B are excluded). Python: 12.7B tokens available (10.9% of retained; 6.2% of all bytes; 61.6% permissive; 82.8% kept after filters); ast.parse succeeds on 87.9% of a 3,014-document sample (the rest is mostly Python 2 / broken files). Other kept tokens (B): Java 26.3, JavaScript 16.2, C 14.0, C++ 13.0, C# 9.7, PHP 10.4, Go 4.35, Ruby 3.5, TypeScript 3.0, Scala 1.3, Rust 0.76, Shell 0.68, SQL 0.48. Files are homogeneous (coefficient of variation across files 2-7% for the large languages, 14-20% for Rust/Shell/SQL), so a fixed contiguous file list is representative. Cross-file exact duplicates among kept documents: 0.000%. SUFFICIENCY: Python alone could supply the whole 1.98B-token code budget six times over, so the decision to stay with github-code-clean stands. Rare languages bind the download size: Rust, Shell and SQL need 80 files (~28.5 GB, deleted after tokenizing) for the proposed weights. PROPOSAL (not yet in the spec; owner confirms before step 2): within-code weights Python 36, JavaScript 11, TypeScript 6, Java 10, C 8, C++ 8, Go 5, C# 4, PHP 3, Ruby 2, Shell 2, Rust 2, SQL 1.5, Scala 1.5 (percent), input files 0-79, plus an extra Python filter (document must parse with ast.parse under Python 3, expected to drop ~12%). Python is up-weighted 3.3x relative to its natural 10.9% of retained tokens; at 713M Python tokens this is one pass over 80 files with no repetition."
+  - id: EXP-M1-SOURCES
+    milestone: M1
+    hypothesis: "The approved pretraining sources (without Wikipedia) and the Apache-2.0-labelled SmolTalk subsets provide enough tokens for the 15.5B plan, and the Wikipedia share can be redistributed proportionally."
+    config: docs/spec/data_sources.yaml (written in M1 step 2)
+    parent: EXP-M1-CODE
+    status: audited-mixture-pending-owner
+    runs:
+      - 20261007T125037Z-data-audit-pretrain-de1aefc
+      - 20261007T125330Z-data-audit-smoltalk-de1aefc
+      - 20261007T124946Z-data-audit-code-de1aefc
+    owner_decisions:   # 2026-10-07, from the owner in chat
+      - "SmolTalk: allow only the subsets labelled Apache-2.0 on the dataset card (smol-magpie-ultra, smol-constraints, smol-rewrite, smol-summarize). Smol-Magpie-Ultra is acceptable despite Llama-3.1 generation; keep generator provenance and applicable Llama terms in the register. No subset with ambiguous licensing."
+      - "Wikipedia: excluded from the V2 mixture for now; redistribute its 4% across the approved pretraining sources, preserving the intended mixture as closely as practical; no CC BY-SA/GFDL ambiguity in the release model."
+    thresholds:   # sufficiency rule written before the numbers were read: available tokens >= 3x the prepared target per source
+      sufficiency: "estimated available tokens (GPT-2 proxy) >= 3 x the prepared target for that source, and (for the decay tier) int_score>=4 tokens >= 3 x the decay target"
+    conclusion: "Audit at exact revisions (smollm-corpus 3ba9d605774198c5868892d7a8deda78031a781f, finemath e92b25a616738fe95dc186b64dfb19f9c8525594, smoltalk 5feaf2fd3ffca7c237fc38d1861bc30365d48ffa); rows are exact (parquet footers), tokens are estimates from 3 evenly spaced files x 6,000 documents with the GPT-2 tokenizer as a proxy. fineweb-edu-dedup: 190.17M rows, ~204.8B tokens, 4.64 bytes/token; int_score>=4 is 13.3% of tokens (~27.3B). cosmopedia-v2: 39.13M rows, ~28.5B tokens. finemath-3plus: 21.41M rows, ~37.7B tokens, int_score>=4 25.6% (~9.7B); finemath-4plus: 6.70M rows, ~10.4B tokens, all int_score>=4 and consistent with being a subset of 3plus, so the plan uses finemath-3plus only and takes the decay tier as int_score>=4 by a disjoint hash partition. All sources pass the 3x sufficiency rule against the targets below (smallest margin: cosmopedia-v2, ~17x). SmolTalk train rows / est. tokens: smol-magpie-ultra 409,537 / ~654M; smol-summarize 96,356 / ~48M; smol-rewrite 53,342 / ~19M; smol-constraints 34,424 / ~7M; allowed total ~727M proxy tokens vs a ~51M decay slice, leaving ~670M for the M4 SFT split (disjoint hash partition). Excluded for ambiguous licensing (card defers to upstream): numina-cot-100k, openhermes-100k, apigen-80k, self-oss-instruct, metamathqa-50k, systemchats-30k, explore-instruct-rewriting, longalign, everyday-conversations. CONSEQUENCE: M4 SFT can only use the four allowed subsets from SmolTalk; math/code reasoning data needs its own licence audit in M4. PROPOSED MIXTURE with Wikipedia removed (proportional redistribution; instruction slice kept at exactly 5% of decay): stable fineweb_edu 64.58 / cosmopedia_v2 10.42 / code 12.50 / math 12.50; decay fineweb_edu 43.18 / cosmopedia_v2 12.95 / code 17.27 / math 21.59 / instruction_style 5.00. Prepared tokens (+3% margin): fineweb_edu ~9.75B, cosmopedia ~1.64B, code ~1.98B, math ~2.03B, instruction ~0.05B (~15.45B with validation on top). Validation domains would become web, synthetic, code, math, chat (wiki dropped). NOT YET APPLIED: spec.6 and data_sources.yaml follow owner confirmation of this table."
+  - id: EXP-M1-PREFLIGHT
+    milestone: M1
+    hypothesis: "The focused code mix (Python/JS/TS/SQL/Shell) is supplied by github-code-clean files 0-209 with acceptable quality, licence-label accuracy, secret hygiene and SQL/Shell capacity, and the decay-slice generators carry no naming or attribution terms."
+    config: litegpt/datafilters.py + scripts/audit_sources.py (preflight-code, terms, throughput, evalsets)
+    parent: EXP-M1-CODE
+    status: done-C5-owner-accepted
+    runs:
+      - 20261011T135330Z-data-audit-terms-1a0a85a            # C5 (card text)
+      - 20261011T135337Z-data-preflight-evalsets-1a0a85a     # C7 first pass (XSTest gated)
+      - 20261011T140319Z-data-preflight-evalsets-1a0a85a     # C7 final (18/18 resolve, XSTest via ungated copy)
+      - 20261011T135558Z-data-preflight-throughput-1a0a85a   # C6
+      - 20261011T135845Z-data-preflight-code-1a0a85a         # C1-C4 first pass (before the two corrections)
+      - 20261011T140430Z-data-preflight-code-1a0a85a         # C1-C4 corrected re-run (final)
+    decisions:   # PRE-REGISTERED 2026-10-11 before any pre-flight check ran (owner-approved plan rev 2)
+      F1_code_languages: {Python: 0.62, JavaScript: 0.14, TypeScript: 0.14, SQL: 0.05, Shell: 0.05, unit: "fraction of code tokens, stable and decay", others: dropped}
+      F2_code_share: "unchanged: 12.50% stable, 17.27% decay"
+      F3_mixture: {stable: {fineweb_edu: 0.6458, cosmopedia_v2: 0.1042, code: 0.1250, math: 0.1250}, decay: {fineweb_edu: 0.4318, cosmopedia_v2: 0.1295, code: 0.1727, math: 0.2159, instruction_style: 0.05}}
+      F4_code_files: "github-code-clean data/train-00000..00209 of 00880 (fixed list), revision c48d40f9e70f0196f8236901ee35807f7d6c44c0"
+      F5_code_partition_key: "hash of repo_name: a repository is never split between train, decay and validation"
+      F6_filters: ["size <= 100 KB", "longest line <= 1000", "alnum fraction >= 0.25", "no auto-generated header in first 6 lines",
+                   "drop vendored/minified paths (node_modules, vendor, dist, build, third_party, bower_components, *.min.js, *.bundle.js, TypeScript *.d.ts)",
+                   "Python documents must pass ast.parse under Python 3", "SQL files with > 50% INSERT/VALUES/'(' lines dropped",
+                   "drop files with a GPL/AGPL/LGPL notice in the first 60 lines", "drop files with a private-key block or high-confidence credential pattern; redact e-mail addresses to <EMAIL>"]
+      F7_quality_tiers: "fineweb-edu-dedup decay = int_score >= 4; finemath-3plus only, decay = int_score >= 4"
+      F8_smoltalk: "decay slice (~51M tokens) from smol-summarize, smol-rewrite, smol-constraints if C5 passes; smol-magpie-ultra reserved for the M4 SFT split"
+      F9_validation_domains: [web, synthetic, code, math, chat]
+      F10_eval_coverage: "MultiPL-E HumanEval-JS/TS and one text-to-SQL evaluation added to suite v0 and to the decontamination reference list"
+    thresholds:
+      C1: "over 30 random kept documents per language: no class of junk (generated, minified, data dump, non-code) above ~10%; a new filter is added only as a recorded protocol correction"
+      C2: "GPL/AGPL/LGPL notices among permissive-labelled kept files: zero after the header rule (pre-rule rate reported)"
+      C3: "private keys / high-confidence tokens: zero after the rule; e-mail addresses redacted"
+      C4: "tokens per file after all filters, extrapolated to 210 files: SQL < 1.10x target -> SQL 0.04 and Python 0.63; Shell < 1.10x target -> Shell 0.04 and Python +0.01"
+      C5: "no naming or attribution clause applies to the generators of smol-summarize, smol-rewrite, smol-constraints and cosmopedia-v2 -> F8 stands; otherwise stop and ask the owner with the clause text"
+      C6: "projected total download time stated; >= 60 GB headroom remains after 31 GB of shards plus temporaries"
+      C7: "every suite-v0 benchmark (incl. MultiPL-E JS/TS and a text-to-SQL set) resolves at a pinned revision; n-gram count reported"
+      later_checks: {C8: "tokenizer fit (Checkpoint B)", C9: "real-token re-plan: any source/language < 1.05x its target -> extend its fixed file list", C10: "leak tests: no repository shared between code partitions; no document key shared between training and validation"}
+    protocol_corrections:   # recorded BEFORE the corrected re-run; thresholds above unchanged
+      - date: 2026-10-11
+        run: 20261011T135845Z-data-preflight-code-1a0a85a
+        finding: "C1 sample review (36 kept documents per language): vendored library mirrors 2/36 JavaScript (cdnjs/cdnjs, pagespeed-libraries-cdnjs); database export dumps 3/36 SQL (Navicat 'Data Transfer', phpMyAdmin 'SQL Dump') and 1/36 Shell (export_databases.sh, a real script: kept). Both classes are below the ~10% C1 threshold but cheap to remove, and small samples (n=36) have wide error bars."
+        correction: "Two rules added to litegpt/datafilters.py: (a) 'exportdump': first 20 lines contain Navicat / phpMyAdmin SQL Dump / mysqldump / 'Dumping data for table' (SQL only); (b) 'mirror': repository name contains 'cdnjs', 'jsdelivr' or 'unpkg', or path contains 'ajax/libs/' (JavaScript/TypeScript). The 'lib/' directory is NOT treated as vendored: it is mostly the project's own source."
+      - date: 2026-10-11
+        run: 20261011T135845Z-data-preflight-code-1a0a85a
+        finding: "C4: SQL supply over 210 files is 0.91x the 5% target (margin 1.14x at the 4% weight prescribed by the C4 rule); the exportdump rule will remove SQL tokens."
+        correction: "File-count rule added (consistent with C9): after the corrected re-run, if a language's supply is < 1.15x its target at its final weight, the fixed input list is extended to ceil(210 x 1.15 / margin) files (at most 300), keeping the contiguous range starting at file 0."
+    conclusion: "C1 PASS: 36 kept documents per language were reviewed; junk classes were below ~10% (vendored mirrors 2/36 JS, export dumps 3/36 SQL) and both were removed by the recorded protocol corrections (JS mirror rule dropped 2,841 documents in the 12 audited files, SQL export-dump rule 171). C2 PASS: GPL/AGPL/LGPL header notices among permissive-labelled files before the rule: Python 0.76%, JavaScript 0.55%, TypeScript 0.09%, SQL 0.49%, Shell 0.59%; post-filter rescan finds 0. C3 PASS: before the rule, private keys / tokens in 12 files: Python 16 documents, JavaScript 96, TypeScript 20, Shell 2, SQL 0; all dropped, post-filter rescan 0; e-mail addresses redacted in 3,075-3,940 JS/Python documents. C4: at the F1 weights SQL supply is 0.87x its 5% target, so the pre-registered rule moves SQL to 4% and Python to 63% (final code weights Python 0.63, JavaScript 0.14, TypeScript 0.14, SQL 0.04, Shell 0.05); at 4% SQL margin is 1.09x, below the 1.15x file-count rule, so the fixed input list is extended to files 0-222 (223 files, ~79 GB). Supply over 223 files vs target (proxy tokens): Python ~2.67B vs 1.25B (2.1x), JavaScript ~3.2B vs 0.28B, TypeScript ~0.67B vs 0.28B, SQL ~91M vs 79M (1.15x), Shell ~160M vs 99M (1.6x). C5 FAIL (needs owner): smol-summarize, smol-rewrite and smol-constraints were generated with Qwen2.5-72B-Instruct (SmolLM2 paper, arXiv 2502.02737; not stated on the dataset card); its licence (Qwen LICENSE AGREEMENT, per a summary of the licence page, to be verified at M5) has section 5(b): anyone who uses the Materials or any outputs or results to create, train, fine-tune or improve an AI model that is distributed or made available must prominently display 'Built with Qwen' or 'Improved using Qwen' in related product documentation, and keep the Qwen notice. Cosmopedia v2 was generated with Mixtral-8x7B-Instruct-v0.1 (Hub licence tag apache-2.0): no clause, passes. C6 PASS: measured 25-28 MB/s on the three large web/synthetic sources (the code probe hit the local cache at 921 MB/s and is not representative; the 25 MB/s figure is used), projected ~125 GB of downloads, about 1.4 hours; free space C: 277 GB, WSL disk limit not binding, headroom after 41 GB of shards and temporaries 236 GB. C7 PASS: all 18 benchmarks resolve at pinned revisions (XSTest via the ungated copy Paul/XSTest, 450 prompts; the gated walledai/XSTest was not used), 1,612,644 unique 13-grams in total. OWNER DECISION PENDING: C5 (see docs/data_licenses.md). OWNER DECISION (2026-10-11, in chat): C5 is not treated as a blocker; F8 stands (the 5% instruction slice uses smol-summarize, smol-rewrite and smol-constraints). The Qwen display clause stays in docs/data_licenses.md as an item carried to the M5 release gate (not dismissed: it is recorded so that the model card and naming can be handled there). C9 RE-PLAN WITH THE REAL TOKENIZER (2026-10-11, from the candidate's bytes/token vs GPT-2 on the same documents; real tokens = proxy tokens x GPT-2 bytes-per-token / LiteGPT bytes-per-token): web x1.036, Cosmopedia x0.985, math x1.025, Python x0.578, JavaScript x0.718, TypeScript x0.624, Shell x0.838, SQL x0.853. Code supply in real tokens over files 0-222: Python 1.55B (need 1.25B incl. 3% margin, 1.24x), JavaScript 2.28B (8.2x), TypeScript 0.42B (1.5x), Shell 0.13B (1.35x), SQL 0.078B vs 0.079B (0.98x: BELOW the 1.05x rule). Pre-registered rule applied: the fixed list is extended to files 0-261 (262 files, SQL margin 1.15x at its 4% weight; within the 300-file cap), ~93 GB of code downloads. Repository-level code decay fraction raised from 0.026 to 0.08 so that the scarcest language (SQL) still receives its decay tokens (other languages end up with surplus decay tokens that the index does not use), keep fractions re-derived (Python 0.80, JavaScript 0.15, TypeScript 0.75, Shell 0.80, SQL 1.00; they only bound disk use). Web, Cosmopedia and math pass without change (1.31x / 1.29x / 1.18x stable, 1.14x / 1.6x / 1.25x decay). The instruction slice has ~1.07x at 0.75 of the three Qwen-generated subsets, so decay_fraction_of_train is raised to 0.85 (1.2x; the M4 SFT split is then mostly Smol-Magpie-Ultra)."
+  - id: EXP-M1-TOKENIZER
+    milestone: M1
+    hypothesis: "A 32,768-entry byte-level BPE trained on the stable mixture (code in the F1 split) satisfies the hard requirements and compresses no worse than 0.90x GPT-2 on the stable mixture."
+    config: scripts/train_tokenizer.py + litegpt/tokenizer.py (litegpt/assets/tokenizer/litegpt-32k.json)
+    parent: EXP-M1-SOURCES
+    status: frozen
+    runs:
+      - 20261011T142237Z-data-tokenizer-trial-076712e   # 0.5 GB memory trial (4.4 GiB peak)
+      - 20261011T142732Z-data-tokenizer-trial-076712e   # 1.5 GB memory trial (6.0 GiB peak)
+      - 20261011T143457Z-data-tokenizer-train-076712e   # candidate, 5.0 GB, sha256 2f208b58...
+      - 20261011T145740Z-data-tokenizer-check-076712e   # data-free checks re-run with the corrected check code
+    thresholds:   # PRE-REGISTERED 2026-10-11 before any tokenizer was trained
+      hard: ["byte-exact round trip on 100% of validation documents in every domain", "vocabulary size exactly 32768",
+             "the 37 special tokens are atomic with fixed ids 0-36", "literal special-token text in documents never produces a special id",
+             "digits are always single tokens", "4 spaces, a tab and a newline-plus-indent are encoded without byte fallback explosion (<= 2 tokens each)"]
+      sanity: "overall bytes/token on the stable mixture >= 0.90 x GPT-2's; per-domain and per-language ratios are informational; failure triggers an investigation, nothing is adopted automatically"
+      training: "3-5 GB from training partitions only, largest size whose projected peak RAM <= 20 GiB (WSL has 23 GiB)"
+    clarifications:   # recorded 2026-10-11 BEFORE the tokenizer was trained
+      - "Round trip: the tokenizer applies NFC normalisation (as Qwen2 does), so the criterion is decode(encode(text)) == NFC(text) on 100% of validation documents; the fraction of documents altered by NFC is reported."
+      - "Bytes-per-token comparisons use the same validation documents for every tokenizer; GPT-2 and SmolLM2 are loaded from their tokenizer files only (no model is run)."
+      - "Checks run on the tokenizer's own held-out documents: the val partition (u < val_fraction) of the downloaded training-sample files, never on documents used to train the tokenizer."
+    protocol_corrections:   # recorded after the candidate was trained; criteria unchanged
+      - date: 2026-10-11
+        run: 20261011T143457Z-data-tokenizer-train-076712e
+        defect: "Two implementation defects in the check code, not in the tokenizer: (1) the digit check compared the token count of '0123456789 2024' with 14 although the space between the numbers is one more token, so it reported false; (2) the whitespace check included a trailing letter ('newline + 4 spaces + x' is 3 tokens) while the pre-registered criterion is about whitespace-only strings (<= 2 tokens)."
+        correction: "digits_single now checks that every digit of every maximal digit run in nine varied strings is exactly one token; whitespace is measured on whitespace-only strings with the registered limit of 2. The same tokenizer file (sha256 2f208b58...) was re-checked with scripts/train_tokenizer.py check."
+    conclusion: "CANDIDATE (not frozen; owner approval pending at Checkpoint B). Trained on 4.996 GB (1,053,405 documents) of stable-partition text at the stable mixture weights (3 FineWeb-Edu, 2 Cosmopedia, 2 FineMath, 24 code files; each file contributes an equal share), 354 s, peak RSS 9.5 GiB (the two trials predicted ~11 GiB). sha256 2f208b58085074d9520d737332f8da9fb8c8a8718479978bbe8afb5b4ea015d6. Hard checks: vocabulary 32,768 and special ids 0-36 as specified: PASS; byte-exact round trip (against the NFC form) on 100% of 6,770 held-out validation documents in all 8 domains: PASS (NFC altered only 5 documents: 3 math, 2 JavaScript); literal special-token text never produces a control id: PASS; digits single tokens (after the check correction above): PASS; whitespace-only strings (4 spaces, tab, newline+indent, 8 spaces) encode in 1-2 tokens: PASS. Sanity bound: web bytes/token 4.457 vs GPT-2 4.616 = 0.966x (>= 0.90): PASS. Compression (bytes/token, higher is better; LiteGPT / GPT-2 / SmolLM2): web 4.457/4.616/4.527; synthetic 5.227/5.149/5.239; math 3.491/3.579/3.329; Python 3.786/2.188/3.517; JavaScript 2.643/1.897/2.474; TypeScript 3.891/2.429/3.620; Shell 2.819/2.361/2.627; SQL 3.001/2.561/2.596. Held-out sample sizes are small for some code languages (SQL 33, TypeScript 126, Shell 143, Python 353 documents), so per-language ratios are indicative only. FROZEN 2026-10-11 by the owner after reviewing the results and the vocabulary trade-off (32,768 kept; a 49,152 vocabulary would gain ~1.5-2% web bytes/token for +12.6M parameters and ~+4% FLOPs per token). Installed as litegpt/assets/tokenizer/litegpt-32k.json; sha256 recorded in docs/spec/v2.yaml (tokenizer.sha256)."
+  - id: EXP-M1-DECONTAM
+    milestone: M1
+    hypothesis: "13-gram word overlap with the pinned evaluation sets removes benchmark text from pretraining data at a negligible token cost."
+    config: scripts/decontaminate.py + docs/spec/data_sources.yaml#decontamination
+    parent: EXP-M1-PREFLIGHT
+    status: corrected-index-in-use
+    runs:
+      - 20261011T162235Z-data-decontam-index-c833e2c     # first index (1,612,644 13-grams), used by the dry run
+      - 20261011T162414Z-data-prepare-c833e2c            # dry run, 2 files per source (superseded: built with the first index)
+      - 20261011T172128Z-data-decontam-audit-math-203de2f # audit that triggered the correction
+      - 20261011T172349Z-data-decontam-index-203de2f     # corrected index (1,609,910 13-grams; 2,734 number/letter-only removed) - used for preparation
+    thresholds:
+      rule: "a document is dropped if it shares any 13-gram (lowercased word tokens) with a reference set; reference sets are the 18 benchmarks pinned by C7"
+      audit: "if one benchmark accounts for > 0.5% of a source's dropped tokens, audit its n-gram set for boilerplate (very short or generic prompts) and record the outcome before training"
+      records: "dropped documents and tokens per source x benchmark with sample matches"
+    protocol_corrections:   # recorded BEFORE the corrected index is built and before the full preparation run
+      - date: 2026-10-11
+        run: 20261011T172128Z-data-decontam-audit-math-203de2f
+        finding: "Dry run (2 files per source): decontamination dropped ~4.2% of FineMath bytes (humaneval 2,359 documents, mbpp 1,021), triggering the 0.5% audit rule; FineWeb-Edu 0.37%, Cosmopedia 0.04%, code < 0.2%. The audit of FineMath file 0 shows the matches are generic sequences from benchmark test cases, not benchmark text: '0 0 0 ... 0' (3,240 windows), '1 2 3 ... 13' and its shifts (~5,600), lists of primes, 'a b c ... m', '000 000 ...' (TriviaQA). These carry no item-specific content and occur naturally in math pages."
+        correction: "Reference 13-grams whose 13 words are all numbers or single characters are excluded when the index is built (litegpt/decontam.py, window_hashes(skip_trivial=True); test added). Windows containing any real word are unchanged, so genuine benchmark text is still caught. The index is rebuilt, the audit is re-run on FineMath and FineWeb-Edu, and the full preparation runs in a new run directory with the corrected index (the dry-run shards are discarded; its record is kept)."
+    conclusion: "Re-audit with the corrected index (records *data-decontam-audit-math* and *data-decontam-audit-fineweb_edu* of 2026-10-11): FineMath file 0 drops 0.27% of bytes (150 of 167,232 documents), FineWeb-Edu file 0 (first 200,000 documents) 0.29% (154 documents); both below the 0.5% audit rule. Remaining matches are mostly quoted public texts that also appear in benchmark items (Declaration of Independence and US Constitution passages in MMLU; the Gettysburg Address in TriviaQA) and a few code idioms; these documents are dropped as planned (conservative). Final per-source drop rates come from the full preparation run. FULL RUN (2026-10-12): bytes dropped FineWeb-Edu 0.225%, FineMath 0.266%, Cosmopedia 0.026%, JavaScript 0.128%, Python 0.055%, TypeScript 0.045%, Shell 0.014%, SQL 0.011% (all < 0.5%); instruction slice 6.11% (17,194 documents, IFEval). AUDIT of smol-constraints (record *decontam-audit-instruction_style*): 16,256 of 34,424 conversations (47%) contain IFEval's verifiable-instruction templates verbatim (e.g. 'at the end of your response please explicitly add a postscript starting with p s', 'your entire response should be in english and in all lowercase letters', 'must contain at least 2 placeholders represented by square brackets'). These are the exact instruction phrasings IFEval scores, so they are genuine benchmark-format overlap, not boilerplate: the drops are KEPT. Consequence for M4: instruction-following SFT data must be decontaminated the same way, and IFEval results will be reported as measured on a model that never saw these templates in pretraining."
+  - id: EXP-M1-DATA
+    milestone: M1
+    hypothesis: "The prepared shards meet the token plan, validation is disjoint from training, and the loader is exactly resumable."
+    config: scripts/prepare_data.py + litegpt/data.py + docs/spec/data_sources.yaml
+    parent: EXP-M1-PREFLIGHT
+    status: done
+    runs:
+      - 20261011T173054Z-data-prepare-1f005bc   # full preparation (298 + 2 files) and final mix (mix_manifest.json, data_stats.json)
+    thresholds:   # PRE-REGISTERED 2026-10-11
+      counts: "prepared tokens per source (and per code language) >= plan targets: stable 14.0B and decay 1.0B at the mixture weights, x 1.03 margin"
+      val_core: ">= 20M tokens; frozen with sha256; domains web, synthetic, code, math, chat at 2.1M tokens each"
+      disjoint: "no document key shared between any training partition and validation; no repository shared between code partitions (tests + record)"
+      proportions: "index prefix proportions within 0.1% of the mixture weights at every 1M-token prefix"
+      resume: "loader batches after resuming at step k are bit-identical to an uninterrupted run"
+      duplicates: "exact cross-source duplicate rate > 1% of any source's tokens returns the dedup decision to the owner"
+      bpb: "BPB = sum NLL / ln 2 over sum UTF-8 bytes of target tokens, special tokens excluded"
+    clarifications:   # recorded 2026-10-12 BEFORE step 6 (mix) runs on the real data
+      - "Cross-model validation text (val_text, for bits-per-byte of models with other tokenizers): per domain (web, synthetic, code, math, chat) whole validation documents are ordered by sha256(salt:val_text:domain:key) and taken until >= 2,000,000 UTF-8 bytes; the code domain is split by the code language weights (bytes); chat conversations are written as plain 'role: content' turns (no special-token strings). Each file's sha256 is recorded. Cross-model core BPB = stable-mixture-weighted mean of the web / synthetic / code / math domain BPBs (weights 0.6458 / 0.1042 / 0.125 / 0.125). The token-level val_core used by the G1 gate is unchanged."
+      - "Duplicates (ADR-008 decision 8): measured on the shards by hashing each document's token sequence (identical text gives identical tokens with the frozen tokenizer). Reported: within-source and cross-source exact duplicate token shares per source, and validation-vs-training exact duplicates per source. The 1% cross-source rule returns the decision to the owner; any validation-vs-training duplicate is reported and those validation documents are excluded from val_text."
+      - "Disjointness is checked twice: (1) every validation key recomputes to u < val_fraction under the partition hash (so it cannot be in a training partition), (2) no validation document's token hash occurs in the training partitions of any source."
+      - "GPT-2 proxy slice: indexes proxy_gpt2_train (first 1.0B tokens of the GPT-2-tokenized FineWeb-Edu stable documents, seeded block permutation) and proxy_gpt2_val (up to 10,240 blocks of the GPT-2-tokenized FineWeb-Edu validation documents)."
+    protocol_corrections:   # recorded 2026-10-12 after the first mix, BEFORE any hash is frozen into the spec
+      - finding: "Counts: every source and code language meets its stable and decay targets (no shortfall), but FineWeb-Edu decay has 436M tokens for a 432M need (1.01x), below the registered 1.03x margin (C9 requires >= 1.05x before step 5; the proxy estimate had been 1.10x)."
+        correction: "Apply the registered remedy (extend the fixed file list): two more FineWeb-Edu files (indices 9 and 27) are added to docs/spec/data_sources.yaml and processed into the same run; the mix is re-run. Expected decay supply ~498M tokens (1.15x)."
+      - finding: "Prefix proportions: the stable index never deviates by more than 1 block from any source's exact share at any prefix (the smooth weighted round-robin guarantee); as a fraction this is 0.115 percentage points at the first 1M-token prefix (488 blocks, where one block is 0.2%) and at most 0.014 pp after the first 10M tokens. The registered '0.1% at every 1M-token prefix' is not attainable at the first prefixes because of block granularity: a defect in how the criterion was written, not in the index."
+        correction: "The criterion is evaluated as 'at most 1 block deviation per source at every prefix' (met) and the fraction figures are reported as they are. No change to the index."
+      - finding: "Duplicates: cross-source exact duplicates ~0% for every source (rule not triggered). Within-source: Cosmopedia v2 1.07% of documents are exact duplicates of another Cosmopedia document (all others < 0.07%). Validation vs training: 5 chat validation documents (SmolTalk test split) also occur in the decay slice."
+        correction: "No dedup is applied (decision 8 covers cross-source only; ~1% of Cosmopedia documents seen twice is negligible). The 5 chat documents are excluded from val_text; they remain in the token-level val_chat set (5 of 8,821 documents) and are reported."
+      - finding: "Decontamination: the instruction slice dropped 6.1% of its bytes (17,194 documents matched IFEval, 9 others), above the 0.5% audit rule; every other source is below 0.27%."
+        correction: "Audit of the matching 13-grams before training (scripts/audit_decontam.py on smol-constraints); the drops are kept regardless, because the slice still has 61M tokens for a 50M need (1.21x) and IFEval overlap in a constraint-following dataset is exactly what decontamination is for. Outcome recorded in EXP-M1-DECONTAM."
+    conclusion: "PASS after the recorded corrections (2026-10-12). Counts (real tokens, need incl. weights; all >= 1.03x): FineWeb-Edu stable 13,004M / 9,042M (1.44x), decay 501M / 432M (1.16x); Cosmopedia 1,948M / 1,458M, 218M / 130M; math 2,090M / 1,750M (1.19x), 284M / 216M; Python 1,335M / 1,102M (1.21x), 160M / 109M; JavaScript 327M / 245M, 203M / 24M; TypeScript 344M / 245M, 37M / 24M; SQL 74M / 70M (1.05x), 11M / 7M; Shell 109M / 88M (1.25x), 11M / 9M; instruction slice 61M / 50M (1.21x). Total prepared 20.79B tokens plus a 1.58B-token GPT-2 proxy slice (proxy_gpt2_val has 1,641 blocks). val_core: 10,240 blocks, 20,971,520 tokens, sha256 e1244de2... (in the spec). Data order sha256 0e01795c... (in the spec). Disjointness: 0 of 57,871 validation keys outside the val hash range; no validation document of web / synthetic / math / code occurs in training; 5 SmolTalk test conversations also occur in the decay slice (excluded from val_text, reported). Index proportions: at most 1 block from the exact share at every prefix (fraction 0.115 pp at the first 1M tokens, <= 0.014 pp after 10M). Loader resume on the real shards: exact. Duplicates: cross-source ~0% everywhere; within-source 1.07% of Cosmopedia documents, < 0.07% elsewhere. val_text: 5 domains x ~2 MB (web 423, synthetic 540, math 422, chat 1,049, code 448 documents)."
+  - id: EXP-M1B-SUITE
+    milestone: M1b
+    hypothesis: "Evaluation suite v0 (lm-evaluation-harness 0.4.13 + native bits-per-byte and efficiency) gives deterministic, harness-sane scores that serve as the fixed yardstick for V1, competitors and every later V2 result."
+    config: litegpt/eval/suite_v0.yaml + litegpt/eval/SUITE_VERSION (0.1.0)
+    parent: null
+    status: final (suite 0.1.1)
+    runs:
+      - 20261011T170523Z-eval-base-gpt2-203de2f   # GPT-2 run A: zero-shot, TriviaQA, GSM8K (stopped at HumanEval: 1,024-token default)
+      - 20261011T172039Z-eval-base-gpt2-203de2f   # GPT-2 run B: same groups (determinism)
+      - 20261011T173530Z-eval-base-gpt2-1f005bc   # GPT-2 code groups A (512-token cap)
+      - 20261011T174200Z-eval-base-gpt2-1f005bc   # GPT-2 code groups B (determinism)
+    decisions:   # PRE-REGISTERED 2026-10-11 before any model was scored (owner-approved plan)
+      base_suite: "0-shot: hellaswag, arc_easy, arc_challenge, piqa, openbookqa, commonsense_qa, winogrande, mmlu (continuation/cloze form), truthfulqa_mc1, truthfulqa_mc2; 5-shot: triviaqa (fixed seeded 2000-question subset), gsm8k; code: humaneval (0-shot), mbpp (3-shot), pass@1 greedy; bits-per-byte on val_core and the domain sets (after M1 step 6)"
+      instruct_suite: "each model's own chat template, greedy, max 512 new tokens: ifeval, gsm8k (0-shot chat), humaneval/mbpp (chat prompt), xstest (rule-based refusal scoring)"
+      efficiency: "bf16 GPU; prompt 128/512 x output 128 x batch 1/8; prefill tok/s, decode tok/s, bytes/s, time to first token, peak VRAM"
+      protocol: "seed 1234; greedy; bf16; sample-level outputs saved; task dataset revisions pinned to docs/spec/data_sources.yaml references where shared; no limit except the registered TriviaQA subset; no trust_remote_code; generated code executed only in WSL2 in a separate process with timeout, memory limit and no network"
+      deferred_to_M4: ["Spider execution accuracy (databases outside the Hub)", "MultiPL-E JS/TS execution (needs Node.js/TypeScript installed by the owner)"]
+    thresholds:
+      harness_sanity: "GPT-2 124M base suite: hellaswag acc_norm in [0.29, 0.33] and piqa acc in [0.61, 0.65]; otherwise no baseline is published until the setup is fixed"
+      determinism: "the same model run twice gives identical scores on every task"
+      adapter: "native LiteGPT adapter log-likelihoods equal direct model log-probabilities on litegpt-tiny (abs diff <= 1e-4 in fp32)"
+    protocol_corrections:   # recorded 2026-10-12 BEFORE the affected models were scored again
+      - date: 2026-10-12
+        finding: "Qwen/Qwen2.5-0.5B and Qwen/Qwen3-0.6B-Base ship a generation_config with max_new_tokens=2048, which transformers lets override lm-eval's max_length; the code tasks therefore generated up to 2,048 tokens instead of the registered 512, the GPU ran out of memory and spilled into shared memory (WDDM, also under WSL2), and the Qwen2.5-0.5B base run stalled on HumanEval for 6 hours (stopped, discarded). Every other model has no such setting: the 8 finished base runs logged zero override warnings and are unaffected."
+        correction: "Every generative group now passes max_new_tokens explicitly, equal to lm-eval's effective max_gen_toks (TriviaQA 256, GSM8K 256, GSM8K chat 256, HumanEval / MBPP and their instruct versions 512, IFEval 1280), so a model's own generation_config cannot override it; for models without such a setting this is identical to what already ran. The evaluation process caps its CUDA allocator at free VRAM minus 1 GiB, so an overflow fails visibly instead of spilling."
+      - date: 2026-10-12
+        finding: "With the VRAM cap in place, Qwen2.5-0.5B (151,936-token vocabulary) at batch 16 fails with an out-of-memory error on the first log-likelihood batch (a 4.3 GiB logits allocation); without the cap the same overflow had silently spilled into shared memory."
+        correction: "Batch size stays 16; if a group exceeds the VRAM cap it is retried with the batch halved (8, 4, 2, 1) and the batch size actually used is recorded per group (eval/<group>.json). Batch size changes only speed and bf16 rounding, not the task protocol."
+      - date: 2026-10-12
+        finding: "The first correction did not work: lm-eval 0.4.13 normalises max_new_tokens into its own max_gen_toks and does not pass it to generate(), so the Qwen2.5-0.5B rerun still generated with the model's max_new_tokens=2048 (seen in the transformers warning during TriviaQA; run stopped and discarded)."
+        correction: "Models whose generation_config.json sets max_new_tokens or max_length (Qwen2.5-0.5B, Qwen3-0.6B-Base) are evaluated from a local copy of the pinned snapshot with those keys removed, so lm-eval's limits apply exactly as for every other model; the removed values are recorded in each run's run.json (generation_config_removed). The explicit max_new_tokens entries in suite_v0.yaml are kept only as documentation (lm-eval treats them as aliases of max_gen_toks)."
+      - date: 2026-10-12
+        finding: "Before any instruct score: (1) IFEval failed to import (langdetect missing; lm-eval's ifeval extra was not in the eval dependency group). (2) suite_v0.yaml gave IFEval lm-eval's task default of 1,280 new tokens (written down explicitly by the first correction above), which contradicts the pre-registered instruct suite ('max 512 new tokens') and is longer than V1-Instruct's whole 1,024-token context, so lm-eval refused to run it."
+        correction: "The eval group installs lm-eval[ifeval]==0.4.13. IFEval generates at most 512 new tokens for every model, as registered; every instruct group is now within the 512 cap. No instruct result existed when this was changed (the aborted instruct records contain no scores and are not used). Suite version stays 0.1.0: the base suite is unchanged and the instruct suite now matches its registration."
+      - date: 2026-10-12
+        finding: "XSTest generated at most 128 new tokens (litegpt.eval.native's default, shared with the efficiency benchmark) instead of the suite's 256; found after the V1-Instruct XSTest record (20261012T152911Z) and before any other model's XSTest."
+        correction: "XSTest takes its length from suite_v0.yaml (256); the efficiency benchmark keeps its registered 128. V1-Instruct's XSTest is re-run at 256 and the 128-token record is superseded (kept, not reported). The refusal classifier reads the first 400 characters, so the effect is expected to be small; both V1 numbers are compared in the conclusion."
+      - date: 2026-10-12
+        finding: "The GSM8K chat headline (gsm8k_cot_zeroshot, registered as 'exact_match') was read from lm-eval's first filter, strict-match, which only accepts the phrase 'The answer is N.'; the zero-shot chat prompt never asks for that phrase, so strict-match was 0.000 for every chat model (V1-Instruct, SmolLM2-135M/360M-Instruct, Gemma 3 270M-it), independent of the answers. Found while checking the first four instruct records."
+        correction: "The headline for gsm8k_cot_zeroshot is exact_match with lm-eval's flexible-extract filter (last number in the answer), written explicitly in suite_v0.yaml as 'exact_match,flexible-extract'; base GSM8K is written explicitly as 'exact_match,strict-match' (unchanged: the 5-shot answers follow the '#### N' format of the shots). Every record already contains both filters, so nothing is re-run; the report computes each headline from the per-group results with the suite's metric choice. The choice is forced by the zero floor, not by which model it favours; strict-match values stay in the records."
+      - date: 2026-10-12
+        finding: "Both chat code tasks of lm-eval 0.4.13 mis-score correct answers. humaneval_instruct stops generation at '\\ndef' (and '\\n#', '\\nif', '\\nclass', '\\nprint'), so a model that restates the whole function after the pre-filled signature is cut to an empty answer (SmolLM2-135M-Instruct 164/164 empty, SmolLM2-360M-Instruct 158/164, V1-Instruct 93/164, Gemma 3 270M-it 0/164). mbpp_instruct's extractor prepends '```' to the answer and reads a leading 'def' as the code block's language tag, deleting it (SmolLM2 500/500 answers affected, Gemma 0/500). The effect is model-specific: SmolLM2 scored 0 on both while Gemma was unaffected. Found by inspecting the four finished instruct records' samples."
+        correction: "Suite 0.1.1: code_chat uses corrected copies, litegpt/eval/tasks/code_chat (humaneval_instruct_litegpt, mbpp_instruct_litegpt) with lm-eval's prompts, prefixes, datasets, metrics and 0-shot setting unchanged; HumanEval has no stop strings (the prompt plus the answer's code up to its closing fence is executed, so a restated function redefines the stub), and both tasks take the code before the closing fence after dropping a re-opened fence line. Every other group is identical to 0.1.0, so those results stand. The code_chat group is re-run for all six instruct models; the 0.1.0 code_chat results are superseded (kept, not reported). Owner-approved 2026-10-12. Smoke check on the first 20 problems (non-comparable): SmolLM2-360M-Instruct HumanEval 0.00 -> 0.10, MBPP 0.00 -> 0.35; Gemma 3 270M-it unchanged (0.40 / 0.25 before and after)."
+    clarifications:   # recorded 2026-10-11 BEFORE the first score
+      - "Task dataset revisions: lm-eval 0.4.13 loads each task's dataset at its latest revision and has no per-task revision option without forking task configs. The resolved Hub commit of every task dataset is therefore recorded in each run (eval/summary.json, task_dataset_revisions) and compared with the decontamination pins; a mismatch is flagged in the report, and baselines are re-run if a task dataset changes between models."
+      - "MMLU is scored with lm-eval's mmlu_continuation (cloze) group; the code tasks are humaneval (0-shot) and mbpp (3-shot) for base models, humaneval_instruct / mbpp_instruct for chat models; gsm8k_cot_zeroshot is the chat GSM8K task; XSTest is scored natively (not in lm-eval 0.4.13)."
+      - "TriviaQA subset: 2,000 document indices drawn with random.Random(1234).sample over the task's evaluation split, passed to lm-eval as `samples`."
+      - "Code tasks (humaneval, mbpp, humaneval_instruct, mbpp_instruct) generate at most 512 new tokens for every model (lm-eval default 1,024 equals GPT-2's whole context and aborted the first GPT-2 run before any code score was produced; recorded 2026-10-11 before any code-task score)."
+    conclusion: "HARNESS VALIDATED (2026-10-11, Checkpoint C). Sanity rule PASS: GPT-2 124M HellaSwag acc_norm 0.3130 (range 0.29-0.33), PIQA acc 0.6246 (range 0.61-0.65); other GPT-2 scores: ARC-Easy 0.4407, ARC-Challenge acc_norm 0.2210, OpenBookQA acc_norm 0.268, CommonsenseQA 0.1957, Winogrande 0.5083, MMLU (continuation) 0.2535, TruthfulQA MC1 0.2301 / MC2 0.4068, TriviaQA (2,000) 0.017, GSM8K strict 0.0061, HumanEval pass@1 0.0, MBPP pass@1 0.0. Determinism rule PASS: two independent runs give identical results for every task, and identical per-sample outputs for HumanEval (164) and MBPP (500). Adapter rule PASS (tests/test_eval_adapter.py). Fixes before the baselines: code tasks capped at 512 new tokens (recorded clarification); task dataset revisions were not being recorded (a falsy TaskConfig check), fixed and verified (humaneval 7dce6050, hellaswag 218ec52e: equal to the decontamination pins). GPT-2 is re-run as a single complete record in the baseline set. FINAL (2026-10-13): suite 0.1.1 after the protocol corrections above, each recorded before the affected scores were final; base groups are identical to 0.1.0, so every base record stands. Baseline results: EXP-M1B-BASELINES."
+  - id: EXP-M1B-BASELINES
+    milestone: M1b
+    hypothesis: "V1 and same-class / reference competitors measured with suite v0 on this machine define the comparison table for V2."
+    config: litegpt/eval/run.py
+    parent: EXP-M1B-SUITE
+    status: done
+    runs:   # every record the report reads (runs/report-latest/REPORT.md sections 3d and 4)
+      - 20261012T030635Z-eval-base-gpt2-b096d66
+      - 20261012T032335Z-eval-base-SmolLM2-135M-b096d66
+      - 20261012T040931Z-eval-base-LiteGPT-Base-44361ab
+      - 20261012T042519Z-eval-base-pythia-160m-44361ab
+      - 20261012T044301Z-eval-base-gemma-3-270m-44361ab
+      - 20261012T051842Z-eval-base-gpt2-medium-44361ab
+      - 20261012T054432Z-eval-base-SmolLM2-360M-44361ab
+      - 20261012T061342Z-eval-base-pythia-410m-44361ab
+      - 20261012T130333Z-eval-base-Qwen2.5-0.5B-d1d7908
+      - 20261012T141643Z-eval-base-Qwen3-0.6B-Base-7b59178
+      - 20261012T153246Z-eval-instruct-LiteGPT-Instruct-3afbe97
+      - 20261012T153948Z-eval-instruct-SmolLM2-135M-Instruct-3afbe97
+      - 20261012T155507Z-eval-xstest-LiteGPT-Instruct-298e547
+      - 20261012T160247Z-eval-xstest-SmolLM2-135M-Instruct-298e547
+      - 20261012T160535Z-eval-instruct-SmolLM2-360M-Instruct-298e547
+      - 20261012T162831Z-eval-xstest-SmolLM2-360M-Instruct-298e547
+      - 20261012T163133Z-eval-instruct-gemma-3-270m-it-298e547
+      - 20261012T165636Z-eval-xstest-gemma-3-270m-it-298e547
+      - 20261012T181953Z-eval-instruct-Qwen2.5-0.5B-Instruct-8a3a837
+      - 20261012T183903Z-eval-xstest-Qwen2.5-0.5B-Instruct-8a3a837
+      - 20261012T184129Z-eval-instruct-Qwen3-0.6B-8a3a837
+      - 20261012T190920Z-eval-xstest-Qwen3-0.6B-8a3a837
+      - 20261012T191248Z-eval-instruct-LiteGPT-Instruct-8a3a837
+      - 20261012T191613Z-eval-instruct-SmolLM2-135M-Instruct-8a3a837
+      - 20261012T192502Z-eval-instruct-SmolLM2-360M-Instruct-8a3a837
+      - 20261012T193352Z-eval-instruct-gemma-3-270m-it-8a3a837
+      - 20261012T194315Z-eval-efficiency-gpt2-8a3a837
+      - 20261012T194325Z-eval-bpb-gpt2-8a3a837
+      - 20261012T194426Z-eval-efficiency-LiteGPT-Base-8a3a837
+      - 20261012T194436Z-eval-bpb-LiteGPT-Base-8a3a837
+      - 20261012T194540Z-eval-efficiency-SmolLM2-135M-8a3a837
+      - 20261012T194559Z-eval-bpb-SmolLM2-135M-8a3a837
+      - 20261012T194741Z-eval-efficiency-pythia-160m-8a3a837
+      - 20261012T194752Z-eval-bpb-pythia-160m-8a3a837
+      - 20261012T194845Z-eval-efficiency-gemma-3-270m-8a3a837
+      - 20261012T194906Z-eval-bpb-gemma-3-270m-8a3a837
+      - 20261012T201732Z-eval-efficiency-gpt2-medium-8a3a837
+      - 20261012T201745Z-eval-bpb-gpt2-medium-8a3a837
+      - 20261012T201950Z-eval-efficiency-SmolLM2-360M-8a3a837
+      - 20261012T202009Z-eval-bpb-SmolLM2-360M-8a3a837
+      - 20261012T202230Z-eval-efficiency-pythia-410m-8a3a837
+      - 20261012T202244Z-eval-bpb-pythia-410m-8a3a837
+      - 20261012T202426Z-eval-efficiency-Qwen2.5-0.5B-8a3a837
+      - 20261012T202446Z-eval-bpb-Qwen2.5-0.5B-8a3a837
+      - 20261012T202709Z-eval-efficiency-Qwen3-0.6B-Base-8a3a837
+      - 20261012T202811Z-eval-bpb-Qwen3-0.6B-Base-8a3a837
+      - 20261012T203121Z-eval-efficiency-LiteGPT-Instruct-8a3a837
+      - 20261012T203131Z-eval-bpb-LiteGPT-Instruct-8a3a837
+      - 20261012T203235Z-eval-efficiency-SmolLM2-135M-Instruct-8a3a837
+      - 20261012T203252Z-eval-bpb-SmolLM2-135M-Instruct-8a3a837
+      - 20261012T203440Z-eval-efficiency-SmolLM2-360M-Instruct-8a3a837
+      - 20261012T203458Z-eval-bpb-SmolLM2-360M-Instruct-8a3a837
+      - 20261012T203714Z-eval-efficiency-gemma-3-270m-it-8a3a837
+      - 20261012T203737Z-eval-bpb-gemma-3-270m-it-8a3a837
+      - 20261012T210501Z-eval-efficiency-Qwen2.5-0.5B-Instruct-8a3a837
+      - 20261012T210518Z-eval-bpb-Qwen2.5-0.5B-Instruct-8a3a837
+      - 20261012T210736Z-eval-efficiency-Qwen3-0.6B-8a3a837
+      - 20261012T210801Z-eval-bpb-Qwen3-0.6B-8a3a837
+    decisions:
+      base_models: [koganrath/LiteGPT-Base, HuggingFaceTB/SmolLM2-135M, HuggingFaceTB/SmolLM2-360M, google/gemma-3-270m, EleutherAI/pythia-160m, EleutherAI/pythia-410m, openai-community/gpt2, openai-community/gpt2-medium, Qwen/Qwen2.5-0.5B, Qwen/Qwen3-0.6B-Base]
+      instruct_models: [koganrath/LiteGPT-Instruct, HuggingFaceTB/SmolLM2-135M-Instruct, HuggingFaceTB/SmolLM2-360M-Instruct, google/gemma-3-270m-it, Qwen/Qwen2.5-0.5B-Instruct, Qwen/Qwen3-0.6B]
+      exclusions: "MobileLLM-125M/350M unless loadable without trust_remote_code in transformers 5.18 (recorded either way)"
+      revisions: "resolved and pinned at run time; stored in each record"
+      published_numbers: "never mixed with measured ones; context columns (training tokens, licence) are labelled as published"
+    clarifications:   # recorded 2026-10-12 BEFORE any instruct-suite score
+      - "V1-Instruct (koganrath/LiteGPT-Instruct) is published without a chat template; it is scored with V1's own inference prompt as a template (litegpt/eval/templates/alpaca_v1.jinja, sha256 8c0747d2debaf278..., verified to reproduce scripts/legacy_v1/hugging_face_inference/inference_instruct.py exactly), applied to a local copy of the pinned snapshot. The template text is stored in each run record."
+      - "Qwen3-0.6B (hybrid thinking model) is scored with thinking disabled (lm-eval enable_thinking=False; XSTest: enable_thinking=False in the chat template), so every instruct model answers directly."
+      - "Base suite batch size 16 for every model; efficiency runs are executed only when no other GPU job is running."
+    conclusion: "DONE (2026-10-13), suite 0.1.1, one record per model and part (16 models: 10 base, 6 instruct), revisions pinned in each record. Exclusion: MobileLLM-125M/350M are gated (manual approval, licence 'other'); access was never requested and no terms were accepted, so they are not evaluated. V1-Base: zero-shot mean 0.371 vs GPT-2 0.346 and Pythia-160M 0.344, higher than GPT-2 on all 10 zero-shot tasks and level with GPT-2 Medium (355M, 0.373); modern small models are ahead (SmolLM2-135M 0.403, Gemma 3 270M 0.393, SmolLM2-360M 0.442, Qwen2.5-0.5B 0.463, Qwen3-0.6B-Base 0.489). Generative: V1-Base TriviaQA 0.029, GSM8K 0.002, HumanEval / MBPP 0.000. Bits per byte (val_text): V1-Base web 0.946 (GPT-2 1.023, GPT-2 Medium 0.942, SmolLM2-135M 0.865), code 1.612 (highest of all 16; GPT-2 1.213, SmolLM2-135M 0.559), math 1.374, chat 0.963, synthetic 0.819; V1 saw only FineWeb-Edu, and code / math / chat are where V2's mixture differs. V1 and GPT-2 are scored with their 1,024-token context (window 1024 / stride 512), the others with 2,048. Instruct: V1-Instruct IFEval 0.083 (SmolLM2-135M-Instruct 0.220, Qwen3-0.6B 0.564), GSM8K chat 0.021, chat code 0.000 / 0.000, XSTest 0% unsafe refused and 0% safe refused (identical at 128 and 256 new tokens). Efficiency (HF generate, bf16, prompt 512, batch 1): V1 213 decode tok/s, the fastest with GPT-2 (206); 30-layer SmolLM2 and Gemma decode at 46-54 tok/s, Qwen3 at 39; batch-1 decode here is dominated by per-layer overhead, so depth costs speed. Qwen2.5-0.5B base (d1d7908) ran from the length-cleaned local copy; its record shows generation_config_removed {} because the previous attempt had already cleaned the copy, and the run logged zero generation-length override warnings (verified). Corrections applied before the affected scores were final: IFEval at the registered 512 tokens, ifeval extra installed, XSTest at 256, GSM8K chat scored with flexible-extract, chat code tasks corrected (suite 0.1.1, owner-approved); see EXP-M1B-SUITE."
+  - id: EXP-M2-LADDER
+    milestone: M2
+    hypothesis: "Each V2 architecture change (ADR-005) improves or does not hurt bits-per-byte at proxy scale when applied one at a time; the 32k tokenizer and the code+math mixture have measurable, reported per-domain effects."
+    config: benchmarks/ablation.py + litegpt/training/ + benchmarks/ladder/*.yaml
+    parent: null
+    status: done
+    runs:
+      - 20261012T212115Z-train-ladder-smoke-437c36f        # smoke (30 steps)
+      - 20261012T212446Z-train-ladder-lrsweep-1e-3-437c36f
+      - 20261012T223607Z-train-ladder-lrsweep-2e-3-437c36f
+      - 20261012T234625Z-train-ladder-lrsweep-4e-3-437c36f
+      - 20261013T011719Z-train-ladder-s1-seed1-25f66de
+      - 20261013T121110Z-train-ladder-s1-seed2-25f54ba     # diverged (stability result, not a noise sample)
+      - 20261013T185112Z-train-ladder-s1-seed3-0ae0112
+      - 20261013T153152Z-train-ladder-s2-9a4c575
+      - 20261013T220631Z-train-ladder-s3-0ae0112
+      - 20261014T020420Z-train-ladder-s4-cd84a4f
+      - 20261031T072647Z-train-ladder-s5-4778f1b
+      - 20261031T104118Z-train-ladder-s6-4778f1b
+      - 20261031T150559Z-train-ladder-s7-b81bbb8
+      - 20261031T180536Z-train-ladder-s8a-b81bbb8
+      - 20261031T210545Z-train-ladder-s8b-b81bbb8
+    decisions:   # PRE-REGISTERED 2026-10-12 before any ladder run (owner-approved M2 plan)
+      proxy: "about 32M non-embedding parameters (held within +-3% of step 1 by MLP width), context 2048, 1.0B tokens per run, identical optimizer / schedule / batch / data order for every step"
+      steps:
+        s1: "V1 architecture: 8L x 576, 9 heads MHA, GELU MLP hidden 2304, LayerNorm (no bias, eps 1e-5), learned positions, tied embeddings; GPT-2 tokenizer, FineWeb-Edu (proxy_gpt2_train); seeds 1 and 2"
+        s2: "+ RoPE (theta 10000) instead of learned positions"
+        s3: "+ RMSNorm (pre-norm and final) and per-head QK-norm before RoPE"
+        s4: "+ SwiGLU MLP, hidden 1536 (parameter-matched)"
+        s5: "+ GQA 9 query / 3 key-value heads, SwiGLU hidden 1792 (parameter-matched)"
+        s6: "+ deep-thin: 18L x 384, 6 query / 2 key-value heads, SwiGLU hidden 1216 (= LiteGPT architecture at proxy scale)"
+        s7: "+ LiteGPT 32k tokenizer, FineWeb-Edu only (LiteGPT tokens)"
+        s8a: "+ full stable mixture (index proxy_1b)"
+        s8b: "same as 8a without code and math (index proxy_1b_nocodemath) - the single registered mixture ablation"
+      optimizer: "AdamW betas (0.9, 0.95), weight decay 0.1 on 2-D weights, gradient clipping 1.0, bf16 autocast, torch.compile, ~262k tokens per step (16 x 2048 x 8 accumulation)"
+      schedule: "WSD: linear warmup over the first 1% of tokens, constant, then decay over the last 20% to 10% of the peak (1-sqrt shape)"
+    thresholds:
+      noise_floor: "s = |BPB(s1 seed 1) - BPB(s1 seed 2)| on val_text/web at the end of training"
+      effect: "a step helps if web BPB drops by more than max(2s, 0.005), hurts if it rises by more than that, otherwise no measurable effect at proxy scale; steps 7-8 are judged per domain (web, synthetic, code, math, chat) with the same rule"
+      adoption: "not automatic: results are evidence for ADR-005; a step that hurts is returned to the owner with the numbers"
+      validity: "invalid if training diverges (non-finite loss, or a spike > 10% above the running minimum that does not recover within 1% of the run), throttles thermally for > 5% of its time, or deviates from the shared configuration"
+      proxy_lr: "sweep 1e-3, 2e-3, 4e-3 on s1 seed 1 for 0.25B tokens each (same schedule shape); lowest val_text/web BPB wins, ties within 0.002 go to the lower LR; the winner is used for every ladder step"
+    clarifications:   # recorded 2026-10-12 BEFORE any ladder result (the first smoke run produced no step)
+      - "Micro-batch: 16 x 2048 with the GPT-2 vocabulary (50,304) does not fit in the 16 GiB laptop GPU next to the AdamW state; the first smoke run spilled into shared memory (WDDM, also under WSL2) and was stopped before its first step. The loop now caps the CUDA allocator (free VRAM minus 1 GiB) and probes one forward/backward at the configured micro-batch before training, halving it and doubling the accumulation until it fits (s1: 8 x 2048 x 16 accumulation, probe peak 7.55 GiB). Tokens per step (262,144), block order, optimizer and schedule are unchanged (accumulation equals the large batch: tests/test_training.py); the micro-batch actually used and the probe are recorded in each run (run.json micro_batch_probe / micro_batch_used, train_summary.json)."
+      - "Evaluation memory: the three proxy LR sweep runs trained to their last step (953/953) but the final token-level evaluation ran out of memory under the VRAM cap (float32 logits of the whole 8 x 2048 x 50k batch, 3 GiB), so no summary was written and the pipeline stopped (2026-10-13 00:56 UTC). The validation cross-entropy is now computed one sequence at a time (identical values: tests/test_training.py::test_token_nll_row_by_row_equals_batched); the runs resume bit-exactly from their last checkpoints. Recorded before any sweep result was read for selection."
+      - "Micro-batch for s7, s8a, s8b (recorded 2026-10-31 before s7 started, owner-approved): s6, the first step on the LiteGPT model code, probed 16, 8, 4, 2 as out of memory and trained at 1 x 2048 x 128 accumulation (probe peak 12.51 GiB, which is absolute and includes memory left by the failed attempts; the running job at micro-batch 1 uses ~5.9 GB). Measured with small tensors, the s6 LiteGPT proxy and the s5 ablation model need the same memory per sequence (eager T=512: 582 vs 538 MiB; compiled B=4/2/1: 1,221/503/319 vs 1,195/512/375 MiB), so micro-batch 1 is a probe artefact, not a model requirement. s7, s8a and s8b therefore start the probe at 8 x 16 (the micro-batch every run s1-s5 used) instead of 16 x 8; the probe still halves if 8 does not fit. Tokens per step (262,144), block order, optimizer and schedule are unchanged, so results stay comparable with s1-s6 (s6 at 1 x 128 included); only throughput differs, and s6's throughput is not compared with the other steps."
+    protocol_corrections:   # recorded 2026-10-13 after s1 seed 2 finished and before any later step's final result (owner-approved)
+      - date: 2026-10-13
+        finding: "s1 seed 2 diverged during the learning-rate decay: gradient norms rose from ~0.4 to 7-20 from step ~3,440 and stayed there, training loss rose from 3.67 to 3.95, and the final web BPB (1.2035) was worse than its own 900M-token value (1.1532); seed 1 finished at 1.1089 with a maximum post-warmup gradient norm of 0.61. The pre-registered spike rule (loss > 10% above its running minimum) did not trigger (+7.8%). Taken as seed noise, the noise floor would be s = 0.0946 and the effect threshold 0.189, which no plausible architecture step can pass; the noise-floor rule assumed two stable runs. (Resume after the WSL restart at step 327 reproduced the 100M-token evaluation to within 0.0002 web BPB, so the resume is not implicated.)"
+        correction: "Divergence rule for every M2 run: a run has diverged if its logged gradient norm exceeds 10x the median of its earlier post-warmup logged values for logged points covering more than 1% of its steps (litegpt/training/stability.py, tested). Applied to all finished runs: s1 seed 2 diverged (8.5% of steps, max 51x), proxy LR sweep 4e-3 diverged (3.2%, max 48x; it was not selected), all others stable (max <= 2.6x). A diverged run is reported as a stability result, not used as a noise sample. s1 seed 3 is added (same configuration, seed 3) and the noise floor is s = |web BPB(s1 seed 1) - web BPB(s1 seed 3)|; if seed 3 also diverges, the owner decides before any step is judged. Each step's divergence result is reported next to its BPB (the steps without QK-norm, s1 and s2, are where attention-logit growth would show)."
+    protocol_deviations:   # recorded AFTER the affected runs (a deviation, not a pre-recorded correction); owner-approved 2026-11-01
+      - date: 2026-11-01
+        rule: "validity: 'invalid if ... throttles thermally for > 5% of its time'"
+        affected: "proxy LR sweep 1e-3 / 2e-3 / 4e-3 (95.1% / 95.1% / 95.0% of busy seconds), s1 seed 1 (82.3%), s4 (20.8%, all of it in a 50-minute battery segment where the driver limits the GPU and reports a thermal clock event); every other M2 run 0-2.7%"
+        decision: "The runs stand. Thermal throttling lowers the clock, not the values a run computes (same kernels, data order and optimizer state), so the rule is applied as a reported health check rather than an invalidity condition; throttle shares stay in the report next to each run."
+    conclusion: "DONE (2026-11-01). Proxy LR: 2e-3 (web BPB at 0.25B: 1e-3 1.5672, 2e-3 1.4542, 4e-3 1.9922 and diverged). Noise floor s = |1.1089 - 1.1102| = 0.0013 (s1 seeds 1 and 3; seed 2 diverged, 1.2035), effect threshold 0.005. Web BPB per step, change vs the previous step: s1 1.1096 (mean of seeds 1 and 3); s2 +RoPE 1.0750 (-0.0346, helps); s3 +RMSNorm/QK-norm 1.0640 (-0.0110, helps); s4 +SwiGLU 1.0609 (-0.0031, no measurable effect); s5 +GQA 1.0593 (-0.0016, no measurable effect); s6 +deep-thin 1.0599 (+0.0007, no measurable effect; micro-batch 1 x 128, results comparable); s7 +32k tokenizer 1.0632 (web +0.0033, no measurable effect; synthetic +0.058, code +0.125, math +0.116, chat +0.067 vs s6: hurts; FineWeb-Edu only, so the code/math vocabulary was barely trained); s8a +full mixture vs s7 (web 1.0958 +0.0326 hurts; synthetic 0.7457 -0.262, code 0.7123 -1.183, math 1.1550 -0.439, chat 1.0295 -0.105: help); s8b mixture without code and math (web 1.0674, +0.0042 vs s7: no measurable effect), so s8a's web cost is code and math taking token budget (web share 65% vs 86%), not the textbooks. Stability: every run s2-s8b stable (max gradient-norm ratio <= 2.87x); the V1 architecture (s1) diverged in 1 of 3 seeds. OWNER DECISIONS (2026-11-01): (1) adopt the full mixture (s8a); goal: balanced with a code specialisation, judged on numbers: core BPB (registered val_core weights) s8a 1.0188 / s8b 1.1057 / s7 1.2278, equal-weight five-domain mean 0.948 / 1.108 / 1.339, worst domain vs the best of the three +4.5% synthetic / +91% code / +166% code; (2) keep the LiteGPT 32k tokenizer (frozen in M1; owner decision 2026-11-01 to stay at 32k); (3) the GQA code watch item (s5 code +0.081) is closed: not seen again in s6 or s8a; (4) the thermal-rule deviation above. Evidence for ADR-005."
+  - id: EXP-M2-M3LR
+    milestone: M2
+    hypothesis: "A short sweep on the real 28-layer model identifies the M3 peak learning rate."
+    config: litegpt/training/ (litegpt-v2-28l, stable index, micro-batch 4 x 2048 x 64 accumulation = 524,288 tokens per step)
+    parent: EXP-M2-LADDER
+    status: done
+    runs:
+      - 20261012T212301Z-train-m3lr-smoke-437c36f    # smoke (3 steps)
+      - 20261101T000620Z-train-m3lr-6e-4-b81bbb8     # val_core BPB 1.6917
+      - 20261101T021741Z-train-m3lr-1.2e-3-b81bbb8   # 1.6776
+      - 20261101T042856Z-train-m3lr-2.4e-3-b81bbb8   # 1.6505 (grid end -> extra point 4.8e-3 by the rule)
+      - 20261101T063947Z-train-m3lr-0.0048-b81bbb8   # extra point 4.8e-3: 1.6827
+    thresholds:   # PRE-REGISTERED 2026-10-12
+      grid: "peak LR 6e-4, 1.2e-3, 2.4e-3; 0.2B tokens each; WSD with 2% warmup and the last 25% as decay; same data order (stable index prefix)"
+      rule: "lowest val_core BPB after the decay wins; if the winner is an end point of the grid, one more point (x0.5 or x2) is run before deciding; ties within 0.003 BPB go to the lower LR"
+      adoption: "the proposed M3 LR goes into the spec only with the owner's approval (M3 freeze)"
+    conclusion: "DONE (2026-11-01): 2.4e-3 APPROVED by the owner as the M3 peak learning rate (enters the spec at the M3 freeze). val_core BPB after the decay (200M tokens each, V2 28L): 6e-4 1.6917, 1.2e-3 1.6776, 2.4e-3 1.6505, extra point 4.8e-3 1.6827 (run because 2.4e-3 was the grid's upper end). Winner 2.4e-3, bracketed by 1.2e-3 (+0.0271) and 4.8e-3 (+0.0322), both outside the 0.003 tie band. All four runs stable (max gradient-norm ratio <= 1.99x), 0 skipped steps, 0 loss spikes, thermal throttling 0-2.4%. At 100M tokens (mid-stable) 2.4e-3 trailed 1.2e-3 (1.9865 vs 1.9706): higher LRs gained most in the decay, as expected for WSD."
+  - id: EXP-M2-PYTHIA-STEP5000
+    milestone: M2
+    hypothesis: "Pythia-160M's own intermediate checkpoint at ~10.5B training tokens gives a same-training-budget reference next to the 300B-token final model, as context for the V2 comparison (headline claims compare results; the positioning document defines them)."
+    config: litegpt/eval/run.py + litegpt/eval/native.py (hf:EleutherAI/pythia-160m@step5000)
+    parent: EXP-M1B-BASELINES
+    status: done
+    runs:
+      - 20261101T085750Z-eval-base-pythia-160m-step5000-bbdbb87
+      - 20261101T091555Z-eval-bpb-pythia-160m-step5000-bbdbb87
+    decisions:   # PRE-REGISTERED 2026-11-01 before the checkpoint was scored (owner-approved)
+      model: "EleutherAI/pythia-160m, ref step5000, resolved 2026-11-01 to commit 37f757103d785d3a314240c71e57cbe2408113e5 (re-resolved and recorded at run time); 5,000 steps x 1,024 sequences x 2,048 tokens = 10.49B tokens"
+      suite: "base suite 0.1.1 (all base groups) and bits-per-byte on val_text, exactly as the M1b baselines (batch 16, seed 1234, same machine); efficiency is not re-measured (same architecture as the final pythia-160m record)"
+      caveat: "step 5000 is an intermediate checkpoint of a 143,000-step cosine schedule, so its learning rate is still ~99.9% of peak: it is not annealed, unlike V2 at the end of M3. It is reported as such, next to the final Pythia-160M, never instead of it."
+      schedule: "on the laptop after the M3 LR sweep (pipeline job after 'M2 GPU work complete')"
+    conclusion: "DONE (2026-11-01), commit 37f75710 (step5000, 10.49B tokens), suite 0.1.1, same machine and protocol as the final Pythia-160M record. Zero-shot mean 0.347 (final 300B-token model 0.344): hellaswag 0.283 (0.303), arc_easy 0.426 (0.370), arc_challenge 0.210 (0.224), piqa 0.605 (0.594), openbookqa 0.252 (0.262), commonsense_qa 0.196 (0.195), winogrande 0.513 (0.515), mmlu 0.249 (0.250), truthfulqa mc1 0.264 (0.262) / mc2 0.467 (0.467); TriviaQA 0.006 (0.003), GSM8K / HumanEval / MBPP 0.000 (0.000). Bits per byte on val_text: web 1.083 (final 1.169), synthetic 0.909 (0.952), code 0.737 (0.790), math 1.178 (1.301), chat 0.959 (1.050). Finding: Pythia-160M at 10.5B tokens is level with its own 300B-token final model on the benchmark suite and better on every bits-per-byte domain, so for a model this size the 300B figure buys nothing measurable here; the 'trained on far more data' framing does not explain Pythia-160M's numbers. Not annealed (LR ~99.9% of peak), as pre-registered."
+  - id: EXP-M3-CHECKPOINT-EVAL
+    milestone: M3
+    hypothesis: "Scoring intermediate M3 checkpoints with the M1b base suite shows whether downstream skills improve during pretraining, without influencing the run."
+    config: litegpt/eval/run.py (litegpt:<checkpoint>, native adapter) + litegpt/eval/native.py bpb
+    parent: EXP-M1B-SUITE
+    status: done
+    runs: [20261103T052212Z-eval-bpb-litegpt-tokens-2.5B-a5ee51a, 20261103T045400Z-eval-bpb-litegpt-tokens-5B-a5ee51a, 20261103T042628Z-eval-bpb-litegpt-tokens-9B-a5ee51a, 20261103T035928Z-eval-bpb-litegpt-final-a5ee51a, 20261103T052408Z-eval-base-litegpt-tokens-2.5B-a5ee51a, 20261103T045549Z-eval-base-litegpt-tokens-5B-a5ee51a, 20261103T042827Z-eval-base-litegpt-tokens-9B-a5ee51a, 20261103T040059Z-eval-base-litegpt-final-a5ee51a, 20261103T055709Z-eval-efficiency-litegpt-final-6dd2570]
+    decisions:   # PRE-REGISTERED 2026-11-01 before M3 (owner-approved)
+      checkpoints: "stable-phase checkpoints at 2.5B, 5.0B and 9.0B tokens (9.0B is the G1 gate checkpoint, before any decay); the final model is scored anyway as the M3 result"
+      suite: "base suite 0.1.1 (all base groups) + bits-per-byte on val_text, same protocol as EXP-M1B-BASELINES; efficiency on the final model only"
+      where: "a weights-only copy is downloaded from the cloud machine and scored on the laptop (RTX 4090 Laptop, WSL2), the machine every baseline was scored on, so training is never paused and the checks use no cloud time; if the laptop is unavailable they run on the cloud GPU (~INR 15-25 each, inside the M3 cap) and the record says so"
+      prerequisite: "litegpt.eval.run accepts litegpt:<checkpoint> through litegpt.eval.lm_adapter, validated before M3 by the EXP-M1B-SUITE adapter rule (litegpt-tiny, abs diff <= 1e-4 in fp32)"
+      use: "monitoring and reporting only (learning curves next to the baselines). The results cannot change M3: the G1 gate stays bits-per-byte only (ADR-001 rejects benchmark accuracy as a gate)."
+      flag: "a task whose score falls by more than twice its reported standard error between consecutive checkpoints is flagged in the report for the owner; no automatic action"
+      laptop_off: "Owner 2026-11-01: the laptop will often be off during M3, so these checks may run after the run from the weights kept on the private backup repo. Same checkpoints and protocol; only the time of scoring changes. The results still cannot affect M3."
+    conclusion: "DONE 2026-11-03, scored after the run on the laptop (laptop_off rule), weights loaded from each full checkpoint. Zero-shot mean 2.5B 0.355, 5B 0.369, 9B 0.368, final 0.383 (V1 0.371, Gemma 3 270M 0.393, SmolLM2-135M 0.403). Final BPB web 0.9123, synthetic 0.5112, code 0.5155, math 0.9281. Downstream skills improved from 2.5B to 5B and in the final 1B; flat from 5B to 9B. The last step changes LR, data mix and context together, so causes are not separated. One registered flag: HumanEval 5B 0.0061 to 9B 0.0000, one problem of 164, standard error zero at a score of zero; no action. The results did not influence M3. Chat BPB 0.5862 is not comparable as a measure of general chat: the same dataset family is in the decay mix (exploratory overlap check in the private report, 15.7)."
+  - id: EXP-M3-OPT
+    milestone: M3
+    hypothesis: "Throughput changes that leave the training computation unchanged (same model, data order, global batch of 524,288 tokens, optimizer, LR 2.4e-3 and schedule) raise M3 tokens per paid hour on the rented A100; each is adopted only if it passes the correctness rule and the speed rule below."
+    config: litegpt/training/ + benchmarks/train_mem.py (A100 tuning session) + litegpt/training/bpb.py (evaluation)
+    parent: EXP-M2-M3LR
+    status: pre-registered
+    runs: []
+    context: "Owner 2026-11-01: the A100 costs ~$14.24/day (~$0.593/h, 40% above the $0.424/h planning rate). At the planning estimate (~37 h for 10B) 10B costs ~INR 2,160 and 15B ~INR 3,210, above the INR 2,500 cap; 15B fits the cap only at >= ~97k tok/s sustained including evaluation and checkpoints. Measured on the laptop (M3 LR sweep): each evaluation takes ~387 s, i.e. ~21 training steps (eager model; raw-text BPB scored one document at a time)."
+    decisions:   # PRE-REGISTERED 2026-11-01 before any optimisation measurement (owner request 2026-11-01)
+      candidates:
+        eval_fast: "evaluation with the compiled model at a fixed shape, a larger evaluation batch, and val_text windows batched across documents (right-padded, padding ignored); the same blocks, windows, targets and byte counts as now"
+        micro_batch: "largest-throughput micro-batch at 524,288 tokens per step (accumulation adjusted); measured on the A100 only"
+        attention: "flash-attn 2.8.3 (pinned wheel) vs SDPA, same-session alternating A/B on the A100 (the comparison EXP-M0-FLASH-LINUX could not attribute)"
+        compile_mode: "torch.compile default vs max-autotune-no-cudagraphs, on the A100"
+        loader_prefetch: "the next micro-batch read and pinned on a background thread (same blocks, same order); only if profiling shows the GPU waiting on the loader"
+        checkpoint_async: "checkpoint written by a background thread from a CPU copy; only if a save costs > 1% of wall time at the 15-minute interval"
+      unchanged: "model, tokenizer, data and order, tokens per step (524,288), optimizer, LR 2.4e-3, WSD schedule, evaluation cadence (every 0.25B) and sets, checkpoint interval (15 min). Nothing here changes the G1 gate inputs except making the same evaluation faster."
+    thresholds:
+      correctness_training: "from identical weights and batches, 20 optimizer steps: max |loss difference| <= 0.005 and final gradient-norm relative difference <= 1% vs the current path (bf16 / kernel noise; compile alone measured 0.0004 in EXP-M0-COMPILE); a loader change must give bit-identical token ids"
+      correctness_eval: "on the same checkpoint (M3 LR 2.4e-3 final): val_core loss and BPB and every val_text domain BPB within 0.001 of the current implementation"
+      speed: "adopt if the same-session alternating A/B (>= 2 rounds per arm, >= 3 minutes each after warm-up) gives >= +2% mean tok/s on the machine it targets; eval_fast is adopted if evaluation wall time drops by >= 25%; otherwise the current setting stays"
+      selection_on_a100: "micro-batch x attention x compile mode: the combination with the highest mean tok/s among those passing correctness, peak VRAM <= 90% of the card; ties within 2% go to the simpler setting (SDPA, default compile mode, smaller micro-batch)"
+      cost_cap: "the A100 tuning session takes <= 45 minutes of the rental (~INR 45), counted in the INR 2,500 M3 cap"
+    interim_results:
+      - date: 2026-11-01
+        candidate: eval_fast
+        machine: "laptop (RTX 4090 Laptop, 125 W), M3 LR 2.4e-3 final checkpoint, one eval per arm; the data upload ran at the same time"
+        correctness: "PASS: max absolute difference 0.000006 vs the current path (limit 0.001), batch 8 and batch 16"
+        speed: "current 392.7 s; batch 8 311.7 s (-20.6%); batch 16 313.1 s (-20.3%). FAILS the pre-registered >= 25% on this machine; batch size does not help, so evaluation is bound by GPU compute here, not overhead."
+        consequence: "eval_fast stays off on this evidence. The A100 is the machine it targets (speed rule), so it is measured there once during the tuning session, same rule; it is adopted only if that shows >= 25%. The threshold is unchanged. Recorded before any A100 measurement."
+      - date: 2026-11-01
+        candidate: "loader_prefetch, checkpoint_async"
+        machine: "laptop, real data, micro-batch 4 x 64 (scratch/step_profile.py); the data upload ran at the same time"
+        result: "step 17.97 s with the real loader vs 18.37 s with batches already on the GPU (no gain: -2.2%); loader CPU 0.62 s per step; optimizer step 0.017 s; checkpoint save 5.2 s (0.58% at 15 minutes, below the 1% trigger). Neither candidate is triggered on the laptop. On the A100 steps are ~3x shorter, so the loader's share is re-checked by the first-100-steps comparison on real data."
+      - date: 2026-11-01
+        candidate: "M3 schedule mechanics (not a throughput candidate)"
+        run: 20261101T102924Z-train-m3-phase-test-19ee688
+        result: "real 28-layer compiled model, ~21M tokens, not a quality result: gate record written and extend path taken at step 20, stable_end at step 29, decay at 29, context extension at 31 (2 x 4096 fitted first time, probe peak 10.71 GiB, device peak 15.5 GB on the 16 GB laptop), SIGINT inside the extension saved step 37, resume completed 41/41 with the extension re-entered; 0 skipped steps, 0 spikes, 0% thermal, no traceback."
+      - date: 2026-11-01
+        finding: "RoPE switch cost, measured read-only on the M3 LR 2.4e-3 final checkpoint (200M tokens; scratch/rope_switch_shock.py): the same weights scored at theta 10k and theta 100k on the same 2,048 windows: val 1.6490 -> 1.6848 (+0.0359), web +0.0233, code +0.0378, math +0.0348. The switch costs BPB at the moment it happens, on a model far less trained than the one M3 will switch, so the size at 9B+ is unknown, as is how much the last ~0.4B tokens recover at the decay's low LR. The loop now saves milestone pre_extension (the last 2,048-context weights). What to do about the extension goes to the owner with ADR-009."
+    conclusion: "DONE (2026-11-01) on the rented A100 PCIe 40 GB (250 W power cap, clock ~1,100 MHz at load, matmul ceiling 220.8 TFLOPS), record 20261101T140558Z-bench-tune-throughput-5f34d96, 33.5 of 45 minutes. Short runs: micro-batch 4 / 8 / 16: SDPA 72,865 / 78,369 / 82,147 tok/s, flash 73,585 / 78,740 / 82,468; 32 out of memory on both. Alternating confirmation at micro-batch 16, 2 rounds x 3 minutes: SDPA + max-autotune 81,476 / 80,912, flash + default compile 81,076 / 81,023. SELECTED: micro-batch 16, SDPA, default compile, eval_fast on. Micro-batch 16: +4.8% over 8, peak 35.3 GB of 40 (short runs). flash-attn: not adopted, tie within 0.2% (below +2%). Compile mode: the script's output named max-autotune (it only ranks the two confirmed finalists), but the pre-registered speed rule adopts a change only at >= +2%: 83,110 vs 82,147 = +1.2% in the short runs, plus a 396 s compile, so default stays. Default compile was not itself in the alternating runs: this comparison rests on the short runs. eval_fast ADOPTED on the A100: 138.2 s -> 58.9 s (-57.4%, rule >= 25%), max difference 0.00002. The 4,096 phase at micro-batch 8: 70,205 tok/s, 35.3 GB. First M3 steps on real data: 79-81k tok/s, within 5% of the tuned speed, so loader_prefetch stays off; checkpoint_async not triggered (5.2 s on the laptop)."
+  - id: EXP-M3-THETA
+    milestone: M3
+    hypothesis: "RoPE theta 100k from the first step, with no switch at the context extension, trains as well at the approved peak LR 2.4e-3 as theta 10k did, so that LR stays valid."
+    config: benchmarks/ladder/m3lr-theta100k.yaml (benchmarks/ladder/m3lr.yaml with lr 2.4e-3 and rope_theta 100000)
+    parent: EXP-M2-M3LR
+    status: stopped by the owner
+    runs:
+      - 20261101T122010Z-train-m3lr-theta100k-e2283f9   # interrupted at step 97 of 381
+    decisions:   # PRE-REGISTERED 2026-11-01 before the run
+      owner: "Owner 2026-11-01: the final model uses theta 100k and a 4,096 context. Measured reason to avoid switching at the extension: the same weights lost 0.036 val BPB when theta changed from 10k to 100k (EXP-M3-OPT interim_results). Theta therefore becomes 100k from step 0, and the extension only lengthens the context. Goes into ADR-009 / spec 2.0.0-spec.7 with this result; M2 ladder results stay evidence at theta 10k and are reported as such."
+      comparison: "same model, data order, seed (1), 200M tokens and schedule as 20261101T042856Z-train-m3lr-2.4e-3-b81bbb8 (val_core BPB 1.6505, web 1.6520, code 1.9196, math 2.0802); only theta differs"
+    thresholds:
+      rule: "val_core BPB after the decay <= 1.6505 + 0.005 and not diverged: 2.4e-3 stays the M3 LR. Otherwise the numbers go to the owner; the next candidate is 1.2e-3 at theta 100k. Single seed, so differences inside 0.005 are ties."
+    conclusion: "STOPPED 2026-11-01 by the owner at step 97 of 381 (50.9M of 200M tokens), so the rule was not applied: no validation result exists and nothing here compares theta values. Logged single-batch training loss averaged 0.070 above the theta 10k run at the same steps (noisy, early, not evidence). OWNER DECISION: theta stays 10k from start to finish and the final context is 4,096, so the extension only lengthens the context; there is no theta switch (the switch cost +0.036 val BPB, EXP-M3-OPT interim_results). All M2 evidence, including LR 2.4e-3, was measured at theta 10k. Spec training.pretraining.context_extension.rope_theta changes from 100000 to 10000 in spec 2.0.0-spec.7 (ADR-009)."
+  - id: EXP-M4-SFT
+    milestone: M4
+    hypothesis: "Assistant-only SFT from the M3 final checkpoint on the reserved SmolTalk data gives a chat model that clearly beats V1-Instruct on IFEval, without divergence."
+    config: benchmarks/m4/sft.yaml (Phase 1)
+    parent: EXP-G1-EXTENSION-GATE
+    status: done 2026-11-05
+    runs: [20261103T144735Z-train-m4-sft-0034095, 20261103T142640Z-train-m4-sft-sweep-a-0034095, 20261103T143337Z-train-m4-sft-sweep-b-0034095, 20261103T144033Z-train-m4-sft-sweep-c-0034095, 20261104T010206Z-eval-instruct-litegpt-final-15e8937, 20261105T131002Z-eval-instruct-litegpt-final-c79680a, 20261105T133546Z-eval-xstest-litegpt-final-c79680a]
+    decisions:   # PRE-REGISTERED 2026-11-03 before any SFT run
+      data: "sft_reserved (15% of smol-summarize, smol-rewrite, smol-constraints) + smol-magpie-ultra at smoltalk revision 5feaf2fd; conversations over 2,048 tokens dropped; 13-gram decontamination against the spec's reference sets; 1% held out"
+      training: "from milestone-final.pt of 20261101T142254Z-train-m3-673cd85; assistant-only loss from chat_template; whole-conversation packing with cu_seqlens; batch 131,072 tokens; AdamW; warm-up 5M tokens; final LR 10% of peak"
+      measured_data: "train 385,677 conversations, 497,216,167 tokens; held out 3,846 conversations, 4,916,932 tokens (the plan estimated 665M; 10.4% of magpie is over 2,048 tokens). Rows are about 85% full, so a step of 131,072 token slots holds about 111,000 real tokens"
+      implementation: "litegpt/training/sft.py, benchmarks/m4/sft.yaml: linear warm-up then cosine to 10%; weight decay 0.1, betas 0.9 and 0.95, gradient clip 1.0 as M3; layouts compared in speed_check_result"
+      speed_check_result: "2026-11-03, real packed steps on the rented A100 (m:59466, PCIe, 40 GB, $0.341/h): 46.7k tok/s compiled SDPA with the mask, below the 55k stop, so it stopped and reported before the sweep. Same host: plain M3-style rows 81.8k, so the host is fine and the block-diagonal mask is the cost; repeat of the mask at micro-batch 16 48.1k, at 8 46.5k; eager SDPA at 8 34.2k; flash with cu_seqlens at 8 50.8k, at 4 47.9k, at 16 out of memory. Flash and mask agree on the same batch to 3e-05 and 1.3e-04. OWNER DECISION 2026-11-03: continue below the line with flash at micro-batch 8, no compile. The line was set to protect the budget at up to $0.50/h; at $0.341/h about 20 h costs about $6.75 (estimate), under the $9.00 stop. The rule does not change; this run is a recorded exception. Speed does not change the computation"
+      sweep: "peak LR from {6e-5, 2e-4, 6e-4}, each on the same 3% of the data with the same 5M-token warm-up; lowest held-out assistant-only loss wins; a diverged point is out"
+      length: "3 epochs at most, checkpoint at each epoch; the checkpoint is chosen by held-out assistant-only loss, never by a benchmark. Stop early if held-out loss rises after an epoch"
+      where: "SFT on one A100 PCIe 40 GB; instruct suite and G2 on the laptop in WSL2"
+      speed_check: "first real packed steps on the A100 below 55k tok/s, counting token slots as M3 did: stop and report before the sweep (fixed-length M3 measurement: 78.6k tok/s median)"
+    thresholds:
+      gate_G2: "PASS if IFEval is above V1-Instruct 0.083 by more than 2 standard errors of the difference and training did not diverge. Reported with no pass line: IFEval against SmolLM2-135M-Instruct 0.220 and Gemma 3 270M-it 0.251, the rest of the instruct suite, XSTest, bits per byte"
+      on_failure: "V2's chat arm is dropped from EXP-M4-T2D and its from-base route still runs. Written as stop and report; the owner removed the stop on 2026-11-03 (autonomous_run)"
+      autonomous_run: "OWNER 2026-11-03, before any G2 or test result: Run the session no matter what. You need not wait for my approval. I want M4 to be completed autonomously. Session A, G2 and session B run in one queue on one server (scripts/cloud/m4_queue.py --session m). G2 runs IFEval only, on the server: its outputs are checked as text and never executed; the rest of the instruct suite and XSTest run on the laptop in WSL2 after. The standard error of the difference treats V2 and V1-Instruct (45 of 541) as independent proportions. A gate that cannot be measured has not passed, so the chat arm is dropped. The thresholds do not change"
+      g2_result: "2026-11-04: PASSED, by the registered rule, in the queue. IFEval 0.1312 (71 of 541) against V1-Instruct 0.0832: difference 0.0481, standard error 0.0188, 2.56 standard errors. No divergence. Behind SmolLM2-135M-Instruct 0.220 and Gemma 3 270M-it 0.251, which have no pass line. Run 20261104T010206Z-eval-instruct-litegpt-final-15e8937, on the A100"
+      sft_result: "2026-11-04: 3 epochs, 14,000 steps, peak LR 6e-4 (top of the grid: sweep held-out 1.5240, 1.4641, 1.4131). Held-out assistant-only loss 1.1323, 1.0518, 1.0238; epoch 3 chosen. No skipped steps. Mean 50.1k token slots per second"
+      chat_bpb: "not evidence for V2-Instruct: it measures familiarity with this dataset family (see the note in docs/results.md); shown in tables, labelled as such"
+      safety: "D5: a safety slice only if a cleanly licensed training source exists. Phase 0 found none, so none is planned; stated on the model card"
+    conclusion: "DONE 2026-11-05. G2 PASSED on the A100 by the registered rule: IFEval 0.1312 (71 of 541) against V1-Instruct 0.0832, 2.56 standard errors, no divergence. 3 epochs, 14,000 steps, peak LR 6e-4, held-out assistant-only loss 1.1323, 1.0518, 1.0238, epoch 3 chosen. Rest of the suite on the laptop: IFEval 0.1294 (70 of 541, one question from the A100, so the machine difference is negligible), GSM8K chat 0.0220, HumanEval chat 0.0427, MBPP chat 0.0420, XSTest unsafe refused 0%, safe refused 0%. Beats V1-Instruct on IFEval, HumanEval and MBPP, level on GSM8K. Well behind SmolLM2-135M-Instruct (IFEval 0.220, MBPP 0.098) and Gemma 3 270M-it (0.251, 0.154). It has no safety behaviour, as D5 expected; that must be disclosed. Deviation: the speed check was below the 55k line (owner chose to continue, flash, micro-batch 8)."
+  - id: EXP-M4-T2D
+    milestone: M4
+    hypothesis: "Fine-tuned on the same real text-to-data tasks by the same recipe, V2 is at least level with SmolLM2-135M and Gemma 3 270M on the mean of field F1, slot F1 and intent accuracy."
+    config: benchmarks/m4/t2d.yaml (Phase 1)
+    parent: EXP-M4-SFT
+    status: done 2026-11-05
+    runs: [every runs/*-train-m4-t2d-*-15e8937 and runs/*-train-m4-billsum-*-15e8937, results in runs/m4_t2d/test_results.json]
+    decisions:   # PRE-REGISTERED 2026-11-03 before any fine-tune
+      arms: "from base: V2 M3 final, SmolLM2-135M, Gemma 3 270M, Qwen3-0.6B-Base (reference only). From chat version: V2-Instruct, SmolLM2-135M-Instruct, Gemma 3 270M-it"
+      tasks: "CUAD (document name, parties, agreement date, governing law), MASSIVE en-US slots, Banking77 intents; one model fine-tuned jointly on the three primary tasks. BillSum separately, on each model's chosen route, one seed, last"
+      sources: "cuad a3c393f5 (master_clauses.csv -Answer columns, CUAD_v1.json text); massive refs/convert/parquet ed58ac42; banking77 18469841; billsum 3d851044"
+      splits: "hashes in benchmarks/m4/t2d_manifest.json, committed before any fine-tune. CUAD split by filer so that the same parties are not on both sides"
+      overlap: "Rule set before the scan: remove any test item sharing a 13-word run with V2's training data; above 1%, stop and report. Measured over 20.7B tokens: CUAD 60 of 102, BillSum 741 of 1,044, MASSIVE 1 of 2,974, Banking77 0 of 3,080; standard wording, most of one CUAD or BillSum item matched 23.5%, longest run 90 words. OWNER DECISION 2026-11-03: remove only items with a longest run of at least 30 words or at least 10% matched, for every model. Test items after removal: CUAD 98, MASSIVE 2,973, Banking77 3,080, BillSum 1,001, then 1,000 by context_removal. This relaxes the earlier rule; the cut-offs were chosen after seeing overlap figures and before any model output. Runs are pooled across documents, so they are upper limits. Rival models' overlap cannot be measured"
+      context_removal: "Phase 1, before any model output: a prompt plus 256 new tokens must fit every model. One BillSum test item (test1834, a tariff bill of 4,072 V2 tokens in 5,373 characters) does not fit V2's 4,096 context, so it is removed for every model. BillSum test: 1,000 items, 302 of them zero-match. All other items of all four tasks fit (benchmarks/m4/t2d_manifest.json, the project's private logs)"
+      cuad_input: "whitespace normalised, first 3,000 characters plus a 1,500-character window around the last governing-law keyword after them, or the end of the contract if there is none. Limits are in characters so every model reads the same bytes"
+      prompts: "fixed in litegpt/t2d.py (INSTRUCTIONS, ANSWER_CUE) on 2026-11-03, before any fine-tune. Base arms: the same user text, then a cue, with the model's own BOS if it has one and its end token after the answer. Chat arms: the same user text through the model's own template, including SmolLM2's default system line"
+      output: "CUAD: one JSON object, null for an absent field. MASSIVE: JSON list of {type, value}, empty when there are no slots. Banking77: the label name. Prompts are fixed in the config before the first real fine-tune and not changed after"
+      recipe: "whole model, AdamW, loss on output tokens only, 3 epochs, batches of up to 32 examples and up to 16,000 characters, linear warm-up over 5% of steps then cosine to 10% of peak. Micro-batch may differ between models only to fit memory; the effective batch does not, and each target token weighs the same (tested). Fixed in benchmarks/m4/t2d.yaml before any fine-tune: weight decay 0.01 on 2-D weights only, betas 0.9 and 0.999, gradient clip 1.0, bf16 autocast, fp32 weights in training, bf16 weights in scoring"
+      learning_rate: "per arm from {1e-5, 3e-5, 1e-4}, chosen on dev only with the same warm-up as the real run; the grid run at the chosen rate counts as the first seed; 2 more seeds"
+      route: "each model's better route is chosen on dev only, by the mean over its seeds"
+      decoding: "greedy, at most 256 new tokens, no JSON grammar help in the primary score"
+      where: "all fine-tunes and dev scoring on one A100 PCIe 40 GB. Test scoring moves to the laptop if the A100 is under 1.5x the laptop's generation speed on the same dev scoring job; every model uses the same machine for test scoring. CPU numbers on the laptop"
+      left_out_rule: "OWNER 2026-11-03, no one waits: a fine-tune, learning-rate choice or BillSum run that fails gets a second try and is then left out with a record, and the others go on. A grid point left out is out, as a diverged point is. A model with no finished route is left out of the comparison, and the results say so. The gate, routes, test scoring and backups are not tolerated: their failure stops the queue and the guard handles it"
+      test_machine_result: "2026-11-04: A100 272.2 s, laptop 241.42 s on the same job: ratio 0.89, under 1.5, so every model's test scoring moves to the laptop"
+      test_machine_rule: "the registered 1.5x rule runs by itself: the laptop's job took 241.42 s on starting V2 weights, all 3,087 dev items; the same job runs on the A100 before the fine-tunes. If the A100 is slower than that rule allows, or the job fails, test scoring waits for the laptop and the queue goes on to BillSum"
+      budget: "guard stops at $9.00 or balance minus $1, across M4. Cut order if the projection passes the stop: SFT at 2 epochs, BillSum, the Qwen3 arm; then stop and ask. V2 and rival arms, their seeds and test scoring are never cut. A cut is decided from time and money only, never from scores"
+    thresholds:
+      score: "text-to-data score = plain mean of CUAD field micro-F1, MASSIVE slot micro-F1 and Banking77 accuracy. Normalisation: lowercase, punctuation removed, whitespace collapsed. Invalid JSON: every field in that output counts as missed; text after one complete JSON value is ignored. A correct null earns and costs nothing; an invented value is a false positive. Banking77 is exact after normalisation. JSON validity reported separately. BillSum ROUGE-L reported only"
+      decision: "test scored once, after every route is chosen. Paired bootstrap over test items, seeds averaged, seed spread shown. Against each rival: win if ahead by more than 2 standard errors, loss if behind by more than 2, otherwise tie; also per task"
+      strict_check: "the score and each comparison are also reported on zero-match test items only (CUAD 42, MASSIVE 2,973, Banking77 3,080; BillSum 302), next to the main score. The decision above uses the main score"
+      headline: "win or tie and faster or smaller on CPU: a credible private text-to-data base, stated with its numbers. Tie and slower: as accurate, with the speed cost. Loss to either: publish it, recommend the winner for this job, and rest V2's case on reproducibility only"
+      deviation: "a recipe change after seeing test scores voids the comparison and is recorded as a deviation"
+    conclusion: "DONE 2026-11-05: HYPOTHESIS REJECTED. Test scored once, on the laptop by the registered rule. Score, mean of 3 seeds: V2 0.7999, SmolLM2-135M 0.8172, Gemma 3 270M 0.8220, Qwen3-0.6B reference 0.8507. V2 lost to each by more than 2 SE: -0.0173 (3.4 SE), -0.0221 (4.6 SE), -0.0508 (9.2 SE). No win on any task or on the zero-match items: on zero-match items V2 0.7758 ties SmolLM2 0.7893 (1.6 SE) and loses to Gemma 0.7911 (2.1 SE) and Qwen3 0.8341. Routes chosen on dev: V2 base, SmolLM2 chat, Gemma base, Qwen3 base. CPU at 8 threads, reported: V2 is slower than Gemma on all three tasks and than SmolLM2 on two; peak RAM V2 1.66 GiB, SmolLM2 1.61, Gemma 2.62, Qwen3 4.27. BillSum, reported only, ROUGE-L: V2 0.429, Gemma 0.442, SmolLM2 0.448, Qwen3 0.482. Headline by the registered rule, a loss to either rival: publish it, recommend the winner for this job, rest V2's case on full reproducibility only. Exploratory and not registered: Gemma against SmolLM2 from the saved predictions is a tie (+0.0047, 1.0 SE), so neither rival is the single winner. Limits: rivals may have seen these public datasets in pretraining and that cannot be measured; both V2 routes and both SmolLM2 routes chose the top of the learning-rate grid, and Gemma and Qwen3 the bottom. Nothing was changed after seeing test scores. No run left out. Test scoring was interrupted once before any score existed and resumed from saved outputs."
+  - id: EXP-M5-EXPORT
+    milestone: M5
+    hypothesis: "Exported to the Hugging Face Qwen3 layout, each V2 model gives the same outputs through Transformers as through LiteGPT's own code."
+    config: litegpt/export/to_hf.py
+    parent: EXP-M4-SFT
+    status: measured 2026-11-05; the owner decided to release as measured
+    runs: [20261105T171709Z-export-LiteGPT-V2-Base-ff62167, 20261105T171910Z-export-LiteGPT-Llama-V2-Instruct-ff62167, 20261105T173814Z-export-LiteGPT-V2-Base-00fcc24, 20261105T174024Z-export-LiteGPT-Llama-V2-Instruct-00fcc24]
+    decisions:   # PRE-REGISTERED 2026-11-05 before any export
+      models: "LiteGPT-V2-Base from the M3 milestone-final.pt, LiteGPT-Llama-V2-Instruct from the M4 SFT milestone-final.pt"
+      format: "safetensors at bfloat16, the dtype every benchmark was scored at, with tied embeddings stored once; Qwen3 config, tokenizer, chat template, litegpt.json metadata, model card, notice and licence files"
+      measured_on: "CPU in float32 for logits, using the bfloat16 weights both sides, so differences are not hidden by bf16 rounding; prompts of 1, 16, 512, 2,048 and 3,968 tokens from fixed-seed token ids"
+      correction_before_measuring: "2026-11-05, on a tiny random model, before any real export: LiteGPT's .to(bfloat16) also rounds its RoPE tables, and Transformers keeps them in float32. That gave logit differences near 5e-4 and failed the round trip. The rule is about weights, so the check now rebuilds LiteGPT's tables in float32. Thresholds unchanged"
+      reported_at_bfloat16: "logit difference and greedy agreement with both sides at bfloat16, as people will run it; no pass line"
+    thresholds:
+      parameters: "201,373,952 on both sides"
+      logits: "PASS if the largest absolute logit difference on any prompt is at most 1e-3"
+      greedy: "PASS if 64 new tokens with the KV cache are identical on the 16, 512 and 3,968 token prompts"
+      tokenizer: "PASS if ids are identical on 200 validation-independent strings from docs/ and the chat template gives the ids of chat_template.render_ids"
+      round_trip: "PASS if litegpt.load on the exported folder gives logits identical to the source checkpoint rounded to bfloat16"
+      on_failure: "The release loads through the litegpt package only and says so. No remote code is added without asking the owner"
+    conclusion: "MEASURED 2026-11-05, both models. PASS: parameters 201,373,952 on both sides; largest logit difference 0.0 on all five prompts, in float32; greedy 64 tokens identical on all three prompts; round trip identical; chat template ids identical. FAIL as written: tokenizer ids identical on 195 of 200 strings, so `passed` is false in both records. All 5 contain literal special-token text such as <|im_end|>: Transformers reads that as a control token, which its chat template needs, and LiteGPT's own code reads it as text on purpose (docs/chat_template.md). The on_failure line was written for a model mismatch, which did not happen. Reported at bfloat16, no pass line: Transformers computes RMSNorm in float32 and LiteGPT in bfloat16, so numbers differ from the first norm layer. Largest logit difference 1.27 Base, 0.91 Instruct, on random-token prompts; greedy matched 64 of 64 on all three Base prompts and two Instruct prompts, and 2 of 64 on the third; 64 of 64 on one real-text Instruct prompt. All benchmarks were scored through LiteGPT's engine."
