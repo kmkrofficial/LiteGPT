@@ -1,0 +1,49 @@
+{
+  "batch_size": 16,
+  "results": {
+    "ifeval": {
+      "name": "ifeval",
+      "alias": "ifeval",
+      "sample_len": 541,
+      "prompt_level_strict_acc,none": 0.3290203327171904,
+      "prompt_level_strict_acc_stderr,none": 0.02021944211853842,
+      "inst_level_strict_acc,none": 0.44364508393285373,
+      "inst_level_strict_acc_stderr,none": "N/A",
+      "prompt_level_loose_acc,none": 0.35304990757855825,
+      "prompt_level_loose_acc_stderr,none": 0.020566318668824704,
+      "inst_level_loose_acc,none": 0.4748201438848921,
+      "inst_level_loose_acc_stderr,none": "N/A"
+    }
+  },
+  "n_samples": {
+    "ifeval": {
+      "original": 541,
+      "effective": 541
+    }
+  },
+  "versions": {
+    "ifeval": 4.0
+  },
+  "configs": {
+    "ifeval": {
+      "task": "ifeval",
+      "dataset_path": "google/IFEval",
+      "test_split": "train",
+      "doc_to_text": "prompt",
+      "doc_to_target": "0",
+      "unsafe_code": "False",
+      "process_results": "def process_results(doc, results):\n    inp = InputExample(\n        key=doc[\"key\"],\n        instruction_id_list=doc[\"instruction_id_list\"],\n        prompt=doc[\"prompt\"],\n        kwargs=doc[\"kwargs\"],\n    )\n    response = results[0]\n\n    out_strict = test_instruction_following_strict(inp, response)\n    out_loose = test_instruction_following_loose(inp, response)\n\n    return {\n        \"prompt_level_strict_acc\": out_strict.follow_all_instructions,\n        \"inst_level_strict_acc\": out_strict.follow_instruction_list,\n        \"prompt_level_loose_acc\": out_loose.follow_all_instructions,\n        \"inst_level_loose_acc\": out_loose.follow_instruction_list,\n    }\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": "{'sampler': 'default', 'split': None, 'process_docs': None, 'fewshot_indices': None, 'samples': None, 'doc_to_text': 'prompt', 'doc_to_choice': None, 'doc_to_target': 0, 'gen_prefix': None, 'fewshot_delimiter': '\\n\\n', 'target_delimiter': ' '}",
+      "num_fewshot": "0",
+      "metric_list": "[{'metric': 'prompt_level_strict_acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'inst_level_strict_acc', 'aggregation': 'def agg_inst_level_acc(items):\\n    flat_items = [item for sublist in items for item in sublist]\\n    inst_level_acc = sum(flat_items) / len(flat_items)\\n    return inst_level_acc\\n', 'higher_is_better': True}, {'metric': 'prompt_level_loose_acc', 'aggregation': 'mean', 'higher_is_better': True}, {'metric': 'inst_level_loose_acc', 'aggregation': 'def agg_inst_level_acc(items):\\n    flat_items = [item for sublist in items for item in sublist]\\n    inst_level_acc = sum(flat_items) / len(flat_items)\\n    return inst_level_acc\\n', 'higher_is_better': True}]",
+      "output_type": "generate_until",
+      "generation_kwargs": "{'until': [], 'do_sample': False, 'temperature': 0.0, 'max_gen_toks': 512, 'max_new_tokens': 512}",
+      "repeats": "1",
+      "should_decontaminate": "False",
+      "metadata": "{'version': 4.0, 'pretrained': 'HuggingFaceTB/SmolLM2-360M-Instruct', 'revision': 'a10cc1512eabd3dde888204e902eca88bddb4951', 'dtype': 'bfloat16', 'trust_remote_code': False, 'config_source': '/home/user/LiteGPT/.venv/lib/python3.12/site-packages/lm_eval/tasks/ifeval/ifeval.yaml'}"
+    }
+  }
+}

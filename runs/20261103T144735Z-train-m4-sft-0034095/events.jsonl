@@ -1,0 +1,3 @@
+{"t": 1793717269.7391624, "event": "start", "step": 0, "total_steps": 14000, "steps_per_epoch": [4667, 4667, 4666], "params": 201373952, "row_fill_epoch0": 0.8127910220855458, "conversations": 385677, "heldout_conversations": 3846, "micro_batch": 8, "warmup_steps": 38}
+{"t": 1793717469.5584793, "event": "resumed", "step": 65, "tokens": 8519680, "epoch": 0}
+{"t": 1793717469.718618, "event": "start", "step": 65, "total_steps": 14000, "steps_per_epoch": [4667, 4667, 4666], "params": 201373952, "row_fill_epoch0": 0.8127910220855458, "conversations": 385677, "heldout_conversations": 3846, "micro_batch": 8, "warmup_steps": 38}

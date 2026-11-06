@@ -1,0 +1,17 @@
+{
+ "score": 0.13123844731977818,
+ "items": 541,
+ "v1_instruct": 0.08317929759704251,
+ "difference": 0.04805914972273567,
+ "se_of_difference": 0.018753948164143885,
+ "above_by_2_se": true,
+ "diverged": false,
+ "passed": true,
+ "record": "20261104T010206Z-eval-instruct-litegpt-final-15e8937",
+ "sft_run": "20261103T144735Z-train-m4-sft-0034095",
+ "sft_best": {
+  "epoch": 2,
+  "loss": 1.023784618067403,
+  "step": 14000
+ }
+}

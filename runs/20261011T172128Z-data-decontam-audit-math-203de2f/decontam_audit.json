@@ -1,0 +1,322 @@
+{
+  "source": "math",
+  "file": "finemath-3plus/train-00000-of-00128.parquet",
+  "docs": 167232,
+  "hit_docs": 1802,
+  "hit_bytes_fraction": 0.03964429314296371,
+  "windows_by_benchmark": {
+    "humaneval": 10152,
+    "triviaqa": 805,
+    "mbpp": 1911,
+    "mmlu": 223,
+    "piqa": 34,
+    "arc_easy": 20,
+    "multipl_e_humaneval_js": 6,
+    "arc_challenge": 15,
+    "truthfulqa": 11,
+    "ifeval": 20
+  },
+  "median_hits_per_doc": 4.0,
+  "top_ngrams": [
+    {
+      "ngram": "0 0 0 0 0 0 0 0 0 0 0 0 0",
+      "docs_windows": 3240,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "1 2 3 4 5 6 7 8 9 10 11 12 13",
+      "docs_windows": 1517,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "2 3 4 5 6 7 8 9 10 11 12 13 14",
+      "docs_windows": 1456,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "3 4 5 6 7 8 9 10 11 12 13 14 15",
+      "docs_windows": 1390,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "4 5 6 7 8 9 10 11 12 13 14 15 16",
+      "docs_windows": 1205,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "000 000 000 000 000 000 000 000 000 000 000 000 000",
+      "docs_windows": 777,
+      "benchmark": "triviaqa"
+    },
+    {
+      "ngram": "a b c d e f g h i j k l m",
+      "docs_windows": 252,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "0 0 0 0 0 0 0 0 0 0 0 0 1",
+      "docs_windows": 235,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "b c d e f g h i j k l m n",
+      "docs_windows": 233,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "0 1 2 3 4 5 6 7 8 9 10 11 12",
+      "docs_windows": 207,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "3 5 7 11 13 17 19 23 29 31 37 41 43",
+      "docs_windows": 101,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "2 3 5 7 11 13 17 19 23 29 31 37 41",
+      "docs_windows": 99,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "4 4 4 4 4 4 4 4 4 4 4 4 4",
+      "docs_windows": 94,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "5 7 11 13 17 19 23 29 31 37 41 43 47",
+      "docs_windows": 93,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "7 11 13 17 19 23 29 31 37 41 43 47 53",
+      "docs_windows": 70,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "11 13 17 19 23 29 31 37 41 43 47 53 59",
+      "docs_windows": 70,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "13 17 19 23 29 31 37 41 43 47 53 59 61",
+      "docs_windows": 62,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "17 19 23 29 31 37 41 43 47 53 59 61 67",
+      "docs_windows": 62,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "2 1 3 1 4 1 5 1 6 1 7 1 8",
+      "docs_windows": 61,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "1 2 1 3 1 4 1 5 1 6 1 7 1",
+      "docs_windows": 60,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "1 1 2 1 3 1 4 1 5 1 6 1 7",
+      "docs_windows": 56,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "19 23 29 31 37 41 43 47 53 59 61 67 71",
+      "docs_windows": 55,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "3 1 4 1 5 1 6 1 7 1 8 1 9",
+      "docs_windows": 55,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "29 31 37 41 43 47 53 59 61 67 71 73 79",
+      "docs_windows": 54,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "1 3 1 4 1 5 1 6 1 7 1 8 1",
+      "docs_windows": 54,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "23 29 31 37 41 43 47 53 59 61 67 71 73",
+      "docs_windows": 53,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "1 2 3 4 5 6 7 8 9 a b c d",
+      "docs_windows": 53,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "31 37 41 43 47 53 59 61 67 71 73 79 83",
+      "docs_windows": 51,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "2 3 4 5 6 7 8 9 a b c d e",
+      "docs_windows": 51,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "37 41 43 47 53 59 61 67 71 73 79 83 89",
+      "docs_windows": 50,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "3 4 5 6 7 8 9 a b c d e f",
+      "docs_windows": 45,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "41 43 47 53 59 61 67 71 73 79 83 89 97",
+      "docs_windows": 44,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "0 1 2 3 4 5 6 7 8 9 a b c",
+      "docs_windows": 43,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "1 4 1 5 1 6 1 7 1 8 1 9 1",
+      "docs_windows": 28,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "2 4 6 8 10 12 14 16 18 20 22 24 26",
+      "docs_windows": 25,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "4 6 8 10 12 14 16 18 20 22 24 26 28",
+      "docs_windows": 24,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "4 1 5 1 6 1 7 1 8 1 9 1 10",
+      "docs_windows": 24,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "1 2 3 4 5 6 1 2 3 4 5 6 1",
+      "docs_windows": 23,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "0 0 0 0 0 0 0 0 0 0 0 1 2",
+      "docs_windows": 21,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "2 3 4 5 6 1 2 3 4 5 6 1 2",
+      "docs_windows": 19,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "3 4 5 6 1 2 3 4 5 6 1 2 3",
+      "docs_windows": 16,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "4 5 6 1 2 3 4 5 6 1 2 3 4",
+      "docs_windows": 16,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "5 6 1 2 3 4 5 6 1 2 3 4 5",
+      "docs_windows": 15,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "1 5 1 6 1 7 1 8 1 9 1 10 1",
+      "docs_windows": 14,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "0 0 1 2 3 4 5 6 7 8 9 10 11",
+      "docs_windows": 14,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "5 10 15 20 25 30 35 40 45 50 55 60 65",
+      "docs_windows": 14,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "10 15 20 25 30 35 40 45 50 55 60 65 70",
+      "docs_windows": 14,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "6 1 2 3 4 5 6 1 2 3 4 5 6",
+      "docs_windows": 14,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "0 2 4 6 8 10 12 14 16 18 20 22 24",
+      "docs_windows": 13,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "1 0 0 0 0 1 1 1 1 0 1 1 1",
+      "docs_windows": 13,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "1 2 3 4 5 6 7 8 9 10 11 12 1",
+      "docs_windows": 12,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "begin bmatrix 1 0 0 0 1 0 0 0 1 end bmatrix",
+      "docs_windows": 12,
+      "benchmark": "mmlu"
+    },
+    {
+      "ngram": "0 5 10 15 20 25 30 35 40 45 50 55 60",
+      "docs_windows": 12,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "5 1 6 1 7 1 8 1 9 1 10 1 11",
+      "docs_windows": 11,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "0 0 0 1 2 3 4 5 6 7 8 9 10",
+      "docs_windows": 11,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "1 6 1 7 1 8 1 9 1 10 1 11 1",
+      "docs_windows": 10,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "6 1 7 1 8 1 9 1 10 1 11 1 12",
+      "docs_windows": 10,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "14 21 28 35 42 49 56 63 70 77 84 91 98",
+      "docs_windows": 10,
+      "benchmark": "mbpp"
+    },
+    {
+      "ngram": "1 one 2 two 3 three 4 four 5 five 6 six 7",
+      "docs_windows": 10,
+      "benchmark": "humaneval"
+    },
+    {
+      "ngram": "one 2 two 3 three 4 four 5 five 6 six 7 seven",
+      "docs_windows": 10,
+      "benchmark": "humaneval"
+    }
+  ]
+}

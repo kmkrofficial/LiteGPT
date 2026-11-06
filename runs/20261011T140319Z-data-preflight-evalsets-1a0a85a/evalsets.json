@@ -1,0 +1,172 @@
+{
+  "rows": {
+    "hellaswag": {
+      "repo": "Rowan/hellaswag",
+      "config": null,
+      "split": "validation",
+      "revision": "218ec52e09a7e7462a5400043bb9a69a41d06b76",
+      "rows": 10042,
+      "ngrams_13": 858577,
+      "ok": true
+    },
+    "arc_easy": {
+      "repo": "allenai/ai2_arc",
+      "config": "ARC-Easy",
+      "split": "test",
+      "revision": "210d026faf9955653af8916fad021475a3f00453",
+      "rows": 2376,
+      "ngrams_13": 20422,
+      "ok": true
+    },
+    "arc_challenge": {
+      "repo": "allenai/ai2_arc",
+      "config": "ARC-Challenge",
+      "split": "test",
+      "revision": "210d026faf9955653af8916fad021475a3f00453",
+      "rows": 1172,
+      "ngrams_13": 13848,
+      "ok": true
+    },
+    "piqa": {
+      "repo": "baber/piqa",
+      "config": null,
+      "split": "validation",
+      "revision": "142f6d7367fd9877f0fb3b5734ea6a545f54cdd1",
+      "rows": 1838,
+      "ngrams_13": 24811,
+      "ok": true
+    },
+    "openbookqa": {
+      "repo": "allenai/openbookqa",
+      "config": "main",
+      "split": "test",
+      "revision": "388097ea7776314e93a529163e0fea805b8a6454",
+      "rows": 500,
+      "ngrams_13": 1025,
+      "ok": true
+    },
+    "commonsenseqa": {
+      "repo": "tau/commonsense_qa",
+      "config": null,
+      "split": "validation",
+      "revision": "94630fe30dad47192a8546eb75f094926d47e155",
+      "rows": 1221,
+      "ngrams_13": 3228,
+      "ok": true
+    },
+    "mmlu": {
+      "repo": "cais/mmlu",
+      "config": "all",
+      "split": "test",
+      "revision": "c30699e8356da336a370243923dbaf21066bb9fe",
+      "rows": 14042,
+      "ngrams_13": 471072,
+      "ok": true
+    },
+    "gsm8k": {
+      "repo": "openai/gsm8k",
+      "config": "main",
+      "split": "test",
+      "revision": "740312add88f781978c0658806c59bc2815b9866",
+      "rows": 1319,
+      "ngrams_13": 111629,
+      "ok": true
+    },
+    "winogrande": {
+      "repo": "allenai/winogrande",
+      "config": "winogrande_xl",
+      "split": "validation",
+      "revision": "01e74176c63542e6b0bcb004dcdea22d94fb67b5",
+      "rows": 1267,
+      "ngrams_13": 8110,
+      "ok": true
+    },
+    "humaneval": {
+      "repo": "openai/openai_humaneval",
+      "config": null,
+      "split": "test",
+      "revision": "7dce6050a7d6d172f3cc5c32aa97f52fa1a2e544",
+      "rows": 164,
+      "ngrams_13": 20886,
+      "ok": true
+    },
+    "mbpp": {
+      "repo": "google-research-datasets/mbpp",
+      "config": "full",
+      "split": "test",
+      "revision": "4bb6404fdc6cacfda99d4ac4205087b89d32030c",
+      "rows": 500,
+      "ngrams_13": 11966,
+      "ok": true
+    },
+    "ifeval": {
+      "repo": "google/IFEval",
+      "config": null,
+      "split": "train",
+      "revision": "966cd89545d6b6acfd7638bc708b98261ca58e84",
+      "rows": 541,
+      "ngrams_13": 13299,
+      "ok": true
+    },
+    "truthfulqa": {
+      "repo": "truthfulqa/truthful_qa",
+      "config": "generation",
+      "split": "validation",
+      "revision": "741b8276f2d1982aa3d5b832d3ee81ed3b896490",
+      "rows": 817,
+      "ngrams_13": 4250,
+      "ok": true
+    },
+    "triviaqa": {
+      "repo": "mandarjoshi/trivia_qa",
+      "config": "rc.nocontext",
+      "split": "validation",
+      "revision": "0f7faf33a3908546c6fd5b73a660e0f8ff173c2f",
+      "rows": 17944,
+      "ngrams_13": 33253,
+      "ok": true
+    },
+    "xstest": {
+      "repo": "Paul/XSTest",
+      "config": null,
+      "split": "train",
+      "revision": "f600c994b256f12867dfa5b3eb3d545a3e62f8b5",
+      "rows": 450,
+      "ngrams_13": 83,
+      "ok": true
+    },
+    "multipl_e_humaneval_js": {
+      "repo": "nuprl/MultiPL-E",
+      "config": "humaneval-js",
+      "split": "test",
+      "revision": "28441b6024e71d4a1c1c0f6bf171c935cd5a43f2",
+      "rows": 161,
+      "ngrams_13": 17448,
+      "ok": true
+    },
+    "multipl_e_humaneval_ts": {
+      "repo": "nuprl/MultiPL-E",
+      "config": "humaneval-ts",
+      "split": "test",
+      "revision": "28441b6024e71d4a1c1c0f6bf171c935cd5a43f2",
+      "rows": 159,
+      "ngrams_13": 18032,
+      "ok": true
+    },
+    "text_to_sql_spider": {
+      "repo": "xlangai/spider",
+      "config": null,
+      "split": "validation",
+      "revision": "0c350918f3f29ec754f1181c65cdce76cd6c133c",
+      "rows": 1034,
+      "ngrams_13": 4401,
+      "ok": true
+    }
+  },
+  "verdict": {
+    "all_resolved": true,
+    "n_benchmarks": 18,
+    "unique_ngrams_13_total": 1612644,
+    "failed": []
+  }
+}

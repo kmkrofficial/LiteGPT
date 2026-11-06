@@ -1,0 +1,336 @@
+{
+  "seed": 20261011,
+  "block_len": 2048,
+  "indexes": {
+    "stable": {
+      "blocks": 6835937,
+      "tokens": 13999998976,
+      "sha256": "b135813d81f85967d88d9c0dc012876f91ed72d7a98d3f43b6d16ebab8b42d22",
+      "sources": [
+        "code_javascript",
+        "code_python",
+        "code_shell",
+        "code_sql",
+        "code_typescript",
+        "cosmopedia_v2",
+        "fineweb_edu",
+        "math"
+      ]
+    },
+    "decay": {
+      "blocks": 488281,
+      "tokens": 999999488,
+      "sha256": "e94f49d29ce164fb84329357a0ebc120cd13009c018740eb54949dec24fb896b",
+      "sources": [
+        "code_javascript",
+        "code_python",
+        "code_shell",
+        "code_sql",
+        "code_typescript",
+        "cosmopedia_v2",
+        "fineweb_edu",
+        "instruction_style",
+        "math"
+      ]
+    },
+    "val_core": {
+      "blocks": 10240,
+      "tokens": 20971520,
+      "sha256": "d639ad3470aeb22aeef89c4ee8e652edd11569d88ba77af889ab353a24109220",
+      "sources": [
+        "code_javascript",
+        "code_python",
+        "code_shell",
+        "code_sql",
+        "code_typescript",
+        "cosmopedia_v2",
+        "fineweb_edu",
+        "math"
+      ]
+    },
+    "val_web": {
+      "blocks": 1024,
+      "tokens": 2097152,
+      "sha256": "8889550b80e644c340ff0d91860879f0a44747d90a6eedd5e513b45ca472484c",
+      "sources": [
+        "fineweb_edu"
+      ]
+    },
+    "val_synthetic": {
+      "blocks": 1024,
+      "tokens": 2097152,
+      "sha256": "98424fdf6869123e077f0eef80d79fd9390c8b0fbd3e95a53f799858cf066c69",
+      "sources": [
+        "cosmopedia_v2"
+      ]
+    },
+    "val_math": {
+      "blocks": 1024,
+      "tokens": 2097152,
+      "sha256": "39dd802fcb0055cbf172714cfb21f5bafa9892ddbde41cfc14098273ba3c3108",
+      "sources": [
+        "math"
+      ]
+    },
+    "val_chat": {
+      "blocks": 1024,
+      "tokens": 2097152,
+      "sha256": "b62e93049c13c751fb96a2f7b9008f60c0923bf9bb08cb70f8966a3fedeb71b6",
+      "sources": [
+        "instruction_style"
+      ]
+    },
+    "val_code": {
+      "blocks": 1024,
+      "tokens": 2097152,
+      "sha256": "3a0ad1fae2b3ce5b1a2ad800c771eb86aaacf98392b5b5c8ef0c5b154f3a18d7",
+      "sources": [
+        "code_javascript",
+        "code_python",
+        "code_shell",
+        "code_sql",
+        "code_typescript"
+      ]
+    },
+    "proxy_1b": {
+      "blocks": 488281,
+      "tokens": 999999488,
+      "sha256": "b3a872007bd2499fe25b8f810747aa9f873c148d164ad24eb7db08d145362db0",
+      "sources": [
+        "code_javascript",
+        "code_python",
+        "code_shell",
+        "code_sql",
+        "code_typescript",
+        "cosmopedia_v2",
+        "fineweb_edu",
+        "math"
+      ]
+    },
+    "proxy_1b_nocodemath": {
+      "blocks": 488281,
+      "tokens": 999999488,
+      "sha256": "324831eadf99d6b7e1201f5860bcbe7c877b1315db28783d9fabc9ceb8e222c4",
+      "sources": [
+        "cosmopedia_v2",
+        "fineweb_edu"
+      ]
+    },
+    "proxy_gpt2_train": {
+      "blocks": 488281,
+      "tokens": 999999488,
+      "sha256": "76b05bfa4eccec416b36d499f387ca31057756d5ae35a593175654e80535a132",
+      "sources": [
+        "proxy_gpt2"
+      ]
+    },
+    "proxy_gpt2_val": {
+      "blocks": 1641,
+      "tokens": 3360768,
+      "sha256": "3617b6b8da5b450f90074aacdc157f40255414288828f3ff807f18f8b1eb48df",
+      "sources": [
+        "proxy_gpt2"
+      ]
+    }
+  },
+  "available_blocks": {
+    "stable": {
+      "code_javascript": 159489,
+      "code_python": 652075,
+      "code_shell": 53421,
+      "code_sql": 35959,
+      "code_typescript": 167802,
+      "cosmopedia_v2": 951292,
+      "fineweb_edu": 6349566,
+      "math": 1020272,
+      "proxy_gpt2": 770456
+    },
+    "decay": {
+      "code_javascript": 99050,
+      "code_python": 78211,
+      "code_shell": 5219,
+      "code_sql": 5355,
+      "code_typescript": 18101,
+      "cosmopedia_v2": 106277,
+      "fineweb_edu": 244435,
+      "instruction_style": 29589,
+      "math": 138857
+    },
+    "val": {
+      "code_javascript": 8634,
+      "code_python": 2498,
+      "code_shell": 442,
+      "code_sql": 155,
+      "code_typescript": 1050,
+      "cosmopedia_v2": 3168,
+      "fineweb_edu": 13396,
+      "instruction_style": 1824,
+      "math": 3269,
+      "proxy_gpt2": 1641
+    }
+  },
+  "shortfalls": [],
+  "data_order_sha256": "0e01795c45d2291d7270fa294a0c6bdd4b15539ee9aca2d74342437f65c7421c",
+  "val_core": {
+    "sha256": "e1244de24bed0b6a91663ae6833db0f15276ff1fbd3b9888a5b244442b55f83c",
+    "tokens": 20971520,
+    "blocks": 10240
+  },
+  "duplicates": {
+    "code_javascript": {
+      "train_docs": 467830,
+      "within_source_duplicate_docs": 3,
+      "within_rate": 6.412585768334651e-06,
+      "cross_source_duplicate_docs": 0,
+      "cross_rate": 0.0,
+      "val_docs": 11984,
+      "val_docs_also_in_training": 0,
+      "val_rows_aligned": true,
+      "val_leak_keys": []
+    },
+    "code_python": {
+      "train_docs": 918126,
+      "within_source_duplicate_docs": 15,
+      "within_rate": 1.6337626861672582e-05,
+      "cross_source_duplicate_docs": 0,
+      "cross_rate": 0.0,
+      "val_docs": 3834,
+      "val_docs_also_in_training": 0,
+      "val_rows_aligned": true,
+      "val_leak_keys": []
+    },
+    "code_shell": {
+      "train_docs": 192657,
+      "within_source_duplicate_docs": 5,
+      "within_rate": 2.5952859226500982e-05,
+      "cross_source_duplicate_docs": 0,
+      "cross_rate": 0.0,
+      "val_docs": 1504,
+      "val_docs_also_in_training": 0,
+      "val_rows_aligned": true,
+      "val_leak_keys": []
+    },
+    "code_sql": {
+      "train_docs": 79022,
+      "within_source_duplicate_docs": 0,
+      "within_rate": 0.0,
+      "cross_source_duplicate_docs": 0,
+      "cross_rate": 0.0,
+      "val_docs": 343,
+      "val_docs_also_in_training": 0,
+      "val_rows_aligned": true,
+      "val_leak_keys": []
+    },
+    "code_typescript": {
+      "train_docs": 300393,
+      "within_source_duplicate_docs": 1,
+      "within_rate": 3.328972379516167e-06,
+      "cross_source_duplicate_docs": 0,
+      "cross_rate": 0.0,
+      "val_docs": 1358,
+      "val_docs_also_in_training": 0,
+      "val_rows_aligned": true,
+      "val_leak_keys": []
+    },
+    "cosmopedia_v2": {
+      "train_docs": 3000605,
+      "within_source_duplicate_docs": 32171,
+      "within_rate": 0.010721504496593186,
+      "cross_source_duplicate_docs": 0,
+      "cross_rate": 0.0,
+      "val_docs": 9039,
+      "val_docs_also_in_training": 0,
+      "val_rows_aligned": true,
+      "val_leak_keys": []
+    },
+    "fineweb_edu": {
+      "train_docs": 12967573,
+      "within_source_duplicate_docs": 0,
+      "within_rate": 0.0,
+      "cross_source_duplicate_docs": 12,
+      "cross_rate": 9.25385189657309e-07,
+      "val_docs": 25851,
+      "val_docs_also_in_training": 0,
+      "val_rows_aligned": true,
+      "val_leak_keys": []
+    },
+    "instruction_style": {
+      "train_docs": 142647,
+      "within_source_duplicate_docs": 98,
+      "within_rate": 0.0006870105925816877,
+      "cross_source_duplicate_docs": 0,
+      "cross_rate": 0.0,
+      "val_docs": 8821,
+      "val_docs_also_in_training": 5,
+      "val_rows_aligned": true,
+      "val_leak_keys": [
+        "32af6629f9ecb11611b72395",
+        "5e34345682d7bf7ab453298a",
+        "b6150bcbc5a1ee61a1653632",
+        "cb079689fc8bde80b6653a10"
+      ]
+    },
+    "math": {
+      "train_docs": 1332646,
+      "within_source_duplicate_docs": 0,
+      "within_rate": 0.0,
+      "cross_source_duplicate_docs": 12,
+      "cross_rate": 9.004641892895787e-06,
+      "val_docs": 3958,
+      "val_docs_also_in_training": 0,
+      "val_rows_aligned": true,
+      "val_leak_keys": []
+    }
+  },
+  "val_key_check": {
+    "fineweb_edu": {
+      "val_docs": 25851,
+      "violations": 0
+    },
+    "cosmopedia_v2": {
+      "val_docs": 9039,
+      "violations": 0
+    },
+    "math": {
+      "val_docs": 3958,
+      "violations": 0
+    },
+    "code": {
+      "val_docs": 19023,
+      "violations": 0
+    }
+  },
+  "prefix_proportions_stable": {
+    "max_abs_deviation": 0.0011475409836065572,
+    "step_blocks": 488
+  },
+  "resume_check_stable": true,
+  "val_text": {
+    "web": {
+      "docs": 423,
+      "bytes": 2015797,
+      "sha256": "bebad4065f4b953954844d9230916639a5f288a13982a13eb1d7349c439cff52"
+    },
+    "synthetic": {
+      "docs": 540,
+      "bytes": 2004110,
+      "sha256": "ca20fb1b388d8bb310b689e0093862e929f35229e4db78e6b0f00f54e0e40026"
+    },
+    "math": {
+      "docs": 422,
+      "bytes": 2003305,
+      "sha256": "d9a4faa7cb138fbd978cee9a3d3db42b764400084828b4fe4db11902b7e46cfa"
+    },
+    "chat": {
+      "docs": 1049,
+      "bytes": 2000241,
+      "sha256": "4e72316d5a47b57f4d03d080c5aaa053f51a17471eaa258dab3f9d727f373c76"
+    },
+    "code": {
+      "docs": 448,
+      "bytes": 2042477,
+      "sha256": "f00ac7dde2299f02b286815796a9a358395162b36fe072ad498bd45ee61002a1"
+    }
+  },
+  "val_text_excluded_leaks": 4
+}

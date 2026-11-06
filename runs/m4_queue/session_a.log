@@ -1,0 +1,143 @@
+
+=== sft-sweep-a: /data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-a --lr 6e-05 --keep-fraction 0.03 --epochs 1
+{
+ "status": "completed",
+ "step": 139,
+ "total_steps": 139,
+ "tokens": 18219008,
+ "real_tokens": 14811414,
+ "lr": 6e-05,
+ "best": {
+  "epoch": 0,
+  "loss": 1.5240071723493094,
+  "step": 139
+ },
+ "history": [
+  {
+   "epoch": 0,
+   "step": 139,
+   "tokens": 18219008,
+   "loss": 1.5240071723493094,
+   "target_tokens": 4218558,
+   "conversations": 3846,
+   "seconds": 39.395506143569946
+  }
+ ],
+ "stopped_early": false,
+ "skipped_steps": 0,
+ "mean_tok_per_s": 50178.37137281789,
+ "row_fill_epoch0": 0.8129648990768323,
+ "micro_batch_used": 8,
+ "config_hash": "d334dba2d5754e5ec32f5a77164725cbc85c212353e543bb0712070eb92e9e5a",
+ "run": "20261103T142640Z-train-m4-sft-sweep-a-0034095"
+}
+
+=== sft-sweep-b: /data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-b --lr 0.0002 --keep-fraction 0.03 --epochs 1
+{
+ "status": "completed",
+ "step": 139,
+ "total_steps": 139,
+ "tokens": 18219008,
+ "real_tokens": 14811414,
+ "lr": 0.0002,
+ "best": {
+  "epoch": 0,
+  "loss": 1.4641664576725812,
+  "step": 139
+ },
+ "history": [
+  {
+   "epoch": 0,
+   "step": 139,
+   "tokens": 18219008,
+   "loss": 1.4641664576725812,
+   "target_tokens": 4218558,
+   "conversations": 3846,
+   "seconds": 39.39328217506409
+  }
+ ],
+ "stopped_early": false,
+ "skipped_steps": 0,
+ "mean_tok_per_s": 50152.98990411059,
+ "row_fill_epoch0": 0.8129648990768323,
+ "micro_batch_used": 8,
+ "config_hash": "d334dba2d5754e5ec32f5a77164725cbc85c212353e543bb0712070eb92e9e5a",
+ "run": "20261103T143337Z-train-m4-sft-sweep-b-0034095"
+}
+
+=== sft-sweep-c: /data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft-sweep-c --lr 0.0006 --keep-fraction 0.03 --epochs 1
+{
+ "status": "completed",
+ "step": 139,
+ "total_steps": 139,
+ "tokens": 18219008,
+ "real_tokens": 14811414,
+ "lr": 0.0006,
+ "best": {
+  "epoch": 0,
+  "loss": 1.4130596426499593,
+  "step": 139
+ },
+ "history": [
+  {
+   "epoch": 0,
+   "step": 139,
+   "tokens": 18219008,
+   "loss": 1.4130596426499593,
+   "target_tokens": 4218558,
+   "conversations": 3846,
+   "seconds": 39.438010931015015
+  }
+ ],
+ "stopped_early": false,
+ "skipped_steps": 0,
+ "mean_tok_per_s": 49708.70817500139,
+ "row_fill_epoch0": 0.8129648990768323,
+ "micro_batch_used": 8,
+ "config_hash": "d334dba2d5754e5ec32f5a77164725cbc85c212353e543bb0712070eb92e9e5a",
+ "run": "20261103T144033Z-train-m4-sft-sweep-c-0034095"
+}
+
+=== sft-choose-lr: /data/LiteGPT/.venv/bin/python scripts/train_sft.py --choose-lr m4-sft-sweep-a m4-sft-sweep-b m4-sft-sweep-c --out runs/m4_queue/sft_lr.json
+{
+ "rows": [
+  {
+   "name": "m4-sft-sweep-a",
+   "lr": 6e-05,
+   "loss": 1.5240071723493094,
+   "status": "completed"
+  },
+  {
+   "name": "m4-sft-sweep-b",
+   "lr": 0.0002,
+   "loss": 1.4641664576725812,
+   "status": "completed"
+  },
+  {
+   "name": "m4-sft-sweep-c",
+   "lr": 0.0006,
+   "loss": 1.4130596426499593,
+   "status": "completed"
+  }
+ ],
+ "chosen_lr": 0.0006
+}
+
+=== sft: /data/LiteGPT/.venv/bin/python scripts/train_sft.py --config benchmarks/m4/sft.yaml --name m4-sft --lr-from runs/m4_queue/sft_lr.json
+{
+ "status": "interrupted",
+ "step": 65,
+ "total_steps": 14000,
+ "tokens": 8519680,
+ "real_tokens": 6923904,
+ "lr": 0.0006,
+ "best": null,
+ "history": [],
+ "stopped_early": false,
+ "skipped_steps": 0,
+ "mean_tok_per_s": 50161.46008647287,
+ "row_fill_epoch0": 0.8127910220855458,
+ "micro_batch_used": 8,
+ "config_hash": "d334dba2d5754e5ec32f5a77164725cbc85c212353e543bb0712070eb92e9e5a",
+ "run": "20261103T144735Z-train-m4-sft-0034095"
+}

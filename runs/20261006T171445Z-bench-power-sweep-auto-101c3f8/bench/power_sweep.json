@@ -1,0 +1,571 @@
+{
+  "stage": "auto",
+  "workload": {
+    "config": "litegpt-v2-28l",
+    "micro_batch": 4,
+    "seq_len": 2048,
+    "backend": "sdpa",
+    "compile": true,
+    "dtype": "bfloat16"
+  },
+  "thresholds": {
+    "temp_target_c": 85.0,
+    "thermal_margin_c": 3.0,
+    "abort_temp_c": 90.0,
+    "max_cv": 0.03,
+    "min_last_over_first": 0.97,
+    "invalid_cv": 0.08,
+    "loss_spike_rel": 0.1,
+    "lock_tolerance_mhz": 30.0,
+    "tie_rel": 0.01
+  },
+  "protocol": {
+    "preheat_minutes": 4.0,
+    "segment_minutes": 4.0,
+    "settle_seconds": 60.0,
+    "cap_steps_mhz": [
+      100,
+      200,
+      300
+    ],
+    "soak_minutes": 60.0,
+    "window_seconds": 30.0,
+    "caps_enabled": true
+  },
+  "notes": "owner-stated max cooling + AC",
+  "points": [
+    {
+      "spec": "observe",
+      "label": "observe (current setting)",
+      "control": "observe",
+      "value": null,
+      "role": "point",
+      "status": "ok",
+      "applied": {},
+      "notes": [],
+      "segment": {
+        "t0": 1791307165.698098,
+        "t1": 1791307405.7297473,
+        "settle_s": 60.0
+      },
+      "metrics": {
+        "windows_total": 5,
+        "windows_measured": 5,
+        "settle_windows": 0,
+        "measured_seconds": 151.4,
+        "tok_per_s": 31199.9,
+        "tok_per_s_min": 31158.6,
+        "tok_per_s_max": 31257.8,
+        "cv": 0.0011,
+        "last_over_first": 0.9968,
+        "power_w_mean": 154.61,
+        "power_w_peak": 157.12,
+        "temp_c_mean": 81.1,
+        "temp_c_max": 83,
+        "sm_clock_mhz_mean": 2012.7,
+        "sm_clock_mhz_min": 1860,
+        "sm_clock_mhz_max": 2160,
+        "util_pct_mean": 99.2,
+        "vram_used_mib_max": 13005.1,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 1.0,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 151.196,
+        "power_limit_w_max": 155.0,
+        "telemetry_samples": 151,
+        "tok_per_s_per_w": 201.8,
+        "losses_finite": true,
+        "loss_max_rel_rise": 0.0,
+        "segment_seconds": 240.0
+      },
+      "valid": true,
+      "invalid_reasons": [],
+      "eligible": false,
+      "ineligible_reasons": [
+        "max temperature 83 C > 82.0 C (target - margin)"
+      ]
+    },
+    {
+      "spec": "lgc:1905",
+      "label": "clock cap 1905 MHz",
+      "control": "lgc",
+      "value": 1905.0,
+      "role": "point",
+      "status": "ok",
+      "applied": {
+        "lock_gpu_clocks_mhz": [
+          210,
+          1905
+        ],
+        "ok": true,
+        "nvidia_smi": "GPU clocks set to \"(gpuClkMin 210, gpuClkMax 1905)\" for GPU 00000000:01:00.0\nAll done."
+      },
+      "notes": [],
+      "segment": {
+        "t0": 1791307405.8093877,
+        "t1": 1791307645.843379,
+        "settle_s": 60.0
+      },
+      "metrics": {
+        "windows_total": 5,
+        "windows_measured": 5,
+        "settle_windows": 0,
+        "measured_seconds": 152.6,
+        "tok_per_s": 29763.8,
+        "tok_per_s_min": 29442.6,
+        "tok_per_s_max": 29857.5,
+        "cv": 0.0054,
+        "last_over_first": 0.9861,
+        "power_w_mean": 141.1,
+        "power_w_peak": 150.76,
+        "temp_c_mean": 80.46,
+        "temp_c_max": 81,
+        "sm_clock_mhz_mean": 1905.0,
+        "sm_clock_mhz_min": 1905,
+        "sm_clock_mhz_max": 1905,
+        "util_pct_mean": 99.2,
+        "vram_used_mib_max": 12798.3,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 0.0134,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 145.762,
+        "power_limit_w_max": 155.0,
+        "telemetry_samples": 149,
+        "tok_per_s_per_w": 210.94,
+        "losses_finite": true,
+        "loss_max_rel_rise": 0.7983,
+        "segment_seconds": 240.0
+      },
+      "valid": false,
+      "invalid_reasons": [
+        "loss spike 79.8%"
+      ],
+      "eligible": false,
+      "ineligible_reasons": [
+        "loss spike 79.8%"
+      ],
+      "cap_binding": true
+    },
+    {
+      "spec": "lgc:1800",
+      "label": "clock cap 1800 MHz",
+      "control": "lgc",
+      "value": 1800.0,
+      "role": "point",
+      "status": "ok",
+      "applied": {
+        "lock_gpu_clocks_mhz": [
+          210,
+          1800
+        ],
+        "ok": true,
+        "nvidia_smi": "GPU clocks set to \"(gpuClkMin 210, gpuClkMax 1800)\" for GPU 00000000:01:00.0\nAll done."
+      },
+      "notes": [],
+      "segment": {
+        "t0": 1791307645.936741,
+        "t1": 1791307885.9718664,
+        "settle_s": 60.0
+      },
+      "metrics": {
+        "windows_total": 5,
+        "windows_measured": 5,
+        "settle_windows": 0,
+        "measured_seconds": 152.9,
+        "tok_per_s": 28611.9,
+        "tok_per_s_min": 28591.8,
+        "tok_per_s_max": 28625.7,
+        "cv": 0.0005,
+        "last_over_first": 1.0001,
+        "power_w_mean": 131.71,
+        "power_w_peak": 148.69,
+        "temp_c_mean": 78.57,
+        "temp_c_max": 79,
+        "sm_clock_mhz_mean": 1800.0,
+        "sm_clock_mhz_min": 1800,
+        "sm_clock_mhz_max": 1800,
+        "util_pct_mean": 99.3,
+        "vram_used_mib_max": 12787.7,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 0.0,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 145.604,
+        "power_limit_w_max": 152.752,
+        "telemetry_samples": 149,
+        "tok_per_s_per_w": 217.23,
+        "losses_finite": true,
+        "loss_max_rel_rise": 1.4494,
+        "segment_seconds": 240.0
+      },
+      "valid": false,
+      "invalid_reasons": [
+        "loss spike 144.9%"
+      ],
+      "eligible": false,
+      "ineligible_reasons": [
+        "loss spike 144.9%"
+      ],
+      "cap_binding": true
+    },
+    {
+      "spec": "lgc:1710",
+      "label": "clock cap 1710 MHz",
+      "control": "lgc",
+      "value": 1710.0,
+      "role": "point",
+      "status": "ok",
+      "applied": {
+        "lock_gpu_clocks_mhz": [
+          210,
+          1710
+        ],
+        "ok": true,
+        "nvidia_smi": "GPU clocks set to \"(gpuClkMin 210, gpuClkMax 1710)\" for GPU 00000000:01:00.0\nAll done."
+      },
+      "notes": [],
+      "segment": {
+        "t0": 1791307886.0646434,
+        "t1": 1791308126.098156,
+        "settle_s": 60.0
+      },
+      "metrics": {
+        "windows_total": 5,
+        "windows_measured": 5,
+        "settle_windows": 0,
+        "measured_seconds": 153.5,
+        "tok_per_s": 27441.8,
+        "tok_per_s_min": 27154.3,
+        "tok_per_s_max": 27526.6,
+        "cv": 0.0053,
+        "last_over_first": 1.0006,
+        "power_w_mean": 121.44,
+        "power_w_peak": 133.1,
+        "temp_c_mean": 76.03,
+        "temp_c_max": 77,
+        "sm_clock_mhz_mean": 1710.0,
+        "sm_clock_mhz_min": 1710,
+        "sm_clock_mhz_max": 1710,
+        "util_pct_mean": 99.4,
+        "vram_used_mib_max": 12787.4,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 0.0,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 141.606,
+        "power_limit_w_max": 151.326,
+        "telemetry_samples": 150,
+        "tok_per_s_per_w": 225.97,
+        "losses_finite": true,
+        "loss_max_rel_rise": 0.6654,
+        "segment_seconds": 240.0
+      },
+      "valid": false,
+      "invalid_reasons": [
+        "loss spike 66.5%"
+      ],
+      "eligible": false,
+      "ineligible_reasons": [
+        "loss spike 66.5%"
+      ],
+      "cap_binding": true
+    }
+  ],
+  "segments": [
+    {
+      "spec": "preheat",
+      "label": "pre-heat (discarded)",
+      "control": "observe",
+      "value": null,
+      "role": "preheat",
+      "status": "ok",
+      "applied": {},
+      "notes": [],
+      "segment": {
+        "t0": 1791306925.66513,
+        "t1": 1791307165.6971517,
+        "settle_s": 0
+      },
+      "metrics": {
+        "windows_total": 6,
+        "windows_measured": 6,
+        "settle_windows": 0,
+        "measured_seconds": 210.3,
+        "tok_per_s": 31662.0,
+        "tok_per_s_min": 31326.1,
+        "tok_per_s_max": 32022.1,
+        "cv": 0.0071,
+        "last_over_first": 0.9783,
+        "power_w_mean": 154.51,
+        "power_w_peak": 163.39,
+        "temp_c_mean": 71.72,
+        "temp_c_max": 79,
+        "sm_clock_mhz_mean": 2076.5,
+        "sm_clock_mhz_min": 1875,
+        "sm_clock_mhz_max": 2310,
+        "util_pct_mean": 99.2,
+        "vram_used_mib_max": 13005.6,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 1.0,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 150.979,
+        "power_limit_w_max": 155.0,
+        "telemetry_samples": 209,
+        "tok_per_s_per_w": 204.92,
+        "losses_finite": true,
+        "loss_max_rel_rise": 2.8664,
+        "segment_seconds": 240.0
+      },
+      "valid": false,
+      "invalid_reasons": [
+        "loss spike 286.6%"
+      ],
+      "eligible": false,
+      "ineligible_reasons": [
+        "loss spike 286.6%"
+      ]
+    },
+    {
+      "spec": "observe",
+      "label": "observe (current setting)",
+      "control": "observe",
+      "value": null,
+      "role": "point",
+      "status": "ok",
+      "applied": {},
+      "notes": [],
+      "segment": {
+        "t0": 1791307165.698098,
+        "t1": 1791307405.7297473,
+        "settle_s": 60.0
+      },
+      "metrics": {
+        "windows_total": 5,
+        "windows_measured": 5,
+        "settle_windows": 0,
+        "measured_seconds": 151.4,
+        "tok_per_s": 31199.9,
+        "tok_per_s_min": 31158.6,
+        "tok_per_s_max": 31257.8,
+        "cv": 0.0011,
+        "last_over_first": 0.9968,
+        "power_w_mean": 154.61,
+        "power_w_peak": 157.12,
+        "temp_c_mean": 81.1,
+        "temp_c_max": 83,
+        "sm_clock_mhz_mean": 2012.7,
+        "sm_clock_mhz_min": 1860,
+        "sm_clock_mhz_max": 2160,
+        "util_pct_mean": 99.2,
+        "vram_used_mib_max": 13005.1,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 1.0,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 151.196,
+        "power_limit_w_max": 155.0,
+        "telemetry_samples": 151,
+        "tok_per_s_per_w": 201.8,
+        "losses_finite": true,
+        "loss_max_rel_rise": 0.0,
+        "segment_seconds": 240.0
+      },
+      "valid": true,
+      "invalid_reasons": [],
+      "eligible": false,
+      "ineligible_reasons": [
+        "max temperature 83 C > 82.0 C (target - margin)"
+      ]
+    },
+    {
+      "spec": "lgc:1905",
+      "label": "clock cap 1905 MHz",
+      "control": "lgc",
+      "value": 1905.0,
+      "role": "point",
+      "status": "ok",
+      "applied": {
+        "lock_gpu_clocks_mhz": [
+          210,
+          1905
+        ],
+        "ok": true,
+        "nvidia_smi": "GPU clocks set to \"(gpuClkMin 210, gpuClkMax 1905)\" for GPU 00000000:01:00.0\nAll done."
+      },
+      "notes": [],
+      "segment": {
+        "t0": 1791307405.8093877,
+        "t1": 1791307645.843379,
+        "settle_s": 60.0
+      },
+      "metrics": {
+        "windows_total": 5,
+        "windows_measured": 5,
+        "settle_windows": 0,
+        "measured_seconds": 152.6,
+        "tok_per_s": 29763.8,
+        "tok_per_s_min": 29442.6,
+        "tok_per_s_max": 29857.5,
+        "cv": 0.0054,
+        "last_over_first": 0.9861,
+        "power_w_mean": 141.1,
+        "power_w_peak": 150.76,
+        "temp_c_mean": 80.46,
+        "temp_c_max": 81,
+        "sm_clock_mhz_mean": 1905.0,
+        "sm_clock_mhz_min": 1905,
+        "sm_clock_mhz_max": 1905,
+        "util_pct_mean": 99.2,
+        "vram_used_mib_max": 12798.3,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 0.0134,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 145.762,
+        "power_limit_w_max": 155.0,
+        "telemetry_samples": 149,
+        "tok_per_s_per_w": 210.94,
+        "losses_finite": true,
+        "loss_max_rel_rise": 0.7983,
+        "segment_seconds": 240.0
+      },
+      "valid": false,
+      "invalid_reasons": [
+        "loss spike 79.8%"
+      ],
+      "eligible": false,
+      "ineligible_reasons": [
+        "loss spike 79.8%"
+      ],
+      "cap_binding": true
+    },
+    {
+      "spec": "lgc:1800",
+      "label": "clock cap 1800 MHz",
+      "control": "lgc",
+      "value": 1800.0,
+      "role": "point",
+      "status": "ok",
+      "applied": {
+        "lock_gpu_clocks_mhz": [
+          210,
+          1800
+        ],
+        "ok": true,
+        "nvidia_smi": "GPU clocks set to \"(gpuClkMin 210, gpuClkMax 1800)\" for GPU 00000000:01:00.0\nAll done."
+      },
+      "notes": [],
+      "segment": {
+        "t0": 1791307645.936741,
+        "t1": 1791307885.9718664,
+        "settle_s": 60.0
+      },
+      "metrics": {
+        "windows_total": 5,
+        "windows_measured": 5,
+        "settle_windows": 0,
+        "measured_seconds": 152.9,
+        "tok_per_s": 28611.9,
+        "tok_per_s_min": 28591.8,
+        "tok_per_s_max": 28625.7,
+        "cv": 0.0005,
+        "last_over_first": 1.0001,
+        "power_w_mean": 131.71,
+        "power_w_peak": 148.69,
+        "temp_c_mean": 78.57,
+        "temp_c_max": 79,
+        "sm_clock_mhz_mean": 1800.0,
+        "sm_clock_mhz_min": 1800,
+        "sm_clock_mhz_max": 1800,
+        "util_pct_mean": 99.3,
+        "vram_used_mib_max": 12787.7,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 0.0,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 145.604,
+        "power_limit_w_max": 152.752,
+        "telemetry_samples": 149,
+        "tok_per_s_per_w": 217.23,
+        "losses_finite": true,
+        "loss_max_rel_rise": 1.4494,
+        "segment_seconds": 240.0
+      },
+      "valid": false,
+      "invalid_reasons": [
+        "loss spike 144.9%"
+      ],
+      "eligible": false,
+      "ineligible_reasons": [
+        "loss spike 144.9%"
+      ],
+      "cap_binding": true
+    },
+    {
+      "spec": "lgc:1710",
+      "label": "clock cap 1710 MHz",
+      "control": "lgc",
+      "value": 1710.0,
+      "role": "point",
+      "status": "ok",
+      "applied": {
+        "lock_gpu_clocks_mhz": [
+          210,
+          1710
+        ],
+        "ok": true,
+        "nvidia_smi": "GPU clocks set to \"(gpuClkMin 210, gpuClkMax 1710)\" for GPU 00000000:01:00.0\nAll done."
+      },
+      "notes": [],
+      "segment": {
+        "t0": 1791307886.0646434,
+        "t1": 1791308126.098156,
+        "settle_s": 60.0
+      },
+      "metrics": {
+        "windows_total": 5,
+        "windows_measured": 5,
+        "settle_windows": 0,
+        "measured_seconds": 153.5,
+        "tok_per_s": 27441.8,
+        "tok_per_s_min": 27154.3,
+        "tok_per_s_max": 27526.6,
+        "cv": 0.0053,
+        "last_over_first": 1.0006,
+        "power_w_mean": 121.44,
+        "power_w_peak": 133.1,
+        "temp_c_mean": 76.03,
+        "temp_c_max": 77,
+        "sm_clock_mhz_mean": 1710.0,
+        "sm_clock_mhz_min": 1710,
+        "sm_clock_mhz_max": 1710,
+        "util_pct_mean": 99.4,
+        "vram_used_mib_max": 12787.4,
+        "frac_thermal_throttled": 0.0,
+        "frac_power_capped": 0.0,
+        "hw_slowdown_seen": false,
+        "power_limit_w_min": 141.606,
+        "power_limit_w_max": 151.326,
+        "telemetry_samples": 150,
+        "tok_per_s_per_w": 225.97,
+        "losses_finite": true,
+        "loss_max_rel_rise": 0.6654,
+        "segment_seconds": 240.0
+      },
+      "valid": false,
+      "invalid_reasons": [
+        "loss spike 66.5%"
+      ],
+      "eligible": false,
+      "ineligible_reasons": [
+        "loss spike 66.5%"
+      ],
+      "cap_binding": true
+    }
+  ],
+  "recommended": null,
+  "pareto_front": [
+    "observe"
+  ],
+  "soak_passed": null,
+  "natural_clock_mhz": 2012.7,
+  "final_reset": {
+    "ok": true,
+    "nvidia_smi": "All done."
+  }
+}

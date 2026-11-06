@@ -1,0 +1,47 @@
+{
+  "model": {
+    "kind": "litegpt",
+    "path": "/home/user/m3_checkpoints/20261101T142254Z-train-m3-673cd85/milestone-tokens-9B.pt",
+    "sha256": "058edd6c4a0a195592ee7aec924d1691fe7f65dc1fe5118a9082950ca87f6fae",
+    "label": "litegpt-tokens-9B",
+    "step": 17167,
+    "tokens": 9000452096,
+    "spec_sha256": "2a868ecb41977d01f278c916e6515e5df277fd6adfd6032f0aea6650f0ea4eb1",
+    "block_size": 2048,
+    "rope_theta": 10000.0
+  },
+  "window": 2048,
+  "stride": 1024,
+  "domains": {
+    "chat": {
+      "docs": 1049,
+      "bytes": 2000241,
+      "nll_nats": 1229058.8996589184,
+      "bpb": 0.8864717699009108
+    },
+    "code": {
+      "docs": 448,
+      "bytes": 2042477,
+      "nll_nats": 825759.2828664781,
+      "bpb": 0.5832715973592333
+    },
+    "math": {
+      "docs": 422,
+      "bytes": 2003305,
+      "nll_nats": 1394145.2529028414,
+      "bpb": 1.0040041045381602
+    },
+    "synthetic": {
+      "docs": 540,
+      "bytes": 2004110,
+      "nll_nats": 797628.211025238,
+      "bpb": 0.5741871776096354
+    },
+    "web": {
+      "docs": 423,
+      "bytes": 2015797,
+      "nll_nats": 1324598.085533142,
+      "bpb": 0.9480077057212007
+    }
+  }
+}

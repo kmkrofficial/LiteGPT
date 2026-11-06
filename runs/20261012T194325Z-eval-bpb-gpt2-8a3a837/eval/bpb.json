@@ -1,0 +1,43 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "openai-community/gpt2",
+    "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "gated": false,
+    "license": "mit"
+  },
+  "window": 1024,
+  "stride": 512,
+  "domains": {
+    "chat": {
+      "docs": 1049,
+      "bytes": 2000241,
+      "nll_nats": 1219028.8297511637,
+      "bpb": 0.8792374755755334
+    },
+    "code": {
+      "docs": 448,
+      "bytes": 2042477,
+      "nll_nats": 1717387.1447696686,
+      "bpb": 1.2130691885615636
+    },
+    "math": {
+      "docs": 422,
+      "bytes": 2003305,
+      "nll_nats": 1694235.207885786,
+      "bpb": 1.2201161243626435
+    },
+    "synthetic": {
+      "docs": 540,
+      "bytes": 2004110,
+      "nll_nats": 1144593.6768045425,
+      "bpb": 0.823956579907679
+    },
+    "web": {
+      "docs": 423,
+      "bytes": 2015797,
+      "nll_nats": 1429015.9827575088,
+      "bpb": 1.0227390315965974
+    }
+  }
+}

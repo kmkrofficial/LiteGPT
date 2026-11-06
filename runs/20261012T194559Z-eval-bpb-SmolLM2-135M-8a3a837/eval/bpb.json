@@ -1,0 +1,43 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "HuggingFaceTB/SmolLM2-135M",
+    "revision": "93efa2f097d58c2a74874c7e644dbc9b0cee75a2",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "window": 2048,
+  "stride": 1024,
+  "domains": {
+    "chat": {
+      "docs": 1049,
+      "bytes": 2000241,
+      "nll_nats": 1081159.5333396196,
+      "bpb": 0.7797977829466025
+    },
+    "code": {
+      "docs": 448,
+      "bytes": 2042477,
+      "nll_nats": 791303.9996118546,
+      "bpb": 0.5589342529074378
+    },
+    "math": {
+      "docs": 422,
+      "bytes": 2003305,
+      "nll_nats": 1238767.0103472024,
+      "bpb": 0.8921073040025139
+    },
+    "synthetic": {
+      "docs": 540,
+      "bytes": 2004110,
+      "nll_nats": 683379.3375554085,
+      "bpb": 0.4919430477055515
+    },
+    "web": {
+      "docs": 423,
+      "bytes": 2015797,
+      "nll_nats": 1208519.7197093964,
+      "bpb": 0.8649310453588661
+    }
+  }
+}

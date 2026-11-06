@@ -1,0 +1,617 @@
+{
+  "revision": "c48d40f9e70f0196f8236901ee35807f7d6c44c0",
+  "files": [
+    0,
+    80,
+    160,
+    240,
+    320,
+    400,
+    479,
+    559,
+    639,
+    719,
+    799,
+    879
+  ],
+  "rows": [
+    {
+      "language": "Java",
+      "share_of_all_bytes": 0.1260526661169625,
+      "permissive_bytes_share": 0.6722174901962159,
+      "kept_over_permissive": 0.8829346634289738,
+      "kept_MB_per_file": 76.48902316666667,
+      "tokens_per_byte": 0.39085790281689897,
+      "kept_tokens_per_file_M": 29.896339183436535,
+      "kept_tokens_total_B": 26.308778481424152,
+      "cv_across_files": 0.040105082970300174,
+      "docs_kept_per_file": 14599.416666666666,
+      "drops_MB_per_file": {
+        "autogen": 2.091180833333333,
+        "size": 8.050241416666667
+      }
+    },
+    {
+      "language": "HTML",
+      "share_of_all_bytes": 0.12638016165763302,
+      "permissive_bytes_share": 0.7063307451605311,
+      "kept_over_permissive": 0.6493435021788733,
+      "kept_MB_per_file": 59.26116975,
+      "tokens_per_byte": 0.49128658531465663,
+      "kept_tokens_per_file_M": 29.114217728229725,
+      "kept_tokens_total_B": 25.620511600842157,
+      "cv_across_files": 0.028365204885232302,
+      "docs_kept_per_file": 7218.916666666667,
+      "drops_MB_per_file": {
+        "autogen": 13.297309083333333,
+        "size": 18.39251308333333,
+        "longline": 0.312214
+      }
+    },
+    {
+      "language": "JavaScript",
+      "share_of_all_bytes": 0.09728936798199238,
+      "permissive_bytes_share": 0.7832532623166787,
+      "kept_over_permissive": 0.533427380477565,
+      "kept_MB_per_file": 41.55770941666666,
+      "tokens_per_byte": 0.4439599131490348,
+      "kept_tokens_per_file_M": 18.449957063296157,
+      "kept_tokens_total_B": 16.235962215700617,
+      "cv_across_files": 0.03280381700624684,
+      "docs_kept_per_file": 9374.0,
+      "drops_MB_per_file": {
+        "size": 35.91118916666667,
+        "autogen": 0.4377105,
+        "longline": 0.0003580833333333333
+      }
+    },
+    {
+      "language": "C",
+      "share_of_all_bytes": 0.2166635271643151,
+      "permissive_bytes_share": 0.23471989467182736,
+      "kept_over_permissive": 0.7187720494159676,
+      "kept_MB_per_file": 37.37107533333334,
+      "tokens_per_byte": 0.42556023168620766,
+      "kept_tokens_per_file_M": 15.903643477216054,
+      "kept_tokens_total_B": 13.995206259950127,
+      "cv_across_files": 0.029724442990778414,
+      "docs_kept_per_file": 5875.666666666667,
+      "drops_MB_per_file": {
+        "autogen": 0.800085,
+        "size": 13.82178425
+      }
+    },
+    {
+      "language": "C++",
+      "share_of_all_bytes": 0.10265140774942368,
+      "permissive_bytes_share": 0.450541892270249,
+      "kept_over_permissive": 0.7386794240375248,
+      "kept_MB_per_file": 34.92728225,
+      "tokens_per_byte": 0.42216282071451044,
+      "kept_tokens_per_file_M": 14.744999994551852,
+      "kept_tokens_total_B": 12.975599995205629,
+      "cv_across_files": 0.03707639781467475,
+      "docs_kept_per_file": 3918.0,
+      "drops_MB_per_file": {
+        "autogen": 0.3147634166666667,
+        "size": 12.041364583333333
+      }
+    },
+    {
+      "language": "Python",
+      "share_of_all_bytes": 0.06186054897887406,
+      "permissive_bytes_share": 0.6158663009487183,
+      "kept_over_permissive": 0.8281057481187756,
+      "kept_MB_per_file": 32.25482675,
+      "tokens_per_byte": 0.44747139213606435,
+      "kept_tokens_per_file_M": 14.433112228930067,
+      "kept_tokens_total_B": 12.70113876145846,
+      "cv_across_files": 0.0230830094442004,
+      "docs_kept_per_file": 5030.0,
+      "drops_MB_per_file": {
+        "autogen": 0.595703,
+        "size": 6.0996005
+      }
+    },
+    {
+      "language": "PHP",
+      "share_of_all_bytes": 0.0714159650989666,
+      "permissive_bytes_share": 0.40047174814155106,
+      "kept_over_permissive": 0.8954396080645634,
+      "kept_MB_per_file": 26.18256541666667,
+      "tokens_per_byte": 0.451941756505865,
+      "kept_tokens_per_file_M": 11.832994604238047,
+      "kept_tokens_total_B": 10.413035251729482,
+      "cv_across_files": 0.03742615924549664,
+      "docs_kept_per_file": 6568.75,
+      "drops_MB_per_file": {
+        "autogen": 0.3716396666666667,
+        "size": 2.6856958333333334
+      }
+    },
+    {
+      "language": "C#",
+      "share_of_all_bytes": 0.03978117500414199,
+      "permissive_bytes_share": 0.7405153806454553,
+      "kept_over_permissive": 0.8048358248704874,
+      "kept_MB_per_file": 24.23972525,
+      "tokens_per_byte": 0.45473594543820295,
+      "kept_tokens_per_file_M": 11.02267437872103,
+      "kept_tokens_total_B": 9.699953453274507,
+      "cv_across_files": 0.034370303227760975,
+      "docs_kept_per_file": 5483.666666666667,
+      "drops_MB_per_file": {
+        "autogen": 0.3290245,
+        "size": 5.5488525
+      }
+    },
+    {
+      "language": "Markdown",
+      "share_of_all_bytes": 0.025288365504185048,
+      "permissive_bytes_share": 0.8155736845217871,
+      "kept_over_permissive": 0.915902675618072,
+      "kept_MB_per_file": 19.31265558333333,
+      "tokens_per_byte": 0.3727336016687873,
+      "kept_tokens_per_file_M": 7.198475673364647,
+      "kept_tokens_total_B": 6.334658592560889,
+      "cv_across_files": 0.02929089028631311,
+      "docs_kept_per_file": 7951.416666666667,
+      "drops_MB_per_file": {
+        "size": 1.7137506666666666,
+        "autogen": 0.05951925
+      }
+    },
+    {
+      "language": "GO",
+      "share_of_all_bytes": 0.021731797506407018,
+      "permissive_bytes_share": 0.8510124571618319,
+      "kept_over_permissive": 0.6721666547469627,
+      "kept_MB_per_file": 12.709171333333334,
+      "tokens_per_byte": 0.3889566388276589,
+      "kept_tokens_per_file_M": 4.94331656409817,
+      "kept_tokens_total_B": 4.350118576406389,
+      "cv_across_files": 0.05000249302906093,
+      "docs_kept_per_file": 2013.1666666666667,
+      "drops_MB_per_file": {
+        "autogen": 1.4072931666666668,
+        "size": 4.79130375
+      }
+    },
+    {
+      "language": "Ruby",
+      "share_of_all_bytes": 0.012583964014532273,
+      "permissive_bytes_share": 0.8006910517943089,
+      "kept_over_permissive": 0.8965777768677865,
+      "kept_MB_per_file": 9.23589775,
+      "tokens_per_byte": 0.4262417215228394,
+      "kept_tokens_per_file_M": 3.9367249567689186,
+      "kept_tokens_total_B": 3.4643179619566484,
+      "cv_across_files": 0.04498691550277113,
+      "docs_kept_per_file": 4072.1666666666665,
+      "drops_MB_per_file": {
+        "autogen": 0.4572080833333333,
+        "size": 0.6081730833333334
+      }
+    },
+    {
+      "language": "TypeScript",
+      "share_of_all_bytes": 0.029195531295595486,
+      "permissive_bytes_share": 0.8181132701459431,
+      "kept_over_permissive": 0.3485587336551411,
+      "kept_MB_per_file": 8.511664416666665,
+      "tokens_per_byte": 0.4025805017753524,
+      "kept_tokens_per_file_M": 3.4266301318050787,
+      "kept_tokens_total_B": 3.0154345159884692,
+      "cv_across_files": 0.06684410400187113,
+      "docs_kept_per_file": 1760.0833333333333,
+      "drops_MB_per_file": {
+        "size": 15.819125583333333,
+        "autogen": 0.08880875
+      }
+    },
+    {
+      "language": "CSS",
+      "share_of_all_bytes": 0.028683872581299195,
+      "permissive_bytes_share": 0.6784709235890687,
+      "kept_over_permissive": 0.3774731808268933,
+      "kept_MB_per_file": 7.510413166666667,
+      "tokens_per_byte": 0.4296819724328262,
+      "kept_tokens_per_file_M": 3.2270891432388016,
+      "kept_tokens_total_B": 2.839838446050145,
+      "cv_across_files": 0.03710742121328092,
+      "docs_kept_per_file": 1183.6666666666667,
+      "drops_MB_per_file": {
+        "size": 12.372976,
+        "autogen": 0.013158583333333335
+      }
+    },
+    {
+      "language": "Scala",
+      "share_of_all_bytes": 0.004421956602889142,
+      "permissive_bytes_share": 0.9058775310902177,
+      "kept_over_permissive": 0.9343745997762593,
+      "kept_MB_per_file": 3.8266055,
+      "tokens_per_byte": 0.3967630526195712,
+      "kept_tokens_per_file_M": 1.5182556793508404,
+      "kept_tokens_total_B": 1.3360649978287396,
+      "cv_across_files": 0.059404208082880945,
+      "docs_kept_per_file": 796.5833333333334,
+      "drops_MB_per_file": {
+        "size": 0.258985,
+        "autogen": 0.009775
+      }
+    },
+    {
+      "language": "Rust",
+      "share_of_all_bytes": 0.0031092728780092184,
+      "permissive_bytes_share": 0.705216809078786,
+      "kept_over_permissive": 0.7805782696503318,
+      "kept_MB_per_file": 1.7498735,
+      "tokens_per_byte": 0.4957851827851579,
+      "kept_tokens_per_file_M": 0.867561353048404,
+      "kept_tokens_total_B": 0.7634539906825955,
+      "cv_across_files": 0.13677471257653565,
+      "docs_kept_per_file": 287.0,
+      "drops_MB_per_file": {
+        "autogen": 0.0425685,
+        "size": 0.44932358333333333
+      }
+    },
+    {
+      "language": "Shell",
+      "share_of_all_bytes": 0.0036940638525980807,
+      "permissive_bytes_share": 0.5539110985271466,
+      "kept_over_permissive": 0.8889416969134354,
+      "kept_MB_per_file": 1.8596295833333332,
+      "tokens_per_byte": 0.4177623718012546,
+      "kept_tokens_per_file_M": 0.7768832654051121,
+      "kept_tokens_total_B": 0.6836572735564986,
+      "cv_across_files": 0.08872438445801444,
+      "docs_kept_per_file": 944.0,
+      "drops_MB_per_file": {
+        "autogen": 0.00814325,
+        "size": 0.22418616666666666
+      }
+    },
+    {
+      "language": "Haskell",
+      "share_of_all_bytes": 0.002276060201453235,
+      "permissive_bytes_share": 0.7886695148756362,
+      "kept_over_permissive": 0.878855719540574,
+      "kept_MB_per_file": 1.61289125,
+      "tokens_per_byte": 0.40241700894668775,
+      "kept_tokens_per_file_M": 0.6490548725812844,
+      "kept_tokens_total_B": 0.5711682878715303,
+      "cv_across_files": 0.2006707081086958,
+      "docs_kept_per_file": 306.6666666666667,
+      "drops_MB_per_file": {
+        "size": 0.21960883333333334,
+        "autogen": 0.00271725
+      }
+    },
+    {
+      "language": "Perl",
+      "share_of_all_bytes": 0.004926105000358616,
+      "permissive_bytes_share": 0.28908639574471434,
+      "kept_over_permissive": 0.8928324143225677,
+      "kept_MB_per_file": 1.2999000833333332,
+      "tokens_per_byte": 0.45409278460892266,
+      "kept_tokens_per_file_M": 0.5902752485542039,
+      "kept_tokens_total_B": 0.5194422187276994,
+      "cv_across_files": 0.14248196810910174,
+      "docs_kept_per_file": 215.0,
+      "drops_MB_per_file": {
+        "autogen": 0.013791333333333334,
+        "size": 0.142237
+      }
+    },
+    {
+      "language": "SQL",
+      "share_of_all_bytes": 0.005251813193217348,
+      "permissive_bytes_share": 0.4344730139980129,
+      "kept_over_permissive": 0.5693153033004331,
+      "kept_MB_per_file": 1.32810875,
+      "tokens_per_byte": 0.414360320356671,
+      "kept_tokens_per_file_M": 0.5503155671184978,
+      "kept_tokens_total_B": 0.4842776990642781,
+      "cv_across_files": 0.16136579920576902,
+      "docs_kept_per_file": 348.3333333333333,
+      "drops_MB_per_file": {
+        "size": 0.97712275,
+        "autogen": 0.02758608333333333
+      }
+    },
+    {
+      "language": "Lua",
+      "share_of_all_bytes": 0.003517436671399308,
+      "permissive_bytes_share": 0.41074530164062395,
+      "kept_over_permissive": 0.7617927362465421,
+      "kept_MB_per_file": 1.1252380833333333,
+      "tokens_per_byte": 0.4197556493749409,
+      "kept_tokens_per_file_M": 0.4723250423709972,
+      "kept_tokens_total_B": 0.41564603728647753,
+      "cv_across_files": 0.13997868355665496,
+      "docs_kept_per_file": 223.91666666666666,
+      "drops_MB_per_file": {
+        "autogen": 0.00829525,
+        "size": 0.3435588333333333
+      }
+    },
+    {
+      "language": "TeX",
+      "share_of_all_bytes": 0.002200274877318728,
+      "permissive_bytes_share": 0.4165517953671,
+      "kept_over_permissive": 0.8276918534486976,
+      "kept_MB_per_file": 0.7755741666666667,
+      "tokens_per_byte": 0.446201313033596,
+      "kept_tokens_per_file_M": 0.3460622115216037,
+      "kept_tokens_total_B": 0.30453474613901127,
+      "cv_across_files": 0.1440268041247619,
+      "docs_kept_per_file": 127.83333333333333,
+      "drops_MB_per_file": {
+        "size": 0.15190033333333333,
+        "autogen": 0.009558
+      }
+    },
+    {
+      "language": "Visual Basic",
+      "share_of_all_bytes": 0.0018779936842501712,
+      "permissive_bytes_share": 0.662540654689425,
+      "kept_over_permissive": 0.609661727326046,
+      "kept_MB_per_file": 0.7755401666666666,
+      "tokens_per_byte": 0.4302001856025454,
+      "kept_tokens_per_file_M": 0.333637523642229,
+      "kept_tokens_total_B": 0.2936010208051615,
+      "cv_across_files": 0.15585304475586428,
+      "docs_kept_per_file": 83.25,
+      "drops_MB_per_file": {
+        "autogen": 0.004123916666666667,
+        "size": 0.49241866666666667
+      }
+    },
+    {
+      "language": "Makefile",
+      "share_of_all_bytes": 0.003412042000609422,
+      "permissive_bytes_share": 0.2945459956501705,
+      "kept_over_permissive": 0.6598575488408609,
+      "kept_MB_per_file": 0.6779948333333333,
+      "tokens_per_byte": 0.44005148135702826,
+      "kept_tokens_per_file_M": 0.29835263076074486,
+      "kept_tokens_total_B": 0.2625503150694555,
+      "cv_across_files": 0.11166343302447393,
+      "docs_kept_per_file": 309.1666666666667,
+      "drops_MB_per_file": {
+        "autogen": 0.24354041666666665,
+        "size": 0.10595141666666667
+      }
+    },
+    {
+      "language": "PowerShell",
+      "share_of_all_bytes": 0.0008608486699405002,
+      "permissive_bytes_share": 0.8064340655516824,
+      "kept_over_permissive": 0.922990308771419,
+      "kept_MB_per_file": 0.6550908333333334,
+      "tokens_per_byte": 0.4400800451740091,
+      "kept_tokens_per_file_M": 0.2882924035264126,
+      "kept_tokens_total_B": 0.2536973151032431,
+      "cv_across_files": 0.19297247751602264,
+      "docs_kept_per_file": 128.91666666666666,
+      "drops_MB_per_file": {
+        "autogen": 0.013271666666666666,
+        "size": 0.04138583333333334
+      }
+    },
+    {
+      "language": "FORTRAN",
+      "share_of_all_bytes": 0.002038778694099438,
+      "permissive_bytes_share": 0.350226399269906,
+      "kept_over_permissive": 0.6304225855033341,
+      "kept_MB_per_file": 0.4602135833333333,
+      "tokens_per_byte": 0.5563396087514701,
+      "kept_tokens_per_file_M": 0.25603504489377876,
+      "kept_tokens_total_B": 0.2253108395065253,
+      "cv_across_files": 0.2417631376611723,
+      "docs_kept_per_file": 56.0,
+      "drops_MB_per_file": {
+        "size": 0.2697945
+      }
+    },
+    {
+      "language": "CMake",
+      "share_of_all_bytes": 0.0006117626627624111,
+      "permissive_bytes_share": 0.5080173113061237,
+      "kept_over_permissive": 0.9627288141594313,
+      "kept_MB_per_file": 0.30589625,
+      "tokens_per_byte": 0.42715260163158975,
+      "kept_tokens_per_file_M": 0.1306643790168472,
+      "kept_tokens_total_B": 0.11498465353482554,
+      "cv_across_files": 0.18461607435239538,
+      "docs_kept_per_file": 105.58333333333333,
+      "drops_MB_per_file": {
+        "autogen": 0.0118425
+      }
+    },
+    {
+      "language": "Assembly",
+      "share_of_all_bytes": 0.0008969976327162658,
+      "permissive_bytes_share": 0.3451090376479233,
+      "kept_over_permissive": 0.729202432535478,
+      "kept_MB_per_file": 0.23078333333333334,
+      "tokens_per_byte": 0.5446388658279584,
+      "kept_tokens_per_file_M": 0.12569357291866234,
+      "kept_tokens_total_B": 0.11061034416842284,
+      "cv_across_files": 0.41533228768026464,
+      "docs_kept_per_file": 31.166666666666668,
+      "drops_MB_per_file": {
+        "autogen": 0.007594166666666667,
+        "size": 0.07810983333333332
+      }
+    },
+    {
+      "language": "Julia",
+      "share_of_all_bytes": 0.00028516715376544673,
+      "permissive_bytes_share": 0.9148621390337341,
+      "kept_over_permissive": 0.9931249435670498,
+      "kept_MB_per_file": 0.2648913333333333,
+      "tokens_per_byte": 0.45610378818846453,
+      "kept_tokens_per_file_M": 0.12081794059162661,
+      "kept_tokens_total_B": 0.10631978772063141,
+      "cv_across_files": 0.2225459934245255,
+      "docs_kept_per_file": 61.583333333333336,
+      "drops_MB_per_file": {
+        "autogen": 0.00183375
+      }
+    },
+    {
+      "language": "Batchfile",
+      "share_of_all_bytes": 0.0008415673538343857,
+      "permissive_bytes_share": 0.21225062188048835,
+      "kept_over_permissive": 0.9991977844613862,
+      "kept_MB_per_file": 0.18247275,
+      "tokens_per_byte": 0.41187459389213776,
+      "kept_tokens_per_file_M": 0.07515588980263159,
+      "kept_tokens_total_B": 0.0661371830263158,
+      "cv_across_files": 0.27121369523448563,
+      "docs_kept_per_file": 121.16666666666667,
+      "drops_MB_per_file": {
+        "autogen": 0.0001465
+      }
+    },
+    {
+      "language": "Dockerfile",
+      "share_of_all_bytes": 0.0001995082164499135,
+      "permissive_bytes_share": 0.7938437477784887,
+      "kept_over_permissive": 0.972261764702855,
+      "kept_MB_per_file": 0.15743008333333333,
+      "tokens_per_byte": 0.4166397619281573,
+      "kept_tokens_per_file_M": 0.06559163244032996,
+      "kept_tokens_total_B": 0.05772063654749037,
+      "cv_across_files": 0.19331777324775454,
+      "docs_kept_per_file": 167.33333333333334,
+      "drops_MB_per_file": {
+        "autogen": 0.004491416666666667
+      }
+    }
+  ],
+  "need": {
+    "Python": {
+      "weight": 0.35,
+      "target_tokens_M": 693.0,
+      "files_needed": 48.01459234903852,
+      "available_total_B": 12.70113876145846
+    },
+    "JavaScript": {
+      "weight": 0.1,
+      "target_tokens_M": 198.0,
+      "files_needed": 10.731732291881363,
+      "available_total_B": 16.235962215700617
+    },
+    "TypeScript": {
+      "weight": 0.06,
+      "target_tokens_M": 118.8,
+      "files_needed": 34.66963034537334,
+      "available_total_B": 3.0154345159884692
+    },
+    "Java": {
+      "weight": 0.1,
+      "target_tokens_M": 198.0,
+      "files_needed": 6.622884453682474,
+      "available_total_B": 26.308778481424152
+    },
+    "C": {
+      "weight": 0.08,
+      "target_tokens_M": 158.4,
+      "files_needed": 9.959981825983945,
+      "available_total_B": 13.995206259950127
+    },
+    "C++": {
+      "weight": 0.08,
+      "target_tokens_M": 158.4,
+      "files_needed": 10.742624622484056,
+      "available_total_B": 12.975599995205629
+    },
+    "GO": {
+      "weight": 0.05,
+      "target_tokens_M": 99.0,
+      "files_needed": 20.027040290926823,
+      "available_total_B": 4.350118576406389
+    },
+    "Rust": {
+      "weight": 0.04,
+      "target_tokens_M": 79.2,
+      "files_needed": 91.29037355307501,
+      "available_total_B": 0.7634539906825955
+    },
+    "SQL": {
+      "weight": 0.02,
+      "target_tokens_M": 39.6,
+      "files_needed": 71.95871308411134,
+      "available_total_B": 0.4842776990642781
+    },
+    "Shell": {
+      "weight": 0.03,
+      "target_tokens_M": 59.4,
+      "files_needed": 76.45936351715002,
+      "available_total_B": 0.6836572735564986
+    },
+    "C#": {
+      "weight": 0.04,
+      "target_tokens_M": 79.2,
+      "files_needed": 7.185189118250052,
+      "available_total_B": 9.699953453274507
+    },
+    "PHP": {
+      "weight": 0.03,
+      "target_tokens_M": 59.4,
+      "files_needed": 5.01986200337872,
+      "available_total_B": 10.413035251729482
+    },
+    "Ruby": {
+      "weight": 0.02,
+      "target_tokens_M": 39.6,
+      "files_needed": 10.059122858433534,
+      "available_total_B": 3.4643179619566484
+    }
+  },
+  "binding": "Rust",
+  "licence_all": {
+    "gpl-2.0": 2997082304,
+    "isc": 27967116,
+    "mit": 3392536277,
+    "cc0-1.0": 25128450,
+    "epl-1.0": 89416840,
+    "gpl-3.0": 1428511250,
+    "mpl-2.0": 110886294,
+    "agpl-3.0": 320201771,
+    "lgpl-2.1": 278848748,
+    "lgpl-3.0": 198110465,
+    "unlicense": 47586656,
+    "apache-2.0": 2442206584,
+    "artistic-2.0": 12026794,
+    "bsd-2-clause": 148915669,
+    "bsd-3-clause": 749031909
+  },
+  "licence_python": {
+    "isc": 1716223,
+    "mit": 162268042,
+    "cc0-1.0": 1278277,
+    "epl-1.0": 1058236,
+    "gpl-2.0": 92728609,
+    "gpl-3.0": 123649333,
+    "mpl-2.0": 5630182,
+    "agpl-3.0": 45262497,
+    "lgpl-2.1": 10966841,
+    "lgpl-3.0": 11577125,
+    "unlicense": 4325288,
+    "apache-2.0": 187728144,
+    "bsd-2-clause": 15709351,
+    "bsd-3-clause": 94376238,
+    "artistic-2.0": 659107
+  },
+  "dup_rate_kept": 0.0,
+  "python_parse_ok": [
+    2648,
+    3014
+  ],
+  "permissive_share_of_bytes": 0.5569871248081674
+}

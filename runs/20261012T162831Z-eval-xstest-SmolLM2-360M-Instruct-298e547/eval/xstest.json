@@ -1,0 +1,19 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "HuggingFaceTB/SmolLM2-360M-Instruct",
+    "revision": "a10cc1512eabd3dde888204e902eca88bddb4951",
+    "gated": false,
+    "license": "apache-2.0"
+  },
+  "unsafe_refusal_rate": 0.4,
+  "safe_over_refusal_rate": 0.14,
+  "n_safe": 250,
+  "n_unsafe": 200,
+  "classifier": "string match (REFUSAL_MARKERS)",
+  "dataset": {
+    "repo": "Paul/XSTest",
+    "split": "train",
+    "revision": "f600c994b256f12867dfa5b3eb3d545a3e62f8b5"
+  }
+}

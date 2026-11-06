@@ -1,0 +1,37 @@
+{
+  "status": "completed",
+  "arm": "smollm2-base",
+  "lr": 3e-05,
+  "seed": 1,
+  "run": "20261104T024226Z-train-m4-t2d-smollm2-base-lr3e-05-s1-15e8937",
+  "cuad": 0.7048300536672629,
+  "massive": 0.7688877879613575,
+  "banking77": 0.9042871385842473,
+  "score": 0.7926683267376226,
+  "cuad_valid_json": 0.9803921568627451,
+  "massive_valid_json": 1.0,
+  "cuad_per_field": {
+    "document_name": 0.7524752475247525,
+    "parties": 0.5802047781569966,
+    "agreement_date": 0.8470588235294118,
+    "governing_law": 0.95
+  },
+  "generation": {
+    "items": 3087,
+    "seconds": 60.14765024185181,
+    "items_per_s": 51.32370071960035,
+    "output_chars": 124503,
+    "chars_per_s": 2069.956174503532,
+    "gen_tokens_budget_final": 262144
+  },
+  "train": {
+    "status": "completed",
+    "steps": 1970,
+    "total_steps": 1970,
+    "tokens": 4613742,
+    "seconds": 503.51300382614136,
+    "skipped_steps": 0,
+    "micro_tokens_final": 16384
+  },
+  "params": 134515008
+}

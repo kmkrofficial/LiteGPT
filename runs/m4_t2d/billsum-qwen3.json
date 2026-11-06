@@ -1,0 +1,29 @@
+{
+ "model": "qwen3",
+ "arm": "qwen3-base",
+ "lr": 1e-05,
+ "seed": 1,
+ "status": "completed",
+ "rouge_l": 0.4822355479795857,
+ "rouge_l_zero_match": 0.47008306749314466,
+ "items": 1000,
+ "zero_match_items": 302,
+ "generation": {
+  "items": 1000,
+  "seconds": 390.2455780506134,
+  "items_per_s": 2.5624889973008322,
+  "output_chars": 912127,
+  "chars_per_s": 2337.3154016410163,
+  "gen_tokens_budget_final": 262144
+ },
+ "train": {
+  "status": "completed",
+  "steps": 8016,
+  "total_steps": 8016,
+  "tokens": 23484897,
+  "seconds": 2305.4315004348755,
+  "skipped_steps": 0,
+  "micro_tokens_final": 4096
+ },
+ "run": "20261104T073123Z-train-m4-billsum-qwen3-15e8937"
+}

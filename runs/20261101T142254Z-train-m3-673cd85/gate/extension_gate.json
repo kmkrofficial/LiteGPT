@@ -1,0 +1,31 @@
+{
+  "inputs": {
+    "window_a": {
+      "6500000000.0": 0.8729536063973312,
+      "6750000000.0": 0.8718382191916181,
+      "7000000000.0": 0.8706703302876995
+    },
+    "window_b": {
+      "8500000000.0": 0.8656259262980557,
+      "8750000000.0": 0.8647828157097404,
+      "9000000000.0": 0.8641186571166442
+    }
+  },
+  "threshold_bpb": 0.01,
+  "gate_tokens": 9000000000.0,
+  "t": 1793662680.8752372,
+  "divergence": {
+    "diverged": false,
+    "flagged_steps": 0,
+    "flagged_fraction": 0.0,
+    "first_flagged_step": null,
+    "max_ratio_to_running_median": 9.1,
+    "factor": 10.0,
+    "min_frac": 0.01
+  },
+  "delta": 0.006978252250736228,
+  "decision": "stop",
+  "stable_end_tokens": 9000000000.0,
+  "reason": "delta below the threshold",
+  "spec_sha256": "2a868ecb41977d01f278c916e6515e5df277fd6adfd6032f0aea6650f0ea4eb1"
+}

@@ -1,0 +1,44 @@
+{
+  "model": {
+    "kind": "hf",
+    "repo": "EleutherAI/pythia-160m",
+    "revision": "37f757103d785d3a314240c71e57cbe2408113e5",
+    "gated": false,
+    "license": null,
+    "ref": "step5000"
+  },
+  "window": 2048,
+  "stride": 1024,
+  "domains": {
+    "chat": {
+      "docs": 1049,
+      "bytes": 2000241,
+      "nll_nats": 1329413.8004627228,
+      "bpb": 0.9588538067247497
+    },
+    "code": {
+      "docs": 448,
+      "bytes": 2042477,
+      "nll_nats": 1043655.8299856186,
+      "bpb": 0.7371819072210395
+    },
+    "math": {
+      "docs": 422,
+      "bytes": 2003305,
+      "nll_nats": 1635910.044683963,
+      "bpb": 1.1781128229630515
+    },
+    "synthetic": {
+      "docs": 540,
+      "bytes": 2004110,
+      "nll_nats": 1263026.901561737,
+      "bpb": 0.9092128912048096
+    },
+    "web": {
+      "docs": 423,
+      "bytes": 2015797,
+      "nll_nats": 1513148.3435592651,
+      "bpb": 1.08295210846246
+    }
+  }
+}

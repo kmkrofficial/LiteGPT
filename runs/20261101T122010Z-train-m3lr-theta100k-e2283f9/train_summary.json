@@ -1,0 +1,30 @@
+{
+  "status": "interrupted",
+  "step": 97,
+  "total_steps": 381,
+  "tokens": 50855936,
+  "skipped_steps": 0,
+  "loss_spikes": 0,
+  "final_eval": null,
+  "mean_tok_per_s": 28394.953282512884,
+  "params": 201373952,
+  "params_non_embedding": 176208128,
+  "telemetry": {
+    "available": true,
+    "n_samples": 1780,
+    "duration_s": 1790.26,
+    "energy_wh": 61.8427,
+    "power_w_mean": 124.32,
+    "power_w_max": 126.056,
+    "temp_c_max": 87,
+    "sm_clock_mhz_mean_busy": 1722.7,
+    "sm_clock_mhz_min_busy": 1470,
+    "frac_power_capped": 0.984,
+    "frac_thermal_throttled": 0.03,
+    "mem_used_mib_max": 13586.3,
+    "power_limit_w_min": 125.0,
+    "power_limit_w_max": 125.0
+  },
+  "micro_batch_used": 4,
+  "accum_used": 64
+}

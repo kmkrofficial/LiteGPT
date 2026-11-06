@@ -1,0 +1,64 @@
+{
+  "rows": [
+    {
+      "source": "fineweb_edu_dedup",
+      "file": "fineweb-edu-dedup/train-00000-of-00234.parquet",
+      "GB": 2.395121191,
+      "seconds": 97.16418218612671,
+      "MBps": 24.650248034938745,
+      "planned_files": 14,
+      "projected_GB": 33.531696673999996,
+      "projected_hours": 0.37786070850160386
+    },
+    {
+      "source": "cosmopedia_v2",
+      "file": "cosmopedia-v2/train-00000-of-00104.parquet",
+      "GB": 1.174424341,
+      "seconds": 41.391132831573486,
+      "MBps": 28.37381488878071,
+      "planned_files": 7,
+      "projected_GB": 8.220970387,
+      "projected_hours": 0.08048275828361512
+    },
+    {
+      "source": "finemath_3plus",
+      "file": "finemath-3plus/train-00000-of-00128.parquet",
+      "GB": 0.507607173,
+      "seconds": 18.599016189575195,
+      "MBps": 27.292151790507894,
+      "planned_files": 8,
+      "projected_GB": 4.060857384,
+      "projected_hours": 0.041331147087944886
+    },
+    {
+      "source": "code",
+      "file": "data/train-00000-of-00880.parquet",
+      "GB": 0.355122552,
+      "seconds": 0.3854672908782959,
+      "MBps": 921.2780446061851,
+      "planned_files": 210,
+      "projected_GB": 74.57573592,
+      "projected_hours": 0.022485591967900596
+    },
+    {
+      "source": "smoltalk",
+      "file": "data/smol-summarize/train-00000-of-00001.parquet",
+      "GB": 0.11924509,
+      "seconds": 4.804376125335693,
+      "MBps": 24.82009877852102,
+      "planned_files": 1,
+      "projected_GB": 0.11924509,
+      "projected_hours": 0.0013345489237043592
+    }
+  ],
+  "verdict": {
+    "projected_download_GB": 120.50850545499999,
+    "projected_download_hours": 0.5234947547647688,
+    "disks": {
+      "wsl_home_free_GB": 1009.313861632,
+      "c_drive_free_GB": 277.243662336
+    },
+    "required_headroom_GB": 60,
+    "headroom_after_shards_GB": 236.243662336
+  }
+}
