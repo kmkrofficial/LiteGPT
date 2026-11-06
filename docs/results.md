@@ -203,9 +203,9 @@ Architecture, tokenizer, data and size all changed between versions, so this sho
 
 | Item | Value |
 |---|---|
-| Pretraining | 37.2 h on one rented A100, 0 restarts, 0 skipped steps. $16.64 |
-| Chat fine-tuning and comparison | About 18 h on one rented A100. $8.09 in all, including storage and bandwidth |
-| Before that | Design, data and experiments on one RTX 4090 Laptop (not costed) |
+| Pretraining | 37.2 h on one rented A100, 0 restarts, 0 skipped steps |
+| Chat fine-tuning and comparison | About 18 h on one rented A100 |
+| Before that | Design, data and experiments on one RTX 4090 Laptop GPU |
 | Benchmark overlap | Documents sharing a 13-word run with 18 evaluation sets removed before training. For the comparison, test items matched by training text removed for every model, and a zero-match score reported |
 | Licensing filters | Wikipedia excluded (share-alike). Code kept only from permissive-labelled repositories, with copyleft-headed files, keys and credentials removed and email addresses redacted. The label is repository-level, not a per-file audit |
 | Reproducibility | Every config, dataset revision and threshold is recorded. **No one has rebuilt the model independently** |

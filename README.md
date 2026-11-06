@@ -2,12 +2,27 @@
 
 **A small language model built from scratch, with every step on record.**
 
-LiteGPT V2 is a 201M-parameter model with its own architecture implementation, its own trained tokenizer and its own weights. It was designed on a laptop and pretrained in 37 hours on a single rented GPU. Every experiment was registered before it ran, and every result is published with the run records behind it.
+LiteGPT V2 is a 201M-parameter model with its own architecture implementation, its own trained tokenizer and its own weights. It was designed on an RTX 4090 Laptop GPU and pretrained in 37 hours on a single rented A100. Every experiment was registered before it ran, and every result is published with the run records behind it.
 
 | Model | What it is |
 |---|---|
 | [LiteGPT-V2-Base](https://huggingface.co/kmkrworks/LiteGPT-V2-Base) | The pretrained model, 4,096-token context |
 | [LiteGPT-Llama-V2-Instruct](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct) | The chat version |
+
+## Why this project
+
+LiteGPT V1 was built on nanoGPT. The aim of V2 was to leave that behind and build the whole training pipeline ourselves: architecture, tokenizer, data preparation, training loop, evaluation and release tooling. Then train a model end to end with it and see what comes out. Topping benchmarks was never the goal. Understanding the complexities along the way was.
+
+## Built on a laptop GPU
+
+Most of V2 was designed and tested on a laptop with an **RTX 4090 Laptop GPU** (16 GB). Getting sustained training out of a mobile GPU took real work:
+
+- **Windows to WSL2:** on Windows the full model managed about 15.6k tokens per second over 30 minutes, and the GPU was thermally throttled 98% of that time at 89 °C. WSL2 made `torch.compile` possible, which added 23.9% speed and freed 2.9 GiB of GPU memory. Flash attention added another 12%.
+- **A measured operating point:** with both, the full 28-layer model sustained about 30k tokens per second for 30 minutes, with no thermal throttling.
+- **A thermal investigation:** the design experiments were at first throttled 95 to 98% of the time, because the GPU sat at its temperature limit well below its power limit. The CPU and GPU share heat pipes, so CPU heat costs GPU headroom. A tuned power profile fixed it: GPU capped at 120 W, CPU at 55 W sustained with a 93 °C limit, and fans at maximum. Complete runs then showed 0% thermal slowdown, at 81 to 83 °C on average, so the GPU was limited by power rather than heat.
+- **Living with a laptop:** WSL updated itself mid-run, Windows Update rebooted the machine twice, and a loose charger let it sleep. Every run resumes exactly from its last checkpoint, and a watchdog flags stalls, so the worst loss was about 10 minutes.
+
+**Why the final training moved to an A100:** full pretraining means days of continuous full load, and running a mobile GPU like that for long stretches shortens its life. So the 37-hour pretraining run and the chat fine-tuning ran on a rented A100 instead. It is still achievable on the laptop: at the measured 30k tokens per second, the same pretraining would take about four days (*estimate*).
 
 ## Highlights
 
@@ -89,13 +104,17 @@ Once downloaded, everything runs offline. More in [docs/inference.md](docs/infer
 
 | Stage | What happened |
 |---|---|
-| Design | Each architecture change tested one at a time on small proxy models |
+| Design | Each architecture change tested one at a time on small proxy models, on the laptop GPU |
 | Data | Web, synthetic textbooks, math and code, with benchmark text filtered out and licences audited |
-| Pretraining | 37 hours on one rented A100, with no restarts and no skipped steps, for $16.64 |
+| Pretraining | 37 hours on one rented A100, with no restarts and no skipped steps |
 | Chat fine-tuning | 3 epochs on curated conversations, passing its registered quality gate |
 | Evaluation | One suite for V2 and 16 other models, plus a fine-tuned text-to-data benchmark |
 
 The full story is in [docs/history.md](docs/history.md), every benchmark is in [docs/results.md](docs/results.md), and every chart is in [docs/figures](docs/figures/README.md).
+
+## What's next
+
+Work is now starting on a fresh tokenizer.
 
 ## What's here
 

@@ -6,7 +6,7 @@
 |---|---|
 | [results.md](results.md) | Benchmarks and comparisons, where V2 leads and where it loses |
 | [figures/](figures/README.md) | All charts, generated from the run records |
-| [history.md](history.md) | Milestones, decisions, deviations, failures and cost |
+| [history.md](history.md) | Stages, decisions, deviations and failures |
 | [architecture.md](architecture.md) | The model |
 | [inference.md](inference.md) | Engine, Python API and CLI |
 | [chat_template.md](chat_template.md) | The chat format |

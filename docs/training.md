@@ -2,7 +2,7 @@
 
 Configs: [`benchmarks/m3/`](../benchmarks/m3), [`benchmarks/m4/`](../benchmarks/m4). Thresholds and results: [`docs/spec/registry.yaml`](spec/registry.yaml). Scores: [`results.md`](results.md).
 
-## Pretraining (M3, EXP-G1-EXTENSION-GATE)
+## Pretraining (EXP-G1-EXTENSION-GATE)
 
 | Item | Value |
 |---|---|
@@ -11,7 +11,6 @@ Configs: [`benchmarks/m3/`](../benchmarks/m3), [`benchmarks/m4/`](../benchmarks/
 | Schedule | Warm-up and stable, then decay, with the last phase at 4,096 context |
 | Gate | The registered gate at 9.0B decided to stop rather than extend (improvement 0.00698, below the 0.010 line) |
 | Result | Validation 0.8197 bits per byte |
-| Cost | $16.64 |
 
 ![Training loss across pretraining](figures/m3_loss.svg)
 
@@ -25,7 +24,7 @@ Configs: [`benchmarks/m3/`](../benchmarks/m3), [`benchmarks/m4/`](../benchmarks/
 
 ![Speed by micro-batch and attention backend on the A100](figures/a100_tuning.svg)
 
-## Chat fine-tuning (M4, EXP-M4-SFT)
+## Chat fine-tuning (EXP-M4-SFT)
 
 `litegpt/training/sft.py`, `scripts/train_sft.py`. Assistant-only loss from the chat template, whole conversations packed with `cu_seqlens`.
 
@@ -47,7 +46,7 @@ The held-out loss chooses the epoch and says nothing about quality against other
 
 Reasoning and preference tuning were deferred ([ADR-010](decisions/ADR-010-m4-scope-text-to-data-comparison-and-cloud.md)).
 
-## Fine-tuning for text-to-data (M4, EXP-M4-T2D)
+## Fine-tuning for text-to-data (EXP-M4-T2D)
 
 `litegpt/t2d_run.py`, `scripts/run_t2d.py`, recipe in `benchmarks/m4/t2d.yaml`. Every model gets the same recipe: whole model, AdamW, loss on output tokens only, 3 epochs, 3 seeds, learning rate chosen from {1e-5, 3e-5, 1e-4} on dev. Each model's route is chosen on dev, and the test set is scored once.
 
