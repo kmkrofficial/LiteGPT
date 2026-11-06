@@ -1,0 +1,28 @@
+# lm-eval 0.4.13 mbpp_instruct with one change (EXP-M1B-SUITE, suite 0.1.1): the answer's code is everything before its
+# closing fence (lm-eval's regex read a leading "def" as the block's language tag and deleted it). 0-shot, as registered.
+task: mbpp_instruct_litegpt
+dataset_path: google-research-datasets/mbpp
+dataset_name: full
+unsafe_code: true
+output_type: generate_until
+test_split: test
+doc_to_text: "You are an expert Python programmer, and here is your task:\n{{text}}\nYour code should pass these tests:\n{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}"
+doc_to_target: "{{test_list[0]}}\n{{test_list[1]}}\n{{test_list[2]}}"
+gen_prefix: "\n```python\n"
+target_delimiter: ""
+metric_list:
+  - metric: !function utils.pass_at_1
+    aggregation: mean
+    higher_is_better: true
+filter_list:
+  - name: "extract_code"
+    filter:
+      - function: "custom"
+        filter_fn: !function utils.build_predictions_mbpp
+generation_kwargs:
+  max_gen_toks: 256
+  until: []
+  do_sample: false
+num_fewshot: 0
+metadata:
+  version: 1.0
