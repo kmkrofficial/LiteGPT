@@ -22,6 +22,20 @@ LiteGPT V2 Base after three epochs of chat fine-tuning on curated conversations.
 
 Every benchmark, including comparisons with other chat models: [results](../results.md).
 
+## How it compares
+
+LiteGPT V2 Instruct doesn't reach the top score among these chat models. What it brings is a chat model built entirely from scratch, small enough for a laptop, and open down to every run record.
+
+| Model | IFEval | GSM8K chat | HumanEval chat | MBPP chat |
+|---|---:|---:|---:|---:|
+| Qwen3-0.6B | 0.564 | 0.310 | 0.372 | 0.310 |
+| Gemma 3 270M-it | 0.251 | 0.099 | 0.122 | 0.154 |
+| SmolLM2-135M-Instruct | 0.220 | 0.021 | 0.000 | 0.098 |
+| **LiteGPT V2 Instruct** | **0.129** | **0.022** | **0.043** | **0.042** |
+| LiteGPT V1 Instruct | 0.083 | 0.021 | 0.000 | 0.000 |
+
+Higher is better.
+
 ## Model
 
 | Item | Value |
