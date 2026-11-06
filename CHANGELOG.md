@@ -2,10 +2,10 @@
 
 Format: newest first. Spec changes are recorded with their ADR (docs/decisions/).
 
-## Unreleased
+## v2.0.0 (2026-11-06)
 
 ### 2026-11-05
-- **Models published on Hugging Face:** `LiteGPT-V2-Base` and `LiteGPT-Llama-V2-Instruct`. Both export to the Hugging Face Qwen3 layout, with logits and greedy output identical in float32 (EXP-M5-EXPORT). ADR-011 accepted: Apache-2.0, spec 2.0.0-spec.9.
+- **v2.0.0 released:** `LiteGPT-V2-Base` and `LiteGPT-Llama-V2-Instruct`. Both export to the Hugging Face Qwen3 layout, with logits and greedy output identical in float32 (EXP-M5-EXPORT). ADR-011 accepted: Apache-2.0, spec 2.0.0-spec.9.
 - **M4 done** (EXP-M4-SFT, EXP-M4-T2D): G2 passed; V2 lost the registered text-to-data comparison (0.800 against SmolLM2-135M 0.817, Gemma 3 270M 0.822, Qwen3-0.6B 0.851). Python API and CLI added. All benchmarks in `docs/results.md`.
 - M5 documentation and clean-up: READMEs in every top-level folder, `docs/results.md`, `docs/history.md`, draft model cards and notices for Base and Instruct. ADR-011: `LiteGPT-V2-Base` and `LiteGPT-Llama-V2-Instruct` to be released (owner); licence proposed. All charts generated from run records in `docs/figures/`. Personal paths removed from run records. Backup now covers G2's evaluation run. Development history squashed for release.
 
