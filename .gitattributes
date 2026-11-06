@@ -1,3 +1,10 @@
 # Override jupyter in Github language stats for more accurate estimate of repo code languages
 # reference: https://github.com/github/linguist/blob/master/docs/overrides.md#generated-code
 *.ipynb linguist-generated
+litegpt/assets/** binary
+runs/**/litegpt-32k.json binary
+*.npz binary
+*.bin binary
+*.jinja text eol=lf
+*.sh text eol=lf
+*.svg text eol=lf
