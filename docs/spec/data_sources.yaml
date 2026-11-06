@@ -4,8 +4,8 @@
 # Token counts below are estimates with the GPT-2 tokenizer as a proxy; checkpoint B (tokenizer freeze) re-derives file lists
 # with the real tokenizer (EXP-M1-PREFLIGHT, C9). YAML note: floats are plain decimals or signed exponents.
 data_sources_version: "1.1.0"   # 1.1.0: text_to_data added (ADR-010); nothing used by M1-M3 changed
-spec_version: "2.0.0-spec.9"
-status: approved   # owner decisions 2026-10-07 (Wikipedia excluded, Apache-2.0 SmolTalk subsets only) and 2026-10-11 (focused code mix; C5 clause not treated as a blocker)
+spec_version: "2.0.0-spec.10"
+status: approved
 
 partitioning:
   # u = int.from_bytes(sha256(f"{salt}:{source}:{key}").digest()[:8], "big") / 2**64; a document goes to val if u < val_fraction,
@@ -79,7 +79,7 @@ sources:
     repo: HuggingFaceTB/smoltalk
     revision: 5feaf2fd3ffca7c237fc38d1861bc30365d48ffa
     licence: apache-2.0                  # dataset card: these subsets only
-    original_generator: Qwen/Qwen2.5-72B-Instruct   # SmolLM2 paper (arXiv 2502.02737); owner 2026-10-11: clause not treated as a blocker, carried to M5
+    original_generator: Qwen/Qwen2.5-72B-Instruct   # SmolLM2 paper (arXiv 2502.02737)
     subsets: [smol-summarize, smol-rewrite, smol-constraints]
     text_field: messages
     key_field: {content_hash: messages}

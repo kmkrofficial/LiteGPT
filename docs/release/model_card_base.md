@@ -98,7 +98,7 @@ Benchmarks were scored through LiteGPT's engine.
 
 ## Training data
 
-Pretrained on a mix chosen in registered experiments. Mixture and exact revisions: [`data_sources.yaml`](../spec/data_sources.yaml). Licences: [`data_licenses.md`](../data_licenses.md).
+Pretrained on a mix chosen in registered experiments. Mixture and exact revisions: [`data_sources.yaml`](../spec/data_sources.yaml). Attributions: the NOTICE file.
 
 | Source | Licence | Main phase | Decay phase |
 |---|---|---:|---:|
@@ -112,6 +112,6 @@ Contains information from FineWeb-Edu, Cosmopedia v2 and FineMath, which are mad
 
 ## Licence
 
-Apache-2.0 for the weights, MIT for the code, with the [NOTICE](NOTICE.txt) file ([ADR-011](../decisions/ADR-011-model-licence.md)).
+Apache-2.0 for the weights, MIT for the code, with the [NOTICE](NOTICE.txt) file.
 
 **Built with Qwen.**

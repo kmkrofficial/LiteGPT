@@ -1,6 +1,6 @@
 # Distribution and export
 
-**Status: both models are public on Hugging Face. The v2.0.0 release isn't marked yet.** The licence gate passed ([ADR-004](decisions/ADR-004-licensing.md), [ADR-011](decisions/ADR-011-model-licence.md)).
+**Status: both models are public on Hugging Face. The v2.0.0 release isn't marked yet.** The licence gate passed ([ADR-004](decisions/ADR-004-licensing.md)).
 
 ## Where it is
 
@@ -24,7 +24,7 @@ A frozen copy of the report is in [`runs/report-v2.0.0/REPORT.md`](../runs/repor
 
 ## Not distributed
 
-The text-to-data fine-tunes: see [ADR-011](decisions/ADR-011-model-licence.md). Training data is not redistributed either: it is rebuilt from pinned public revisions.
+The text-to-data fine-tunes. Training data is not redistributed either: it is rebuilt from pinned public revisions.
 
 ## Later
 

@@ -23,7 +23,7 @@ Seven top-level directories, each with one role (details in [docs/repository_str
 | `scripts/` | reusable utilities, including `build_report.py` and the preserved V1 baseline in `scripts/legacy_v1/` |
 | `scratch/` | temporary experiments and prototypes (git-ignored) |
 | `runs/` | all generated experiment outputs: logs, metrics, telemetry, figures, reports, manifests |
-| `docs/` | permanent documentation, ADRs, and the specification / experiment registry (`docs/spec/`) |
+| `docs/` | permanent documentation, ADRs, and the specification (`docs/spec/`) |
 
 Rules: production code stays in `litegpt/` with no experimental or duplicate implementations; benchmark tools stay in
 `benchmarks/` and their results go to `runs/<run-id>/`; there is no top-level `reports/` directory (the generated report is

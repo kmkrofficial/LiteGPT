@@ -1,7 +1,7 @@
 # Benchmarking and records
 
 Everything reported about V2 comes from run records (see
-[ADR-006](decisions/ADR-006-toolchain-oct-2026.md)).
+ADR-006).
 
 ```
 benchmarks/, litegpt/, scripts/   tools that produce results (never write results into their own directories)
@@ -38,8 +38,7 @@ uv run python -m benchmarks.power_sweep auto                                # GP
 Each config runs in its own subprocess on synthetic tokens with the real recipe (fp32 weights, bf16 autocast, fused AdamW,
 grad clipping). MFU is reported against the **measured** matmul ceiling, using both FLOP conventions (`full` = PaLM,
 `causal` = half the attention term). The allocator is capped at 97% of VRAM so that Windows cannot silently spill into shared
-memory (which would make a too-large configuration look merely slow). The requirement is 16,500 tokens/s sustained
-([ADR-001](decisions/ADR-001-compute-budget-and-extension-gate.md)).
+memory (which would make a too-large configuration look merely slow). The requirement is 16,500 tokens/s sustained.
 
 GPU telemetry (power, temperature, clocks, throttle reasons) is sampled with NVML during measurement; laptop GPUs are
 power-capped under load, which is reported separately from thermal throttling.

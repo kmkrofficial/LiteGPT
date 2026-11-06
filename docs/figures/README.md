@@ -112,7 +112,7 @@ Generated from the run records by `python -m scripts.build_figures`. Don't edit 
 
 ![Peak learning rate 2.4e-3 was chosen from a short sweep](m3_lr_sweep.svg)
 
-*200M tokens each, with a short warm-up. The owner approved the choice before pretraining.* Source: `runs/*-train-m3lr-*/eval.jsonl`.
+*200M tokens each, with a short warm-up. Chosen before pretraining began.* Source: `runs/*-train-m3lr-*/eval.jsonl`.
 
 ![Architecture steps gained a little; the data mix transformed code](ladder_steps.svg)
 

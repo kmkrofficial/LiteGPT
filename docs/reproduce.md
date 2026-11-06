@@ -1,6 +1,6 @@
 # Reproducing the V2 environment
 
-Pinned in [`pyproject.toml`](../pyproject.toml) and [`uv.lock`](../uv.lock) ([ADR-006](decisions/ADR-006-toolchain-oct-2026.md)):
+Pinned in [`pyproject.toml`](../pyproject.toml) and [`uv.lock`](../uv.lock):
 Python 3.12, torch 2.14.1+cu130 and the rest of the stack. `uv sync --locked` is the only supported install path.
 
 ## Windows (development, eager mode)

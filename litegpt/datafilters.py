@@ -1,4 +1,4 @@
-"""Document filters for the code source (registered in docs/spec/registry.yaml, EXP-M1-PREFLIGHT).
+"""Document filters for the code source (EXP-M1-PREFLIGHT).
 
 One function, `filter_code`, applies the rules in a fixed order and returns the first rule that rejects a document, or the
 (email-redacted) text if it is kept. The same module is used by the audit scripts and by `scripts/prepare_data.py`, so the

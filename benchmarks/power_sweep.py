@@ -55,7 +55,7 @@ LOCK_MIN_MHZ = 210        # floor of the locked range (lowest supported graphics
 LOCK_CAP_MIN_MHZ = 900    # never cap below this
 CLOCK_GRID_MHZ = 15       # supported graphics clocks are spaced 15 MHz apart
 DEFAULT_CAP_STEPS = (100, 200, 300)   # auto: caps at natural clock minus these (caps above the natural clock never bind)
-THRESHOLDS = {            # PRE-REGISTERED in docs/spec/registry.yaml (EXP-M0-POWER); recorded in every sweep record
+THRESHOLDS = {            # pre-registered (EXP-M0-POWER); recorded in every sweep record
     "temp_target_c": 85.0,         # GPU target temperature reported by nvidia-smi
     "thermal_margin_c": 3.0,       # candidate must stay <= target - margin
     "abort_temp_c": 90.0,          # point aborted (invalid) at or above this

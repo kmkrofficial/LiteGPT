@@ -6,7 +6,7 @@
 ## What is measured
 
 Suite v0 (`litegpt/eval/suite_v0.yaml`, `litegpt/eval/SUITE_VERSION`) was frozen at 0.1.0 before the first model was scored and
-corrected to 0.1.1 before the affected scores were final (every correction is in the registry): the chat code tasks are
+corrected to 0.1.1 before the affected scores were final: the chat code tasks are
 corrected copies of lm-eval's (`litegpt/eval/tasks/code_chat`: lm-eval 0.4.13 cut restated functions at `
 def` and deleted a
 leading `def` in MBPP answers). The base groups are identical in both versions.

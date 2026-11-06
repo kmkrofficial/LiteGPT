@@ -6,8 +6,8 @@
 
 | item | value |
 |---|---|
-| spec version | `2.0.0-spec.9` |
-| spec sha256 | `1dd628d51109130a…` |
+| spec version | `2.0.0-spec.10` |
+| spec sha256 | `ccf5c1358c21b0bf…` |
 | code licence / model licence | MIT / apache-2.0 |
 | python / torch (pinned) | 3.12 / 2.14.1+cu130 |
 | attention | sdpa mandatory; flash-attn 2.8.3+cu130torch2.14 optional (adopted-for-auto) |

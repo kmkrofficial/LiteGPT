@@ -1,18 +1,16 @@
 # Documentation
 
-**Start here:** [results.md](results.md) for every benchmark, [figures](figures/README.md) for every chart, and [history.md](history.md) for how V2 was built.
+**Start here:** [results.md](results.md) for every benchmark, [figures](figures/README.md) for every chart.
 
 | Page | What it covers |
 |---|---|
 | [results.md](results.md) | Benchmarks and comparisons, where V2 leads and where it loses |
 | [figures/](figures/README.md) | All charts, generated from the run records |
-| [history.md](history.md) | Stages, decisions, deviations and failures |
 | [architecture.md](architecture.md) | The model |
 | [inference.md](inference.md) | Engine, Python API and CLI |
 | [chat_template.md](chat_template.md) | The chat format |
 | [training.md](training.md) | Pretraining, chat fine-tuning and text-to-data fine-tuning |
 | [data.md](data.md) | Data sources, mixture and preparation |
-| [data_licenses.md](data_licenses.md) | Licence and provenance register |
 | [evaluation.md](evaluation.md) | Evaluation suite and scoring |
 | [benchmarking.md](benchmarking.md) | Run records and generated reports |
 | [reproduce.md](reproduce.md) | Setting up the environment |
@@ -22,7 +20,6 @@
 
 **Binding records:**
 - [spec/v2.yaml](spec/v2.yaml): the specification.
-- [spec/registry.yaml](spec/registry.yaml): every experiment, with thresholds set before it ran, and its conclusion.
 - [spec/data_sources.yaml](spec/data_sources.yaml): exact dataset revisions.
 - [decisions/](decisions/README.md): architecture decision records.
 

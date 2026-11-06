@@ -1,6 +1,6 @@
 # ADR-002: Environment, attention backends and `torch.compile`
 
-Status: Accepted — amended by [ADR-006](ADR-006-toolchain-oct-2026.md): the Python/torch/CUDA versions and pip lock files below are superseded (now Python 3.12, uv, torch 2.14.1+cu130). The SDPA-mandatory / flash-optional / WSL2-preferred policy stands.
+Status: Accepted — amended later by the October 2026 toolchain update: the Python/torch/CUDA versions and pip lock files below are superseded (now Python 3.12, uv, torch 2.14.1+cu130). The SDPA-mandatory / flash-optional / WSL2-preferred policy stands.
 Date: 2026-10-06
 Spec fields: `environment`, `model.attention_backend`
 

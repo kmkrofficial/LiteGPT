@@ -4,9 +4,7 @@ Date: 2026-10-06/07. Hardware: Lenovo 83DE (Legion Pro 7i), RTX 4090 Laptop GPU 
 Workload for every number below unless stated: LiteGPT V2 28L (201.4M params), bf16 autocast, fused AdamW, grad clipping,
 synthetic tokens (throughput does not depend on data content). Every number cites the run record it comes from
 (`runs/<run-id>/`); the generated report (`runs/report-latest/REPORT.md`) is built from the same records.
-Decision records: [ADR-001](decisions/ADR-001-compute-budget-and-extension-gate.md) (budget, evidence),
-[ADR-006](decisions/ADR-006-toolchain-oct-2026.md) (toolchain, flash-attn, compile); experiment registry:
-[`docs/spec/registry.yaml`](spec/registry.yaml).
+Decision record: ADR-002.
 
 ## 1. Summary
 
@@ -50,7 +48,7 @@ Harness findings that changed how we measure:
 
 ## 4. Attention backend and torch.compile
 
-Both were adopted only through rules written into the registry **before** measuring.
+Both were adopted only through rules written down **before** measuring.
 
 **flash-attn (EXP-M0-FLASH, Windows):** parity with SDPA (plain and packed `cu_seqlens`) passed; 4 alternating A/B rounds at 28L
 mb3x2048: SDPA 15,375 vs flash 17,250 tok/s = **+12.2%**, identical VRAM (run 20261006T131103Z). Adopted for `attention_backend=auto`.
@@ -77,14 +75,14 @@ touches the CPU. Points abort at 90 C or on any hardware slowdown.
 Pre-registered rules (unchanged throughout): **invalid** on crash / CUDA error / non-finite loss / loss rising >10% above its
 running minimum / tok/s CV > 0.08 / >= 90 C / HW slowdown; **candidate** = valid AND 0% thermal throttling AND peak temperature
 <= 82 C (85 C target - 3 C) AND CV <= 0.03 AND last/first window >= 0.97; **selection** = highest tok/s, ties within 1% to the
-lower power; **soak** = the selected point must still be a candidate over 60 min; **adoption** = owner decision, never automatic.
+lower power; **soak** = the selected point must still be a candidate over 60 min; **adoption** = a recorded decision, never automatic.
 
 ### 5.2 Protocol evolution and defects found (all runs kept for provenance)
 
 | Run | What | Outcome |
 |---|---|---|
 | 20261006T164224Z | Staged `screen`, non-elevated validation | Current setting 31,120 tok/s at 155 W, max 80 C; failed decay (0.961): a ~5 min thermal transient dominates short cold-start points. The `lgc` point was safely skipped (no elevation) |
-| 20261006T165630Z | Staged `screen`, elevated (owner) | Interrupted after ~3.5 min of its first point; no results |
+| 20261006T165630Z | Staged `screen`, elevated | Interrupted after ~3.5 min of its first point; no results |
 | 20261006T170001Z | New `auto` protocol smoke test (short) | Pipeline works end-to-end (single continuous process, live window stream) |
 | 20261006T171445Z | `auto`, elevated | **Harness defect:** the workload trained on one repeated batch, the loss collapsed to ~1e-7, and the 10% loss-rise rule fired on rounding noise (e.g. 5.2e-8 -> 8.2e-8), invalidating all cap points. Physical measurements valid |
 | 20261006T173836Z | Smoke test after the fix | Fresh random tokens every step keep the loss at ~10.40; no false flags; throughput unchanged |
@@ -92,7 +90,7 @@ lower power; **soak** = the selected point must still be a candidate over 60 min
 
 Why `auto`: one continuous workload process (compiled once, never cooled down); the controller switches operating points live;
 caps are derived below the measured natural clock (caps above it never bind). ~81 min instead of ~2.5-3.5 h for the staged
-protocol. The schedule change and the workload fix were recorded in the registry before the corrected run.
+protocol. The schedule change and the workload fix were written down before the corrected run.
 
 ### 5.3 Final sweep (run 20261006T174824Z; 4-min segments, 1 min settle; WSL2, SDPA + compile, mb4x2048, 155 W limit)
 
@@ -120,7 +118,7 @@ Analysis:
 - The decay criterion compares single 30-second windows, which makes it fragile (the same weakness as using a single 1-second
   peak-temperature sample for the thermal margin; the current setting failed that by 1 C).
 
-### 5.5 Decision (owner, 2026-10-07)
+### 5.5 Decision (2026-10-07)
 
 **Keep the current 155 W setting with no clock cap** (no change to production). Reasons: it is the fastest point and never
 thermally throttled in any run (mean ~81 C is normal under full load; it failed only a 1 C single-sample peak margin); a cap buys

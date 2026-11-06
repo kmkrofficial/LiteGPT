@@ -1,6 +1,6 @@
 # Results
 
-Every number here comes from a run record in `runs/` and was measured by us, under thresholds registered before the measurement ([`docs/spec/registry.yaml`](spec/registry.yaml)). Models we did not measure are not listed. This is not a survey of all small models. **[All charts](figures/README.md)** are generated from the records. V2 is always blue and V1 orange.
+Every number here comes from a run record in `runs/` and was measured by us, under thresholds registered before the measurement. Models we did not measure are not listed. This is not a survey of all small models. **[All charts](figures/README.md)** are generated from the records. V2 is always blue and V1 orange.
 
 ## Short version
 
@@ -184,7 +184,7 @@ V2-Instruct refuses nothing, so it has no safety behaviour.
 
 ![V2 against V1 on every benchmark](figures/v1_vs_v2.svg)
 
-Architecture, tokenizer, data and size all changed between versions, so this shows the whole model improving and can't credit any one part. The [design ladder](history.md#the-design-ladder-m2) tested the parts one at a time.
+Architecture, tokenizer, data and size all changed between versions, so this shows the whole model improving and can't credit any one part. The design ladder tested the parts one at a time.
 
 ![Scores at the 2.5B, 5B, 9B and final checkpoints](figures/m3_checkpoints.svg)
 

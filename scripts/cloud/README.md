@@ -26,5 +26,3 @@ How M3 and M4 ran unattended on one rented GPU. They are written for this projec
 - **Check the backup list against what's actually written.** M3's guard skipped milestones, and M4's backup skipped an evaluation run.
 - **Stopped servers can lose their GPU** to another renter, and a local volume can't be attached elsewhere. `vastai copy` from the volume to any cheap server worked.
 - **A stopped server still charges for storage.**
-
-More in [docs/history.md](../../docs/history.md).

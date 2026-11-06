@@ -608,7 +608,7 @@ def fig_m3_lr() -> None:
     axes[0].set_title("Real V2, four peak learning rates")
     hbars(axes[1], [("V2" if v == min(f[1] for f in finals) else lab, v) for lab, v in finals], title="Final (lower is better); V2's choice in blue", xmax=2.1)
     axes[1].set_yticks(axes[1].get_yticks(), [lab for lab, _ in finals])
-    finish(fig, "m3_lr_sweep", "training", "Peak learning rate 2.4e-3 was chosen from a short sweep", "200M tokens each, with a short warm-up. The owner approved the choice before pretraining.", "runs/*-train-m3lr-*/eval.jsonl", 0.83)
+    finish(fig, "m3_lr_sweep", "training", "Peak learning rate 2.4e-3 was chosen from a short sweep", "200M tokens each, with a short warm-up. Chosen before pretraining began.", "runs/*-train-m3lr-*/eval.jsonl", 0.83)
 
 
 LADDER = [("s2", "+ RoPE"), ("s3", "+ RMSNorm, QK-norm"), ("s4", "+ SwiGLU"), ("s5", "+ grouped-query attention"), ("s6", "+ deeper, thinner"), ("s7", "+ 32k tokenizer"), ("s8a", "+ full data mix")]
@@ -681,7 +681,7 @@ def fig_sft() -> None:
     axes[1].set_title("Learning rate")
     axes[2].plot(x, rolling([r["tok_per_s"] / 1000 for r in rows], 15), color=BLUE, linewidth=1.4)
     axes[2].axhline(55, color=INK2, linewidth=1, linestyle=":")
-    axes[2].text(x[0], 56.5, "registered 55k line (owner continued below it)", fontsize=7.5, color=INK2, va="bottom")
+    axes[2].text(x[0], 56.5, "registered 55k line", fontsize=7.5, color=INK2, va="bottom")
     axes[2].set_ylim(0, 65)
     axes[2].set_title("Speed, thousand token slots per second, rolling median")
     axes[2].set_xlabel("token slots, billions")

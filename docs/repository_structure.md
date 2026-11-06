@@ -9,7 +9,7 @@ benchmarks/     reusable benchmark scripts and tooling (results go to runs/)
 scripts/        reusable utilities; scripts/legacy_v1/ is the preserved V1 baseline
 scratch/        temporary experiments and prototypes (git-ignored)
 runs/           all generated experiment outputs
-docs/           permanent docs, ADRs, spec/ (specification and experiment registry)
+docs/           permanent docs, ADRs, spec/ (specification)
 ```
 
 Each top-level folder has a README saying what is in it. Root files: `README.md`, `CHANGELOG.md`, `LICENSE`, `pyproject.toml`, `uv.lock`, `.gitignore`, `.gitattributes`.
@@ -44,7 +44,6 @@ committed report no longer matches the run records.
 |---|---|
 | inference engine, chat template, tokenizer wrapper, training loops, eval harness and adapters, HF export, quantization | `litegpt/` subpackages (`litegpt/inference/`, `litegpt/training/`, `litegpt/eval/`, `litegpt/export/`) |
 | data-preparation entry points, tokenizer training, decontamination runs | `scripts/` (their outputs: shards and manifests under `runs/`) |
-| dataset licence register | `docs/data_licenses.md` |
 | new benchmark scripts | `benchmarks/` |
 
 ## V1 baseline (`scripts/legacy_v1/`)

@@ -1,6 +1,31 @@
 # Training
 
-Configs: [`benchmarks/m3/`](../benchmarks/m3), [`benchmarks/m4/`](../benchmarks/m4). Thresholds and results: [`docs/spec/registry.yaml`](spec/registry.yaml). Scores: [`results.md`](results.md).
+Configs: [`benchmarks/m3/`](../benchmarks/m3), [`benchmarks/m4/`](../benchmarks/m4). Scores: [`results.md`](results.md).
+
+## Design experiments (EXP-M2-LADDER)
+
+Before pretraining, each architecture change was tested one at a time on a small proxy model, 1B tokens each, on the laptop GPU. Bits per byte, lower is better:
+
+| Step | Change | Web | Code |
+|---|---|---:|---:|
+| s1 | V1 baseline (mean of two stable seeds) | 1.1096 | 1.8147 |
+| s2 | + RoPE | 1.0750 | 1.8433 |
+| s3 | + RMSNorm and QK-norm | 1.0640 | 1.7490 |
+| s4 | + SwiGLU | 1.0609 | 1.7652 |
+| s5 | + grouped-query attention | 1.0593 | 1.8463 |
+| s6 | + deeper and thinner | 1.0599 | 1.7704 |
+| s7 | + 32k tokenizer | 1.0632 | 1.8957 |
+| s8a | + full data mixture | 1.0958 | 0.7123 |
+
+![Bits per byte at each ladder step](figures/ladder_steps.svg)
+
+The tokenizer and the full mixture made web text slightly worse, and the mixture cut code bits per byte by more than half. Both were kept, because web text was not the only goal.
+
+![The ladder's learning-rate sweep](figures/ladder_lr_sweep.svg)
+
+![Three baseline seeds, one of which diverged](figures/ladder_seed_divergence.svg)
+
+One baseline seed diverged late in its decay. A divergence rule and a third seed were added before any later result.
 
 ## Pretraining (EXP-G1-EXTENSION-GATE)
 
@@ -42,9 +67,9 @@ Configs: [`benchmarks/m3/`](../benchmarks/m3), [`benchmarks/m4/`](../benchmarks/
 
 The held-out loss chooses the epoch and says nothing about quality against other models.
 
-**Deviation:** real packed steps ran at 46.7k tokens per second, below the registered 55k stop. The owner chose to continue, on flash attention at micro-batch 8 (50.1k mean).
+**Deviation:** real packed steps ran at 46.7k tokens per second, below the registered 55k stop. Training continued on flash attention at micro-batch 8 (50.1k mean).
 
-Reasoning and preference tuning were deferred ([ADR-010](decisions/ADR-010-m4-scope-text-to-data-comparison-and-cloud.md)).
+Reasoning and preference tuning were deferred.
 
 ## Fine-tuning for text-to-data (EXP-M4-T2D)
 

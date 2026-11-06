@@ -1,9 +1,9 @@
 # Data
 
 **Status: final; used for M3 and M4.** Binding configuration: [`docs/spec/data_sources.yaml`](spec/data_sources.yaml) and spec `data.*` / `tokenizer.*`
-(2.0.0-spec.6, [ADR-008](decisions/ADR-008-data-sources-mixture-and-freeze.md)). Measured numbers (tokens per source,
+(2.0.0-spec.6). Measured numbers (tokens per source,
 filter and decontamination rates, duplicates, frozen hashes) are in section 3c of the generated report
-(`runs/report-latest/REPORT.md`); licences and provenance are in [data_licenses.md](data_licenses.md).
+(`runs/report-latest/REPORT.md`); licence attributions are in each model's notice file.
 
 ## Sources
 
@@ -15,7 +15,7 @@ filter and decontamination rates, duplicates, frozen hashes) are in section 3c o
 | Code | `codeparrot/github-code-clean` files 0–261 | permissive licences only; Python 63 / JS 14 / TS 14 / SQL 4 / Shell 5 |
 | Instruction-style (decay only) | `HuggingFaceTB/smoltalk` smol-summarize / rewrite / constraints | rendered with `litegpt-chat-v1` |
 
-Every source is pinned to an exact Hub commit. Wikipedia is excluded (licence decision, ADR-008).
+Every source is pinned to an exact Hub commit. Wikipedia is excluded (licence decision).
 
 ## Mixture
 

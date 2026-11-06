@@ -110,7 +110,7 @@ Once downloaded, everything runs offline. More in [docs/inference.md](docs/infer
 | Chat fine-tuning | 3 epochs on curated conversations, passing its registered quality gate |
 | Evaluation | One suite for V2 and 16 other models, plus a fine-tuned text-to-data benchmark |
 
-The full story is in [docs/history.md](docs/history.md), every benchmark is in [docs/results.md](docs/results.md), and every chart is in [docs/figures](docs/figures/README.md).
+Every benchmark is in [docs/results.md](docs/results.md), and every chart is in [docs/figures](docs/figures/README.md).
 
 ## What's next
 
@@ -121,7 +121,7 @@ Work is now starting on a fresh tokenizer.
 | Folder | What it holds |
 |---|---|
 | [`litegpt/`](litegpt/README.md) | The package: model, tokenizer, inference, training, evaluation, export, API and CLI |
-| [`docs/`](docs/README.md) | Results, charts, history, architecture, data, licences, decisions and the experiment registry |
+| [`docs/`](docs/README.md) | Results, charts, architecture, data, training, decisions and the specification |
 | [`benchmarks/`](benchmarks/README.md) | Run configs and benchmark tools |
 | [`scripts/`](scripts/README.md) | Data preparation, training, scoring, release and rented-server tools |
 | [`tests/`](tests/README.md) | The test suite |
@@ -133,7 +133,7 @@ V1 is GPT-2 Small (124M), trained on FineWeb-Edu and fine-tuned on Alpaca, publi
 
 ## Licence
 
-Code: MIT ([`LICENSE`](LICENSE)). Weights: Apache-2.0, each model with its own notice file ([ADR-011](docs/decisions/ADR-011-model-licence.md)). Datasets and their terms: [docs/data_licenses.md](docs/data_licenses.md).
+Code: MIT ([`LICENSE`](LICENSE)). Weights: Apache-2.0. Each model ships a notice file listing its data sources and their terms.
 
 ## Acknowledgements
 

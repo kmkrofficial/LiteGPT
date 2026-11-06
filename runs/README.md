@@ -1,6 +1,6 @@
 # Run records
 
-Every number reported about V2 comes from a record here. A run's folder is named `<UTC time>-<kind>-<name>-<commit>`, where kind is `train`, `eval`, `bench`, `data` or `test`. [`report-latest/REPORT.md`](report-latest/REPORT.md) is generated from them. What each experiment was testing is in the [registry](../docs/spec/registry.yaml).
+Every number reported about V2 comes from a record here. A run's folder is named `<UTC time>-<kind>-<name>-<commit>`, where kind is `train`, `eval`, `bench`, `data` or `test`. [`report-latest/REPORT.md`](report-latest/REPORT.md) is generated from them.
 
 | File | What it holds |
 |---|---|
