@@ -82,6 +82,16 @@ Generated from the run records by `python -m scripts.build_figures`. Don't edit 
 
 *Learning-rate decay, data mix and context all changed there, so one run can't separate the causes.* Source: `runs/*-eval-base-litegpt-*, runs/*-eval-bpb-litegpt-*`.
 
+## CPU and Raspberry Pi
+
+![On CPU, 4 to 8 threads is the sweet spot for decode](cpu_threads.svg)
+
+*Laptop CPU (i9-14900HX), prompt 128, 64 new tokens, median of 3. Past 8 threads the slower E-cores join.* Source: `runs/*-bench-cpu-*/bench/cpu.json`.
+
+![On CPU, V2 needs under 1.7 GiB and keeps pace with models of its size](cpu_ram_speed.svg)
+
+*float32, prompt 128. The Pi 5 figure is an estimate from laptop runs and published Pi bandwidth, not a measurement.* Source: `runs/*-bench-cpu-*/bench/`.
+
 ## Chat models
 
 ![V2-Instruct beats V1-Instruct and trails the rest on instructions](chat_tasks.svg)

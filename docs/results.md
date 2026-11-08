@@ -8,6 +8,7 @@ Every number here comes from a run record in `runs/` and was measured by us, und
 - **It is a real step up from V1**, with no task clearly worse and five clearly better.
 - **As a general base model it sits mid-table:** 6th of 11 on the zero-shot mean, and behind the two rivals nearest its size.
 - **It cannot do math or code yet:** GSM8K 0.008, HumanEval 2 of 164 problems.
+- **On CPU it runs in 1.66 GiB of RAM** and decodes at 52.5 tok/s on 4 laptop threads, level with SmolLM2-135M. A Raspberry Pi 5 is estimated at about 12 tok/s.
 - **Chat improved but stays weak:** V2-Instruct beats V1-Instruct, trails SmolLM2-135M-Instruct and Gemma 3 270M-it, and refuses nothing.
 - **Its case is the record:** how it was built, what it was tested on and what it lost.
 
@@ -180,6 +181,65 @@ V2-Instruct, released as LiteGPT-Llama-V2-Instruct, is V2 after 3 epochs of chat
 
 V2-Instruct refuses nothing, so it has no safety behaviour.
 
+## CPU and Raspberry Pi
+
+Measured on the laptop's CPU only: an i9-14900HX with 8 performance and 16 efficiency cores, AVX2 and AVX-VNNI, no AVX-512 and no native bf16 maths, under WSL2. Batch 1, greedy, 64 new tokens, median of 3 runs. Prefill and decode are timed step by step inside one real generation. V2 runs on LiteGPT's own engine and, for a like-for-like line, on Transformers. The rivals run on Transformers. Instruct models share their base's architecture, so they run at the same speed. RAM is the peak of the whole process, Python and PyTorch included. Memory bandwidth measured with the same tools: 27.6 GB/s read on 1 thread, 59.9 on 4, 73.1 on 8.
+
+![Decode speed by thread count, float32 and bfloat16](figures/cpu_threads.svg)
+
+**float32, prompt 128 tokens**
+
+| Model | Parameters | Weights, GB | Peak RAM, GiB | Load, s | Prefill tok/s, 4 threads | Decode tok/s, 1 / 4 / 8 / 16 threads | First token, 4 threads, s |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **LiteGPT V2** | 201.4M | 0.81 | 1.66 | 1.6 | 953 | 32.3 / 52.5 / 54.4 / 43.8 | 0.13 |
+| LiteGPT V2 (Transformers) | 201.4M | 0.81 | 1.98 | 2.7 | 835 | 27.9 / 44.7 / 44.9 / 34.6 | 0.15 |
+| SmolLM2-135M | 134.5M | 0.54 | 1.61 | 3.1 | 1,112 | 36.6 / 51.6 / 61.8 / 47.9 | 0.12 |
+| Gemma 3 270M | 268.1M | 1.07 | 2.60 | 3.6 | 1,105 | 22.6 / 37.0 / 45.5 / 35.3 | 0.12 |
+| LiteGPT V1 | 124.5M | 0.50 | 1.42 | 2.7 | 1,580 | 49.6 / 73.9 / 74.9 / 68.2 | 0.08 |
+
+With a 512-token prompt on 4 threads, V2 prefills at 988 tok/s, decodes at 50.2 tok/s and gives its first token in 0.52 s.
+
+- **V2 decodes as fast as SmolLM2-135M on 4 threads** (52.5 against 51.6 tok/s) while being 1.5 times its size, and 42% faster than Gemma 3 270M. On 8 threads SmolLM2 pulls ahead.
+- **LiteGPT's own engine is 17% faster than Transformers** at decode for the same V2 weights, and uses 0.32 GiB less RAM.
+- **Decode is limited by memory bandwidth.** V2 reads its weights at 42 GB/s on 4 threads, against 60 GB/s measured. Past 8 threads the efficiency cores join and every model slows down.
+- **Use float32 on this CPU.** Without native bf16 maths, bf16 prefill is 3.5 to 5 times slower for V2 and the rivals. bf16 decode is a little faster because half the bytes are read:
+
+| Model, 4 threads | Decode tok/s, fp32 / bf16 | Prefill tok/s, fp32 / bf16 | Peak RAM GiB, fp32 / bf16 |
+|---|---:|---:|---:|
+| **LiteGPT V2** | 52.5 / 61.0 | 953 / 197 | 1.66 / 1.68 |
+| LiteGPT V2 (Transformers) | 44.7 / 52.2 | 835 / 185 | 1.98 / 1.27 |
+| SmolLM2-135M | 51.6 / 60.8 | 1,112 / 233 | 1.61 / 1.15 |
+| Gemma 3 270M | 37.0 / 50.3 | 1,105 / 308 | 2.60 / 1.62 |
+| LiteGPT V1 | 73.9 / 12.1 | 1,580 / 22 | 1.42 / 1.54 |
+
+V1 runs on Transformers' GPT-2 code, whose bf16 path is very slow on this CPU. Use V1 in float32.
+
+![Peak RAM, decode and prefill on 4 threads, and the Raspberry Pi 5 estimate](figures/cpu_ram_speed.svg)
+
+### Raspberry Pi estimates
+
+These are **estimates, not measurements**: no Pi was run. They scale the laptop's 4-thread results to the board.
+
+- **Decode** is multiplied by the ratio of the Pi's memory bandwidth to the laptop's (59.9 GB/s on 4 threads), and capped by the Pi's bandwidth divided by the weight bytes read per token. The bandwidth used is about 13.8 GB/s sustained read for the Pi 5, measured in [Arm's LLM decode roofline guide](https://learn.arm.com/learning-paths/cross-platform/llm-decode-roofline/measure-bandwidth/), and about 2.2 GB/s for the Pi 3 Model B, from [RAMspeed on OpenBenchmarking](https://openbenchmarking.org/result/1604209-GA-RPI3RAMSP14).
+- **Prefill** is divided by the per-core peak float32 throughput from specs: a Cortex-A76 at 2.4 GHz has about 4 times less than one of the laptop's performance cores, and a Cortex-A53 at 1.2 GHz about 16 times less. It is shown as a range from half to 1.5 times that, because we found no measured figure.
+- **Memory fit** compares the laptop's peak RAM with 3.2 GB usable on a 4 GB Pi 5, 7.2 GB on an 8 GB one, and 0.75 GB on a 1 GB Pi 3.
+- **Assumed:** a 64-bit OS and PyTorch's aarch64 build, with 4 threads. Neither board has native bf16 maths, so float32 is the recommended setting.
+
+**Raspberry Pi 5, float32, prompt 128 tokens (estimate)**
+
+| Model | Decode tok/s (ceiling) | Prefill tok/s, range | First token, s | Fits in 4 GB |
+|---|---:|---:|---:|---|
+| **LiteGPT V2** | 12.1 (17.1) | 238 (119 to 357) | 0.5 | yes, peak 1.66 GiB |
+| SmolLM2-135M | 11.9 (25.6) | 278 (139 to 417) | 0.5 | yes, peak 1.61 GiB |
+| Gemma 3 270M | 8.5 (12.9) | 276 (138 to 414) | 0.5 | yes, peak 2.60 GiB |
+| LiteGPT V1 | 17.0 (27.7) | 395 (198 to 593) | 0.3 | yes, peak 1.42 GiB |
+
+In bf16 the estimate for V2 is 14.0 tok/s decode, but about 2.6 s to the first token, so float32 is the better setting on a Pi 5.
+
+**Raspberry Pi 3 Model B (estimate):** about 1.9 tok/s decode for V2 in float32, and about 2 s to the first token for a 128-token prompt. None of the four models fits in 1 GB with PyTorch: V2's float32 weights alone are 0.81 GB, and its bf16 run peaks at 1.68 GiB. A Pi 3 needs a lighter runtime and 8-bit weights.
+
+All figures come from `runs/*-bench-cpu-*` and `benchmarks/cpu_bench.py`, run as `python -m benchmarks.cpu_bench all`.
+
 ## V2 against V1
 
 ![V2 against V1 on every benchmark](figures/v1_vs_v2.svg)
@@ -193,7 +253,8 @@ Architecture, tokenizer, data and size all changed between versions, so this sho
 | Measure | V2 | Next best | Limit |
 |---|---:|---:|---|
 | GPU memory, batch of 8 | 0.59 GiB, lowest of all 11 | SmolLM2-135M 0.73 | Different engines |
-| GPU decode against SmolLM2, Gemma and Qwen | 86 tok/s | Qwen2.5-0.5B 64 | Different engines; older, shallower models are faster; not faster on CPU |
+| GPU decode against SmolLM2, Gemma and Qwen | 86 tok/s | Qwen2.5-0.5B 64 | Different engines; older, shallower models are faster |
+| CPU decode on 4 threads, float32 | 52.5 tok/s in 1.66 GiB | SmolLM2-135M 51.6 | SmolLM2 is faster on 8 threads; different engines |
 | Code bits per byte, under 300M parameters | 0.515 | SmolLM2-135M 0.559 | Does not mean working code |
 | First token on CPU, short documents | MASSIVE 0.15 s, Banking77 0.11 s | SmolLM2 0.18 s, Gemma 0.14 s | Small samples; slower than SmolLM2 and Gemma on CUAD |
 | Generation speed on BillSum | 103 s | Gemma 125 s | V2's summaries scored lowest |

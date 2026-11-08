@@ -1,0 +1,21 @@
+{
+  "rows": [
+    {
+      "threads": 1,
+      "read_gbs": 27.578547679383384,
+      "copy_gbs": 23.88490243343213
+    },
+    {
+      "threads": 4,
+      "read_gbs": 59.92914961495828,
+      "copy_gbs": 56.63197962479196
+    },
+    {
+      "threads": 8,
+      "read_gbs": 73.14855253986495,
+      "copy_gbs": 58.2326093056143
+    }
+  ],
+  "cpu": "Intel(R) Core(TM) i9-14900HX",
+  "note": "torch sum (read) and copy (read plus write), float32, 1 GiB, median of 5"
+}

@@ -68,3 +68,7 @@ Everything runs offline. Options are the fields of `GenerationConfig`; greedy by
 An exported model loads with `AutoModelForCausalLM` and needs no remote code. In float32, logits and greedy output are identical to LiteGPT's on the registered prompts (EXP-M5-EXPORT). Benchmarks were scored through LiteGPT's engine, and at bfloat16 Transformers can differ from it slightly.
 
 `litegpt.load` and the `litegpt` command also read an exported folder.
+
+## On CPU
+
+Load in float32 on a CPU without native bf16 maths. On the laptop, bf16 made prefill about 5 times slower. Use 4 to 8 threads (`torch.set_num_threads`): decode is limited by memory bandwidth, and on a laptop with efficiency cores more threads made it slower. LiteGPT's own engine decoded 17% faster than Transformers on the same weights. The measured numbers and the Raspberry Pi estimates are in [results.md](results.md#cpu-and-raspberry-pi).

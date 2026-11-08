@@ -439,6 +439,54 @@ def fig_base_speed_quality() -> None:
     finish(fig, "base_speed_vs_quality", "base", "No model here is both fastest and best", "V2 is the fastest of the modern models and sits mid-table on quality. Engines differ.", "runs/*-eval-efficiency-*, runs/*-eval-base-*", 0.88)
 
 
+CPU_MODELS = {"v2-litegpt": V2, "v2-hf": "V2 (Transformers)", "smollm2": "SmolLM2-135M", "gemma": "Gemma 3 270M", "v1": V1}
+
+
+def cpu(model: str, dtype: str) -> dict:
+    return load(runs("bench", f"cpu-{model}-{dtype}")[-1] / "bench" / "cpu.json")
+
+
+def cpu_row(r: dict, threads: int, prompt: int = 128) -> dict:
+    return next(x for x in r["rows"] if x["threads"] == threads and x["prompt_tokens"] == prompt)
+
+
+def fig_cpu_threads() -> None:
+    fig, axes = plt.subplots(1, 2, figsize=(8.6, 3.4), sharey=True)
+    style = {V2: (BLUE, "-"), "V2 (Transformers)": (BLUE, ":"), V1: (ORANGE, "-"), "SmolLM2-135M": (GRAY, "-"), "Gemma 3 270M": (GRAY, "--")}
+    for ax, dtype, title in zip(axes, ("float32", "bfloat16"), ("float32", "bfloat16 (no native bf16 maths on this CPU)")):
+        for m, n in CPU_MODELS.items():
+            rows = sorted((x for x in cpu(m, dtype)["rows"] if x["prompt_tokens"] == 128), key=lambda x: x["threads"])
+            c, ls = style[n]
+            ax.plot([x["threads"] for x in rows], [x["decode_tok_s"] for x in rows], color=c, linestyle=ls, marker="o", markersize=3.5, label=n)
+        ax.set_xscale("log", base=2)
+        ax.set_xticks([1, 4, 8, 16], ["1", "4", "8", "16"])
+        ax.set_xlabel("threads")
+        ax.set_title(title)
+        grid(ax, "both")
+    axes[0].set_ylabel("decode tok/s, batch 1")
+    axes[0].set_ylim(bottom=0)
+    axes[1].legend(fontsize=7.5, frameon=False, loc="center left", bbox_to_anchor=(1.02, 0.5))
+    finish(fig, "cpu_threads", "cpu", "On CPU, 4 to 8 threads is the sweet spot for decode",
+           "Laptop CPU (i9-14900HX), prompt 128, 64 new tokens, median of 3. Past 8 threads the slower E-cores join.", "runs/*-bench-cpu-*/bench/cpu.json", 0.86)
+
+
+def fig_cpu_ram_speed() -> None:
+    names = {m: n for m, n in CPU_MODELS.items() if m != "v2-hf"}
+    f32 = {m: cpu(m, "float32") for m in names}
+    pi = load(runs("bench", "cpu-pi-estimate")[-1] / "bench" / "pi_estimate.json")["models"]
+    fig, axes = plt.subplots(2, 2, figsize=(7.8, 4.4))
+    a = axes.flat
+    hbars(a[0], sorted(((names[m], f32[m]["peak_rss_gib"]) for m in names), key=lambda x: x[1]), "{:.2f}", "Peak RAM, GiB (whole process)")
+    hbars(a[1], sorted(((names[m], cpu_row(f32[m], 4)["decode_tok_s"]) for m in names), key=lambda x: -x[1]), "{:.1f}", "Decode tok/s, 4 threads")
+    hbars(a[2], sorted(((names[m], cpu_row(f32[m], 4)["prefill_tok_s"]) for m in names), key=lambda x: -x[1]), "{:,.0f}", "Prefill tok/s, 4 threads")
+    hbars(a[3], sorted(((names[m], pi[f"{m}/float32"]["estimate"]["Raspberry Pi 5"]["prompts"]["128"]["decode_tok_s"]) for m in names), key=lambda x: -x[1]),
+          "{:.1f}", "Raspberry Pi 5, decode tok/s (estimate)")
+    for ax in a:
+        ax.tick_params(axis="y", labelsize=7.5)
+    finish(fig, "cpu_ram_speed", "cpu", "On CPU, V2 needs under 1.7 GiB and keeps pace with models of its size",
+           "float32, prompt 128. The Pi 5 figure is an estimate from laptop runs and published Pi bandwidth, not a measurement.", "runs/*-bench-cpu-*/bench/", 0.88)
+
+
 def fig_v1_v2() -> None:
     tasks = [(k, v[0]) for k, v in ZERO_SHOT.items()] + list(FEW.items())
     fig, axes = plt.subplots(1, 2, figsize=(7.8, 4.3), gridspec_kw={"width_ratios": [1.3, 1]})
@@ -727,7 +775,7 @@ def fig_tune() -> None:
 
 
 def write_index() -> None:
-    sections = (("text-to-data", "Text-to-data comparison"), ("base", "Base models"), ("chat", "Chat models"), ("training", "Training"))
+    sections = (("text-to-data", "Text-to-data comparison"), ("base", "Base models"), ("cpu", "CPU and Raspberry Pi"), ("chat", "Chat models"), ("training", "Training"))
     lines = ["# Figures", "", "Generated from the run records by `python -m scripts.build_figures`. Don't edit by hand. V2 is always blue and V1 always orange. The tables behind most charts are in [results.md](../results.md).", ""]
     for key, title in sections:
         lines += [f"## {title}", ""]
@@ -738,7 +786,7 @@ def write_index() -> None:
 
 
 ALL = [fig_t2d_scores, fig_t2d_gap, fig_t2d_tasks, fig_t2d_cuad, fig_t2d_cpu, fig_t2d_size, fig_t2d_dev_test, fig_t2d_lr, fig_t2d_loss, fig_billsum, fig_base_mean, fig_base_tasks, fig_base_few, fig_base_size, fig_base_bpb,
-       fig_base_speed, fig_base_speed_quality, fig_v1_v2, fig_checkpoints, fig_chat, fig_xstest, fig_m3_loss, fig_m3_signals, fig_m3_bpb, fig_m3_gate, fig_m3_lr, fig_ladder, fig_ladder_seeds, fig_proxy_lr, fig_sft, fig_sft_heldout, fig_tune]
+       fig_base_speed, fig_base_speed_quality, fig_cpu_threads, fig_cpu_ram_speed, fig_v1_v2, fig_checkpoints, fig_chat, fig_xstest, fig_m3_loss, fig_m3_signals, fig_m3_bpb, fig_m3_gate, fig_m3_lr, fig_ladder, fig_ladder_seeds, fig_proxy_lr, fig_sft, fig_sft_heldout, fig_tune]
 
 
 def main() -> int:

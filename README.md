@@ -31,9 +31,10 @@ Most of V2 was designed and tested on a laptop with an **RTX 4090 Laptop GPU** (
 - **A big step up from V1:** clearly better on five benchmarks and clearly worse on none. On code text it is about three times better (bits per byte 1.612 → 0.515).
 - **Strong code modelling for its size:** the lowest code bits per byte of every model under 300M parameters we measured.
 - **Light to run:** 0.59 GiB of GPU memory at batch 8 with its own engine, the lowest of the 11 base models we measured, and 1.66 GiB of RAM on CPU.
+- **Runs on a plain CPU:** 52.5 tok/s on 4 laptop threads in float32, as fast as SmolLM2-135M, and an estimated 12 tok/s on a Raspberry Pi 5. See [CPU and Raspberry Pi](docs/results.md#cpu-and-raspberry-pi).
 - **Good at structured output once fine-tuned:** 91.4% accuracy on Banking77 intents, and valid JSON on 99.99% of MASSIVE requests.
 - **Easy to use:** loads in Hugging Face Transformers with no remote code, and ships with an offline Python API and command line.
-- **Open and on record:** every dataset revision, threshold, decision and result is in the repository, with 32 charts generated from the run records.
+- **Open and on record:** every dataset revision, threshold, decision and result is in the repository, with 34 charts generated from the run records.
 
 ![V2 against V1 on every benchmark](docs/figures/v1_vs_v2.svg)
 
