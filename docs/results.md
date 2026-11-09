@@ -238,6 +238,96 @@ In bf16 the estimate for V2 is 14.0 tok/s decode, but about 2.6 s to the first t
 
 **Raspberry Pi 3 Model B (estimate):** about 1.9 tok/s decode for V2 in float32, and about 2 s to the first token for a 128-token prompt. None of the four models fits in 1 GB with PyTorch: V2's float32 weights alone are 0.81 GB, and its bf16 run peaks at 1.68 GiB. A Pi 3 needs a lighter runtime and 8-bit weights.
 
+### Full CPU tables
+
+Every model, precision, thread count and prompt length, medians of 3 runs. The min and max of each are in the records.
+
+<details>
+<summary>Show all CPU measurements and Pi estimates</summary>
+
+| Model | Precision | Parameters | Weights, GB | Load, s | RAM after load, GiB | Peak RAM, GiB |
+|---|---|---:|---:|---:|---:|---:|
+| **LiteGPT V2** (own engine) | fp32 | 201.4M | 0.81 | 1.6 | 1.28 | 1.66 |
+| **LiteGPT V2** (own engine) | bf16 | 201.4M | 0.40 | 1.7 | 0.92 | 1.68 |
+| LiteGPT V2 (Transformers) | fp32 | 201.4M | 0.81 | 2.7 | 1.62 | 1.98 |
+| LiteGPT V2 (Transformers) | bf16 | 201.4M | 0.40 | 2.7 | 0.88 | 1.27 |
+| SmolLM2-135M | fp32 | 134.5M | 0.54 | 3.1 | 1.37 | 1.61 |
+| SmolLM2-135M | bf16 | 134.5M | 0.27 | 2.8 | 0.91 | 1.15 |
+| Gemma 3 270M | fp32 | 268.1M | 1.07 | 3.6 | 2.10 | 2.60 |
+| Gemma 3 270M | bf16 | 268.1M | 0.54 | 3.6 | 1.11 | 1.62 |
+| LiteGPT V1 | fp32 | 124.5M | 0.50 | 2.7 | 0.85 | 1.42 |
+| LiteGPT V1 | bf16 | 124.5M | 0.25 | 4.1 | 1.08 | 1.54 |
+
+**Decode, tok/s, at 1 / 4 / 8 / 16 threads**
+
+| Model | Precision | Prompt 128 | Prompt 512 |
+|---|---|---|---|
+| **LiteGPT V2** (own engine) | fp32 | 32.3 / 52.5 / 54.4 / 43.8 | 31.1 / 50.2 / 50.9 / 42.7 |
+| **LiteGPT V2** (own engine) | bf16 | 27.6 / 61.0 / 67.3 / 51.5 | 21.8 / 52.1 / 60.8 / 45.1 |
+| LiteGPT V2 (Transformers) | fp32 | 27.9 / 44.7 / 44.9 / 34.6 | 25.6 / 41.7 / 41.4 / 33.1 |
+| LiteGPT V2 (Transformers) | bf16 | 23.9 / 52.2 / 56.8 / 43.2 | 19.5 / 44.9 / 48.4 / 37.9 |
+| SmolLM2-135M | fp32 | 36.6 / 51.6 / 61.8 / 47.9 | 33.8 / 49.2 / 57.5 / 42.5 |
+| SmolLM2-135M | bf16 | 31.9 / 60.8 / 71.7 / 58.8 | 26.7 / 51.8 / 58.3 / 50.1 |
+| Gemma 3 270M | fp32 | 22.6 / 37.0 / 45.5 / 35.3 | 21.2 / 37.3 / 41.2 / 33.0 |
+| Gemma 3 270M | bf16 | 20.9 / 50.3 / 60.1 / 50.2 | 18.5 / 43.8 / 49.9 / 40.8 |
+| LiteGPT V1 | fp32 | 49.6 / 73.9 / 74.9 / 68.2 | 41.0 / 67.9 / 66.9 / 63.6 |
+| LiteGPT V1 | bf16 | 13.2 / 12.1 / 11.0 / 9.4 | 12.7 / 12.2 / 10.7 / 9.2 |
+
+**Prefill, tok/s, at 1 / 4 / 8 / 16 threads**
+
+| Model | Precision | Prompt 128 | Prompt 512 |
+|---|---|---|---|
+| **LiteGPT V2** (own engine) | fp32 | 328 / 953 / 1,153 / 978 | 321 / 988 / 1,381 / 1,136 |
+| **LiteGPT V2** (own engine) | bf16 | 57 / 197 / 290 / 274 | 58 / 196 / 294 / 278 |
+| LiteGPT V2 (Transformers) | fp32 | 289 / 835 / 777 / 748 | 272 / 820 / 1,030 / 885 |
+| LiteGPT V2 (Transformers) | bf16 | 54 / 185 / 271 / 256 | 55 / 183 / 263 / 263 |
+| SmolLM2-135M | fp32 | 424 / 1,112 / 1,570 / 1,176 | 391 / 1,109 / 1,277 / 1,161 |
+| SmolLM2-135M | bf16 | 81 / 233 / 280 / 394 | 82 / 254 / 383 / 407 |
+| Gemma 3 270M | fp32 | 415 / 1,105 / 1,482 / 1,121 | 414 / 1,276 / 1,871 / 1,358 |
+| Gemma 3 270M | bf16 | 91 / 308 / 480 / 417 | 92 / 311 / 516 / 435 |
+| LiteGPT V1 | fp32 | 552 / 1,580 / 1,585 / 2,026 | 490 / 1,478 / 1,946 / 1,650 |
+| LiteGPT V1 | bf16 | 22 / 22 / 21 / 21 | 22 / 23 / 22 / 22 |
+
+**First token, s, at 1 / 4 / 8 / 16 threads**
+
+| Model | Precision | Prompt 128 | Prompt 512 |
+|---|---|---|---|
+| **LiteGPT V2** (own engine) | fp32 | 0.39 / 0.13 / 0.11 / 0.13 | 1.60 / 0.52 / 0.37 / 0.45 |
+| **LiteGPT V2** (own engine) | bf16 | 2.23 / 0.65 / 0.44 / 0.47 | 8.79 / 2.61 / 1.74 / 1.84 |
+| LiteGPT V2 (Transformers) | fp32 | 0.44 / 0.15 / 0.16 / 0.17 | 1.88 / 0.62 / 0.50 / 0.58 |
+| LiteGPT V2 (Transformers) | bf16 | 2.35 / 0.69 / 0.47 / 0.50 | 9.26 / 2.80 / 1.95 / 1.95 |
+| SmolLM2-135M | fp32 | 0.30 / 0.12 / 0.08 / 0.11 | 1.31 / 0.46 / 0.40 / 0.44 |
+| SmolLM2-135M | bf16 | 1.58 / 0.55 / 0.46 / 0.32 | 6.22 / 2.02 / 1.34 / 1.26 |
+| Gemma 3 270M | fp32 | 0.31 / 0.12 / 0.09 / 0.11 | 1.24 / 0.40 / 0.27 / 0.38 |
+| Gemma 3 270M | bf16 | 1.41 / 0.41 / 0.27 / 0.31 | 5.56 / 1.65 / 0.99 / 1.18 |
+| LiteGPT V1 | fp32 | 0.23 / 0.08 / 0.08 / 0.06 | 1.05 / 0.35 / 0.26 / 0.31 |
+| LiteGPT V1 | bf16 | 5.95 / 5.87 / 5.98 / 6.16 | 23.09 / 22.61 / 23.04 / 23.05 |
+
+**Memory bandwidth**
+
+| Threads | Read, GB/s | Copy, GB/s |
+|---:|---:|---:|
+| 1 | 27.6 | 23.9 |
+| 4 | 59.9 | 56.6 |
+| 8 | 73.1 | 58.2 |
+
+**Raspberry Pi estimates, 4 threads, prompt 128 (not measured on a board)**
+
+| Model | Precision | Pi 5 decode tok/s (ceiling) | Pi 5 prefill tok/s (range) | Pi 5 first token, s | Pi 3 decode tok/s (ceiling) | Pi 3 prefill tok/s (range) | Pi 3 first token, s | Fits Pi 5 4 GB / Pi 3 1 GB |
+|---|---|---:|---:|---:|---:|---:|---:|---|
+| **LiteGPT V2** (own engine) | fp32 | 12.1 (17.1) | 238 (119 to 357) | 0.5 | 1.9 (2.7) | 60 (30 to 89) | 2.1 | yes / no |
+| **LiteGPT V2** (own engine) | bf16 | 14.0 (34.3) | 49 (25 to 74) | 2.6 | 2.2 (5.5) | 12 (6 to 18) | 10.4 | yes / no |
+| LiteGPT V2 (Transformers) | fp32 | 10.3 (17.1) | 209 (104 to 313) | 0.6 | 1.6 (2.7) | 52 (26 to 78) | 2.5 | yes / no |
+| LiteGPT V2 (Transformers) | bf16 | 12.0 (34.3) | 46 (23 to 70) | 2.8 | 1.9 (5.5) | 12 (6 to 17) | 11.0 | yes / no |
+| SmolLM2-135M | fp32 | 11.9 (25.6) | 278 (139 to 417) | 0.5 | 1.9 (4.1) | 70 (35 to 104) | 1.8 | yes / no |
+| SmolLM2-135M | bf16 | 14.0 (51.3) | 58 (29 to 87) | 2.2 | 2.2 (8.2) | 15 (7 to 22) | 8.8 | yes / no |
+| Gemma 3 270M | fp32 | 8.5 (12.9) | 276 (138 to 414) | 0.5 | 1.4 (2.1) | 69 (35 to 104) | 1.9 | yes / no |
+| Gemma 3 270M | bf16 | 11.6 (25.7) | 77 (39 to 116) | 1.7 | 1.8 (4.1) | 19 (10 to 29) | 6.6 | yes / no |
+| LiteGPT V1 | fp32 | 17.0 (27.7) | 395 (198 to 593) | 0.3 | 2.7 (4.4) | 99 (49 to 148) | 1.3 | yes / no |
+| LiteGPT V1 | bf16 | 2.8 (55.4) | 5 (3 to 8) | 23.5 | 0.4 (8.8) | 1 (1 to 2) | 93.9 | yes / no |
+
+</details>
+
 All figures come from `runs/*-bench-cpu-*` and `benchmarks/cpu_bench.py`, run as `python -m benchmarks.cpu_bench all`.
 
 ## V2 against V1
