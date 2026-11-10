@@ -124,3 +124,13 @@ def test_pi_compute_cap_applies_only_when_asked():
 def test_strip_end_drops_only_a_trailing_end_token():
     assert C.strip_end([5, 6, 3]) == [5, 6] and C.strip_end([5, 6, 1]) == [5, 6]
     assert C.strip_end([3, 5]) == [3, 5] and C.strip_end([]) == []
+
+
+@pytest.mark.skipif(not Path("/proc/self/status").exists(), reason="needs Linux /proc")
+def test_child_peak_rss_is_the_childs_own_not_the_parents():
+    from benchmarks import cpu_bench as B
+    ballast = bytearray(300 * 2 ** 20)                       # parent holds 300 MiB; a small child must not report it
+    small = B.child_peak_rss_gib([sys.executable, "-c", "import time; time.sleep(0.3)"])
+    big = B.child_peak_rss_gib([sys.executable, "-c", "x = bytearray(200 * 2 ** 20); import time; time.sleep(0.3)"])
+    assert small < 0.1 and 0.18 < big < 0.4
+    del ballast

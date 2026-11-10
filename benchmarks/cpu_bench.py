@@ -227,16 +227,35 @@ def gguf_path(model: str, quant: str) -> Path:
     return Path(GGUF_DIR).expanduser() / GGUF_MODELS[model]["file"].format(q=quant)
 
 
+def child_peak_rss_gib(cmd: list[str]) -> float:
+    """Peak RSS of one child process from its own VmHWM in /proc, polled until it exits. RUSAGE_CHILDREN can't be used here: a child's
+    ru_maxrss starts from the parent's RSS at fork, so a parent that imported PyTorch (~0.5 GiB) hides any smaller child."""
+    import threading
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    err: list[str] = []
+    reader = threading.Thread(target=lambda: err.append(proc.stderr.read()), daemon=True)
+    reader.start()
+    peak_kib = 0
+    while proc.poll() is None:
+        try:
+            with open(f"/proc/{proc.pid}/status") as f:
+                peak_kib = max(peak_kib, next((int(x.split()[1]) for x in f if x.startswith("VmHWM:")), 0))
+        except (FileNotFoundError, ProcessLookupError):
+            break
+        time.sleep(0.02)
+    reader.join(timeout=10)
+    if proc.returncode != 0:
+        raise SystemExit(f"{Path(cmd[0]).name} failed ({proc.returncode}): {''.join(err)[-1500:]}")
+    return peak_kib / 2 ** 20
+
+
 def cmd_gguf(a) -> int:
     """One GGUF file: peak RSS of one generation at -c 4096, then llama-bench. A fresh process per file (cmd_gguf_all)."""
     from litegpt.export.to_gguf import sha256
     from litegpt.records import create_run
     bins, path = Path(a.llama_cpp).expanduser() / "b", gguf_path(a.model, a.quant)
-    gen = subprocess.run([str(bins / "llama-completion"), "-m", str(path), "-p", TEXT * 3, "-n", str(a.new_tokens), "-c", "4096", "-t", "4",
-                          "--temp", "0", "--ignore-eos", "-no-cnv", "--no-display-prompt", "--simple-io"], capture_output=True, text=True)
-    if gen.returncode != 0:
-        raise SystemExit(f"llama-completion failed: {gen.stderr[-1500:]}")
-    peak = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 2 ** 20
+    peak = child_peak_rss_gib([str(bins / "llama-completion"), "-m", str(path), "-p", TEXT * 3, "-n", str(a.new_tokens), "-c", "4096", "-t", "4",
+                               "--temp", "0", "--ignore-eos", "-no-cnv", "--no-display-prompt", "--simple-io"])
     entries = []
     for extra in (["-p", ",".join(map(str, a.prompts)), "-n", "0", "-d", "0"], ["-p", "0", "-n", str(a.new_tokens), "-d", ",".join(map(str, a.prompts))]):
         out = subprocess.run([str(bins / "llama-bench"), "-m", str(path), "-t", ",".join(map(str, a.threads)), "-r", str(a.repeats), "-o", "json", *extra],
@@ -248,7 +267,7 @@ def cmd_gguf(a) -> int:
     rec_out = {"model": a.model, "label": GGUF_MODELS[a.model]["label"], "quant": a.quant, "file": path.name, "sha256": sha256(path),
                "weight_bytes": path.stat().st_size, "parameters": entries[0]["model_n_params"], "peak_rss_gib": peak, "rows": rows,
                "cpu": entries[0]["cpu_info"], "build": f"b{entries[0]['build_number']} ({entries[0]['build_commit']})", "llama_bench": entries,
-               "note": "llama-bench: prefill = ppP from an empty context, decode = tg64 after a P-token context; peak RSS = llama-completion, -c 4096, 4 threads, 64 tokens"}
+               "note": "llama-bench: prefill = ppP from an empty context, decode = tg64 after a P-token context; peak RSS = VmHWM of one llama-completion run, -c 4096, 4 threads, 64 tokens"}
     rec = create_run("bench", f"cpu-gguf-{a.model}-{a.quant}", config={"experiment": "EXP-M5-GGUF", "gate": "G5", "model": GGUF_MODELS[a.model],
                                                                      "quant": a.quant, "threads": list(a.threads), "prompts": list(a.prompts),
                                                                      "new_tokens": a.new_tokens, "repeats": a.repeats})
