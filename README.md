@@ -9,6 +9,7 @@ LiteGPT V2 is a 201M-parameter model with its own architecture implementation, i
 | [LiteGPT-V2-Base](https://huggingface.co/kmkrworks/LiteGPT-V2-Base) | The pretrained model, 4,096-token context |
 | [LiteGPT-Llama-V2-Instruct](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct) | The chat version |
 | [LiteGPT-V2-Base-GGUF](https://huggingface.co/kmkrworks/LiteGPT-V2-Base-GGUF), [LiteGPT-Llama-V2-Instruct-GGUF](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF) | Both models for llama.cpp and LM Studio: BF16, Q8_0 and Q4_K_M |
+| [Try it in your browser](https://huggingface.co/spaces/kmkrworks/LiteGPT-V2-Chat) | Chat with the Instruct model, running entirely in your browser |
 
 ## Why this project
 
@@ -137,6 +138,7 @@ Work is now starting on a fresh tokenizer.
 | [`scripts/`](scripts/README.md) | Data preparation, training, scoring, release and rented-server tools |
 | [`tests/`](tests/README.md) | The test suite |
 | [`runs/`](runs/README.md) | Run records behind every reported number |
+| [`deploy/`](deploy/README.md) | The browser chat Space |
 
 ## V1
 

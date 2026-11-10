@@ -73,7 +73,7 @@ V2's memory figures use its own engine and the others use Transformers.
 
 ## Use
 
-GGUF files for llama.cpp and LM Studio (BF16, Q8_0, Q4_K_M), checked against this model: [kmkrworks/LiteGPT-V2-Base-GGUF](https://huggingface.co/kmkrworks/LiteGPT-V2-Base-GGUF).
+GGUF files for llama.cpp and LM Studio (BF16, Q8_0, Q4_K_M), checked against this model: [kmkrworks/LiteGPT-V2-Base-GGUF](https://huggingface.co/kmkrworks/LiteGPT-V2-Base-GGUF). Try it in your browser: [LiteGPT V2 Chat](https://huggingface.co/spaces/kmkrworks/LiteGPT-V2-Chat).
 
 With Transformers:
 

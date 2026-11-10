@@ -19,7 +19,7 @@ tags:
 
 **[LiteGPT-Llama-V2-Instruct](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct) for [llama.cpp](https://github.com/ggml-org/llama.cpp), LM Studio and the apps built on them:** a 201M-parameter language model built from scratch, with every step on record.
 
-The files were converted with llama.cpp build b12084 and checked against the original model in PyTorch before release. Results, charts and run records: [github.com/kmkrofficial/LiteGPT](https://github.com/kmkrofficial/LiteGPT).
+The files were converted with llama.cpp build b12084 and checked against the original model in PyTorch before release. Results, charts and run records: [github.com/kmkrofficial/LiteGPT](https://github.com/kmkrofficial/LiteGPT). Try it in your browser: [LiteGPT V2 Chat](https://huggingface.co/spaces/kmkrworks/LiteGPT-V2-Chat).
 
 ## Files
 

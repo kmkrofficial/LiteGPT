@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LiteGPT V2 Chat</title>
+<style>
+  :root {
+    --bg: #fcfcfb; --surface: #ffffff; --ink: #0b0b0b; --ink2: #52514e; --muted: #8a8984; --line: #e6e5e1;
+    --accent: #2a78d6; --accent-ink: #ffffff; --user: #eef4fc; --warn: #8a5a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #111214; --surface: #1a1b1e; --ink: #f2f2f0; --ink2: #b9b8b3; --muted: #85847f; --line: #2c2d31;
+            --accent: #5b9cf0; --accent-ink: #0b0b0b; --user: #1d2836; --warn: #e3b25a; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display: flex; flex-direction: column; max-width: 760px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 18px 0 10px; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 19px; }
+  .sub { margin: 4px 0 0; color: var(--ink2); font-size: 13.5px; }
+  .sub a { color: var(--accent); }
+  #status { margin: 10px 0 0; font-size: 13px; color: var(--ink2); }
+  #bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  #bar > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  #log { flex: 1; overflow-y: auto; padding: 14px 0; }
+  .msg { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; white-space: pre-wrap; word-wrap: break-word; }
+  .user { background: var(--user); margin-left: 15%; }
+  .bot { background: var(--surface); border: 1px solid var(--line); margin-right: 8%; }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  form { display: flex; gap: 8px; padding: 10px 0 6px; border-top: 1px solid var(--line); }
+  textarea { flex: 1; resize: none; height: 46px; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+  button { padding: 0 16px; border-radius: 8px; border: 0; background: var(--accent); color: var(--accent-ink); font: inherit; font-weight: 600; cursor: pointer; }
+  button:disabled { opacity: .45; cursor: default; }
+  .opts { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12.5px; color: var(--ink2); padding-bottom: 14px; }
+  .opts input[type=range] { width: 110px; vertical-align: middle; }
+  .note { color: var(--warn); }
+</style>
+</head>
+<body>
+<header>
+  <h1>LiteGPT V2 Chat</h1>
+  <p class="sub">A 201M-parameter model built from scratch, running entirely in your browser with
+    <a href="https://github.com/ngxson/wllama" target="_blank" rel="noopener">wllama</a> (llama.cpp in WebAssembly). Nothing you type leaves this page.
+    <a href="https://github.com/kmkrofficial/LiteGPT" target="_blank" rel="noopener">Code and results</a> ·
+    <a href="https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF" target="_blank" rel="noopener">Model</a></p>
+  <p class="sub note">Small model, no safety tuning: answers can be wrong.</p>
+  <div id="status">Loading…</div>
+  <div id="bar"><div></div></div>
+</header>
+<main id="log" aria-live="polite"></main>
+<form id="f">
+  <textarea id="q" placeholder="Ask something…" disabled></textarea>
+  <button id="send" disabled>Send</button>
+  <button id="stop" type="button" disabled>Stop</button>
+</form>
+<div class="opts">
+  <label>Temperature <input id="temp" type="range" min="0" max="1" step="0.1" value="0.6"> <span id="tempv">0.6</span></label>
+  <label>Max tokens <input id="maxt" type="range" min="32" max="512" step="32" value="256"> <span id="maxtv">256</span></label>
+  <button id="clear" type="button" style="background:transparent;color:var(--ink2);border:1px solid var(--line);padding:4px 10px">Clear</button>
+</div>
+<script type="module">
+import { Wllama } from "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.8.1/esm/index.js";
+
+const REPO = "kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF";
+const FILE = "LiteGPT-Llama-V2-Instruct-Q4_K_M.gguf";
+const $ = (id) => document.getElementById(id);
+const log = $("log"), q = $("q"), send = $("send"), stop = $("stop"), status = $("status"), bar = $("bar").firstElementChild;
+const history = [];
+let abort = null;
+
+for (const [id, out] of [["temp", "tempv"], ["maxt", "maxtv"]]) $(id).oninput = () => ($(out).textContent = $(id).value);
+$("clear").onclick = () => { history.length = 0; log.textContent = ""; };
+
+function bubble(cls, text) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.textContent = text;
+  log.appendChild(d);
+  log.scrollTop = log.scrollHeight;
+  return d;
+}
+
+const wllama = new Wllama({ default: "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.8.1/esm/wasm/wllama.wasm" });
+const threads = self.crossOriginIsolated ? Math.max(1, Math.min(4, (navigator.hardwareConcurrency || 2) - 1)) : 1;
+try {
+  status.textContent = "Downloading the model (127 MB, cached after the first visit)…";
+  await wllama.loadModelFromHF({ repo: REPO, file: FILE }, {
+    n_ctx: 4096, n_threads: threads, n_gpu_layers: 0,
+    progressCallback: ({ loaded, total }) => {
+      const p = total ? Math.round((loaded / total) * 100) : 0;
+      bar.style.width = p + "%";
+      status.textContent = `Downloading the model: ${p}% of ${(total / 1e6).toFixed(0)} MB`;
+    },
+  });
+  bar.style.width = "100%";
+  status.textContent = `Ready. Running on your CPU with ${threads} thread${threads > 1 ? "s" : ""}.`;
+  q.disabled = send.disabled = false;
+  q.focus();
+} catch (e) {
+  status.textContent = "Could not load the model: " + (e && e.message ? e.message : e);
+}
+
+q.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("f").requestSubmit(); } });
+stop.onclick = () => abort && abort.abort();
+
+$("f").onsubmit = async (e) => {
+  e.preventDefault();
+  const text = q.value.trim();
+  if (!text) return;
+  q.value = "";
+  bubble("user", text);
+  history.push({ role: "user", content: text });
+  const out = bubble("bot", "");
+  q.disabled = send.disabled = true; stop.disabled = false;
+  abort = new AbortController();
+  const t0 = performance.now();
+  let reply = "", n = 0;
+  try {
+    const stream = await wllama.createChatCompletion({
+      messages: history, stream: true, max_tokens: Number($("maxt").value), temperature: Number($("temp").value), top_p: 0.9,
+      abortSignal: abort.signal,
+    });
+    for await (const chunk of stream) {
+      const delta = chunk.choices?.[0]?.delta?.content ?? "";
+      if (delta) { reply += delta; n += 1; out.textContent = reply; log.scrollTop = log.scrollHeight; }
+    }
+  } catch (err) {
+    if (!(err && err.name === "AbortError")) reply += reply ? "" : "(error: " + (err && err.message ? err.message : err) + ")";
+    out.textContent = reply;
+  }
+  const secs = (performance.now() - t0) / 1000;
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  meta.textContent = `${n} pieces in ${secs.toFixed(1)} s`;
+  out.appendChild(meta);
+  history.push({ role: "assistant", content: reply });
+  q.disabled = send.disabled = false; stop.disabled = true; q.focus();
+};
+</script>
+</body>
+</html>

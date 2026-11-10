@@ -10,6 +10,7 @@ scripts/        reusable utilities; scripts/legacy_v1/ is the preserved V1 basel
 scratch/        temporary experiments and prototypes (git-ignored)
 runs/           all generated experiment outputs
 docs/           permanent docs, ADRs, spec/ (specification)
+deploy/         ways to run the published models elsewhere (the browser chat Space)
 ```
 
 Each top-level folder has a README saying what is in it. Root files: `README.md`, `CHANGELOG.md`, `LICENSE`, `pyproject.toml`, `uv.lock`, `.gitignore`, `.gitattributes`.
