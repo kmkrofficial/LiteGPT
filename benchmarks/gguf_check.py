@@ -200,14 +200,22 @@ def greedy_prompts(tok, val_dir: Path) -> dict[str, list[int]]:
     return prompts
 
 
+def strip_end(ids: list[int]) -> list[int]:
+    """Drop a trailing end-of-generation token, which llama.cpp may report and LiteGPT's engine never appends."""
+    from litegpt.tokenizer import EOT, IM_END
+    return ids[:-1] if ids and ids[-1] in (EOT, IM_END) else ids
+
+
 def gate_greedy(server: Server, engine, prompts: dict) -> dict:
+    """Both sides stop at the same end-of-generation tokens (<|endoftext|>, <|im_end|>). llama.cpp's ignore_eos would ban those tokens
+    outright rather than ignore them, which made the first comparison unequal (registry EXP-M5-GGUF deviation, 2026-11-10)."""
     from litegpt.inference import GenerationConfig
     rows, same = {}, 0
     for name, ids in prompts.items():
-        want = engine.generate_ids([ids], GenerationConfig(max_new_tokens=GREEDY_NEW, stop_token_ids=()))[0].ids
-        r = server.post("/completion", {"prompt": ids, "n_predict": GREEDY_NEW, "temperature": 0, "top_k": 1, "ignore_eos": True,
+        want = engine.generate_ids([ids], GenerationConfig(max_new_tokens=GREEDY_NEW))[0].ids
+        r = server.post("/completion", {"prompt": ids, "n_predict": GREEDY_NEW, "temperature": 0, "top_k": 1,
                                         "cache_prompt": False, "return_tokens": True, "samplers": ["top_k"]})
-        got = r.get("tokens", [])
+        got = strip_end(r.get("tokens", []))
         j = None if got == want else next((k for k, (x, y) in enumerate(zip(got, want)) if x != y), min(len(got), len(want)))
         same += got == want
         rows[name] = {"identical": got == want, "first_diff": j, "prompt_tokens": len(ids), "evaluated": r.get("tokens_evaluated")}
@@ -228,7 +236,8 @@ def gate_chat(server: Server, tok, engine) -> dict:
         r = server.post("/v1/chat/completions", {"messages": conv, "temperature": 0, "top_k": 1, "max_tokens": 128, "samplers": ["top_k"]})
         got_reply = r["choices"][0]["message"]["content"] or ""
         prompt_tokens = r["usage"]["prompt_tokens"]
-        t_ok = got_text == want_text
+        # llama.cpp renders the template without the leading <|bos|> text and adds BOS as a token; b_ok checks that token
+        t_ok = got_text == want_text or (want_text.startswith("<|bos|>") and got_text == want_text[len("<|bos|>"):])
         b_ok = prompt_tokens == len(want_ids) and want_ids[0] == 0 and want_ids[1] != 0
         s_ok = "<|im_end|>" not in got_reply and (r["choices"][0]["finish_reason"] == "stop" or len(reply_ids) >= 128)
         template_ok &= t_ok

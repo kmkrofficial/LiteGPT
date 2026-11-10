@@ -119,3 +119,8 @@ def test_pi_compute_cap_applies_only_when_asked():
     assert pi5(40.0, False) == pytest.approx(13.8e9 / 215e6) and pi5(40.0, True) == pytest.approx(60.0)
     pi3 = B.estimate_pi(model, bandwidth_4t_gbs=60.0, compute_cap=True)["Raspberry Pi 3 Model B"]["prompts"][128]["decode_tok_s"]
     assert pi3 == pytest.approx(min(240.0 * 2.2 / 60.0, 2.2e9 / 215e6, 240.0 / 16.0))  # 8.8
+
+
+def test_strip_end_drops_only_a_trailing_end_token():
+    assert C.strip_end([5, 6, 3]) == [5, 6] and C.strip_end([5, 6, 1]) == [5, 6]
+    assert C.strip_end([3, 5]) == [3, 5] and C.strip_end([]) == []
