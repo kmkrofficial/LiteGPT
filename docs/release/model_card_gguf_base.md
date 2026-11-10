@@ -64,6 +64,6 @@ On a Raspberry Pi 5 the Q8_0 file is estimated at about 44 tok/s, and every file
 
 ## Licence
 
-Apache-2.0 for the weights, with the [NOTICE](NOTICE) file. Training data and its attributions: [the original model card](https://huggingface.co/kmkrworks/LiteGPT-V2-Base).
+Apache-2.0 for the weights, with the [NOTICE](NOTICE.txt) file. Training data and its attributions: [the original model card](https://huggingface.co/kmkrworks/LiteGPT-V2-Base).
 
 **Built with Qwen.**

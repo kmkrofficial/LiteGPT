@@ -70,6 +70,6 @@ On a Raspberry Pi 5 the Q8_0 file is estimated at about 44 tok/s, and every file
 
 ## Licence
 
-Apache-2.0 for the weights, with the [NOTICE](NOTICE) file. Training data and its attributions: [the original model card](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct).
+Apache-2.0 for the weights, with the [NOTICE](NOTICE_instruct.txt) file. Training data and its attributions: [the original model card](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct).
 
 **Built with Llama. Built with Qwen.** Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved. Use of this model should follow the [Llama Acceptable Use Policy](https://llama.meta.com/llama3_1/use-policy).
