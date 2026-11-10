@@ -47,6 +47,8 @@ Higher is better.
 
 ## Use
 
+GGUF files for llama.cpp and LM Studio (BF16, Q8_0, Q4_K_M), checked against this model: [kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF).
+
 With Transformers:
 
 ```python

@@ -487,6 +487,50 @@ def fig_cpu_ram_speed() -> None:
            "float32, prompt 128. The Pi 5 figure is an estimate from laptop runs and published Pi bandwidth, not a measurement.", "runs/*-bench-cpu-*/bench/", 0.88)
 
 
+GGUF_V2 = (("V2 PyTorch fp32", None), ("V2 GGUF BF16", "BF16"), ("V2 GGUF Q8_0", "Q8_0"), ("V2 GGUF Q4_K_M", "Q4_K_M"))
+ENTITY.update({n: BLUE for n, _ in GGUF_V2} | {"V2 Q8_0": BLUE, "V2 Q4_K_M": BLUE})
+
+
+def gguf(model: str, quant: str) -> dict:
+    return load(runs("bench", f"cpu-gguf-{model}-{quant}")[-1] / "bench" / "cpu.json")
+
+
+def fig_gguf_ram_speed() -> None:
+    recs = {n: (cpu("v2-litegpt", "float32") if q is None else gguf("v2", q)) for n, q in GGUF_V2}
+    names = [n for n, _ in GGUF_V2]
+    fig, axes = plt.subplots(2, 2, figsize=(7.8, 4.4))
+    a = axes.flat
+    hbars(a[0], [(n, recs[n]["weight_bytes"] / 1e6) for n in names], "{:,.0f}", "Weights, MB", label_names=names)
+    hbars(a[1], [(n, recs[n]["peak_rss_gib"]) for n in names], "{:.2f}", "Peak RAM, GiB (whole process)", label_names=names)
+    hbars(a[2], [(n, cpu_row(recs[n], 4)["decode_tok_s"]) for n in names], "{:.0f}", "Decode tok/s, 4 threads", label_names=names)
+    hbars(a[3], [(n, cpu_row(recs[n], 4)["prefill_tok_s"]) for n in names], "{:,.0f}", "Prefill tok/s, 4 threads", label_names=names)
+    for ax in a:
+        ax.tick_params(axis="y", labelsize=7.5)
+    finish(fig, "gguf_ram_speed", "cpu", "On llama.cpp, V2 needs a fraction of the RAM and decodes several times faster",
+           "Laptop CPU, prompt 128, 64 new tokens, median of 3. PyTorch fp32 through LiteGPT's engine against the GGUF files on llama.cpp.",
+           "runs/*-bench-cpu-gguf-v2-*, runs/*-bench-cpu-v2-litegpt-float32-*", 0.88)
+
+
+def fig_gguf_rivals() -> None:
+    labels = {"v2": "V2", "smollm2": "SmolLM2-135M", "gemma": "Gemma 3 270M"}
+    pi = load(runs("bench", "cpu-gguf-pi-estimate")[-1] / "bench" / "pi_estimate.json")["models"]
+    fig, axes = plt.subplots(2, 3, figsize=(7.8, 4.4))
+    for row, q in enumerate(("Q8_0", "Q4_K_M")):
+        recs = {f"{labels[m]} {q}": gguf(m, q) for m in labels}
+        keys = {f"{labels[m]} {q}": f"{m}/{q}" for m in labels}
+        hbars(axes[row, 0], sorted(((n, cpu_row(r, 4)["decode_tok_s"]) for n, r in recs.items()), key=lambda x: -x[1]), "{:.0f}",
+              f"{q}: decode tok/s, 4 threads", label_names=tuple(recs))
+        hbars(axes[row, 1], sorted(((n, r["weight_bytes"] / 1e6) for n, r in recs.items()), key=lambda x: x[1]), "{:,.0f}",
+              f"{q}: file, MB", label_names=tuple(recs))
+        hbars(axes[row, 2], sorted(((n, pi[keys[n]]["estimate"]["Raspberry Pi 5"]["prompts"]["128"]["decode_tok_s"]) for n in recs), key=lambda x: -x[1]),
+              "{:.0f}", f"{q}: Pi 5 decode (estimate)", label_names=tuple(recs))
+    for ax in axes.flat:
+        ax.tick_params(axis="y", labelsize=7)
+    finish(fig, "gguf_rivals", "cpu", "On llama.cpp, V2 sits between SmolLM2-135M and Gemma 3 270M",
+           "All three converted with the same llama.cpp build. Laptop CPU, prompt 128. Pi 5 figures are estimates, not measurements.",
+           "runs/*-bench-cpu-gguf-*", 0.88)
+
+
 def fig_v1_v2() -> None:
     tasks = [(k, v[0]) for k, v in ZERO_SHOT.items()] + list(FEW.items())
     fig, axes = plt.subplots(1, 2, figsize=(7.8, 4.3), gridspec_kw={"width_ratios": [1.3, 1]})
@@ -786,7 +830,7 @@ def write_index() -> None:
 
 
 ALL = [fig_t2d_scores, fig_t2d_gap, fig_t2d_tasks, fig_t2d_cuad, fig_t2d_cpu, fig_t2d_size, fig_t2d_dev_test, fig_t2d_lr, fig_t2d_loss, fig_billsum, fig_base_mean, fig_base_tasks, fig_base_few, fig_base_size, fig_base_bpb,
-       fig_base_speed, fig_base_speed_quality, fig_cpu_threads, fig_cpu_ram_speed, fig_v1_v2, fig_checkpoints, fig_chat, fig_xstest, fig_m3_loss, fig_m3_signals, fig_m3_bpb, fig_m3_gate, fig_m3_lr, fig_ladder, fig_ladder_seeds, fig_proxy_lr, fig_sft, fig_sft_heldout, fig_tune]
+       fig_base_speed, fig_base_speed_quality, fig_cpu_threads, fig_cpu_ram_speed, fig_gguf_ram_speed, fig_gguf_rivals, fig_v1_v2, fig_checkpoints, fig_chat, fig_xstest, fig_m3_loss, fig_m3_signals, fig_m3_bpb, fig_m3_gate, fig_m3_lr, fig_ladder, fig_ladder_seeds, fig_proxy_lr, fig_sft, fig_sft_heldout, fig_tune]
 
 
 def main() -> int:

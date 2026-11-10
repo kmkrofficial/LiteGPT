@@ -330,6 +330,76 @@ Every model, precision, thread count and prompt length, medians of 3 runs. The m
 
 All figures come from `runs/*-bench-cpu-*` and `benchmarks/cpu_bench.py`, run as `python -m benchmarks.cpu_bench all`.
 
+<!-- gguf:begin -->
+## llama.cpp (GGUF)
+
+V2 also ships as GGUF files for [llama.cpp](https://github.com/ggml-org/llama.cpp) and the apps built on it, such as LM Studio and Ollama. The files were converted with llama.cpp build b12084 and checked against V2 in PyTorch before release. They use llama.cpp's `qwen3` architecture and its `qwen2` text-splitting rule, which is exactly V2's own rule; V2's own vocabulary, merges, special tokens and chat template are inside the file. [Distribution](distribution.md) has the details.
+
+- **The files match the model.** On 1,200 documents and strings, llama.cpp produces the same token ids as V2's tokenizer. Perplexity of the F32 file is within 0.005% of PyTorch on every domain, and greedy output matches on all 23 test prompts for both models. Through llama.cpp's chat path, Instruct renders the same prompt with one BOS, stops on `<|im_end|>`, and gives the same replies as PyTorch on 10 of 10 conversations.
+- **Q8_0 is effectively lossless:** perplexity within 0.06% of BF16 on code, math and web, with the same top token 97.5% of the time or more.
+- **Q4_K_M costs a little:** perplexity +1.2% to +1.8% for Base and +2.6% to +3.1% for Instruct, against BF16.
+- **Several times faster on a CPU:** on 4 laptop threads, Q8_0 decodes at 189 tok/s and Q4_K_M at 254, against 52.5 for PyTorch float32, in 0.35 GiB of RAM against 1.66.
+- **One limit:** llama.cpp does not apply Unicode NFC normalisation for BPE tokenizers (this affects Qwen's own models too), so text with decomposed accents, or the Ohm and Kelvin signs, tokenizes differently than in Transformers. Normalise such input to NFC first; ordinary text is unaffected.
+
+![RAM, speed and file size: PyTorch against the GGUF files](figures/gguf_ram_speed.svg)
+
+**Quality against PyTorch** (perplexity under llama-perplexity's rule: 40 chunks of 2,048 tokens per domain, second half of each chunk scored; F32 and BF16 against PyTorch, Q8_0 and Q4_K_M against BF16, with mean KL divergence and how often the top token is the same):
+
+*LiteGPT-V2-Base*
+
+| Domain | PyTorch fp32 | F32 | BF16 | Q8_0 | Q4_K_M | Q8_0 KL, same top | Q4_K_M KL, same top |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| chat | 7.545 | 7.545 (+0.00%) | 7.545 (+0.00%) | not run | not run | not run | not run |
+| code | 4.336 | 4.336 (-0.00%) | 4.336 (-0.00%) | 4.336 (+0.02%) | 4.389 (+1.23%) | 0.0004, 99.2% | 0.0129, 95.3% |
+| math | 6.659 | 6.659 (+0.00%) | 6.659 (+0.00%) | 6.662 (+0.05%) | 6.753 (+1.41%) | 0.0004, 97.9% | 0.0152, 90.4% |
+| synthetic | 6.502 | 6.503 (+0.00%) | 6.503 (+0.00%) | not run | not run | not run | not run |
+| web | 20.548 | 20.548 (+0.00%) | 20.548 (-0.00%) | 20.560 (+0.06%) | 20.907 (+1.75%) | 0.0005, 98.5% | 0.0177, 91.7% |
+
+*LiteGPT-Llama-V2-Instruct*
+
+| Domain | PyTorch fp32 | F32 | BF16 | Q8_0 | Q4_K_M | Q8_0 KL, same top | Q4_K_M KL, same top |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| chat | 14.492 | 14.492 (+0.00%) | 14.493 (+0.01%) | not run | not run | not run | not run |
+| code | 10.740 | 10.741 (+0.00%) | 10.739 (-0.00%) | 10.738 (-0.01%) | 11.068 (+3.06%) | 0.0012, 98.4% | 0.0434, 91.3% |
+| math | 17.831 | 17.832 (+0.00%) | 17.831 (+0.00%) | 17.834 (+0.02%) | 18.338 (+2.84%) | 0.0011, 97.5% | 0.0381, 85.5% |
+| synthetic | 13.097 | 13.097 (+0.00%) | 13.097 (+0.00%) | not run | not run | not run | not run |
+| web | 45.446 | 45.447 (+0.00%) | 45.448 (+0.00%) | 45.426 (-0.05%) | 46.642 (+2.63%) | 0.0011, 98.0% | 0.0403, 88.4% |
+
+**Speed and RAM on the laptop CPU** (prompt 128, 64 new tokens, median of 3; prefill from an empty context, decode after the prompt; RAM is the peak of one generation at a 4,096-token context). All GGUF files were made with the same llama.cpp build:
+
+| Model | File, MB | Peak RAM, GiB | Prefill tok/s, 4 threads | Decode tok/s, 1 / 4 / 8 / 16 threads | First token, 4 threads, s |
+|---|---:|---:|---:|---:|---:|
+| **LiteGPT V2**, PyTorch fp32, own engine | 805 | 1.66 | 953 | 32.3 / 52.5 / 54.4 / 43.8 | 0.13 |
+| **LiteGPT V2** BF16 | 404 | 0.52 | 548 | 44.5 / 109.2 / 133.1 / 108.3 | 0.23 |
+| **LiteGPT V2** Q8_0 | 215 | 0.35 | 839 | 76.2 / 188.9 / 228.7 / 158.3 | 0.15 |
+| **LiteGPT V2** Q4_K_M | 127 | 0.35 | 1,183 | 114.9 / 253.7 / 273.6 / 220.2 | 0.11 |
+| SmolLM2-135M Q8_0 | 145 | 0.26 | 1,332 | 121.3 / 254.7 / 248.4 / 226.8 | 0.10 |
+| SmolLM2-135M Q4_K_M | 105 | 0.23 | 1,071 | 125.5 / 270.9 / 265.0 / 252.4 | 0.12 |
+| Gemma 3 270M Q8_0 | 292 | 0.36 | 1,280 | 66.7 / 158.7 / 204.9 / 164.0 | 0.10 |
+| Gemma 3 270M Q4_K_M | 253 | 0.35 | 1,220 | 69.9 / 165.7 / 209.4 / 179.5 | 0.10 |
+
+V2's Q4_K_M file is smaller than Q8_0, but its peak RAM is the same (0.35 GiB): llama.cpp re-lays 4-bit weights out in memory for faster CPU maths when it loads them, which is the likely cost.
+
+![V2 against SmolLM2-135M and Gemma 3 270M on llama.cpp](figures/gguf_rivals.svg)
+
+**Raspberry Pi estimates for the GGUF files** (estimates, not measurements, by the method of the [CPU section](#raspberry-pi-estimates); decode is also capped by the laptop decode divided by the per-core compute ratio, since quantized decode can be limited by compute):
+
+| Model | Pi 5 decode tok/s (ceiling) | Pi 5 first token, s | Pi 3 decode tok/s (ceiling) | Pi 3 first token, s | Fits a 1 GB Pi 3 |
+|---|---:|---:|---:|---:|---|
+| **LiteGPT V2**, PyTorch fp32 | 12.1 (17.1) | 0.54 | 1.9 (2.7) | 2.15 | no |
+| **LiteGPT V2** BF16 | 25.1 (34.2) | 0.94 | 4.0 (5.4) | 3.74 | yes |
+| **LiteGPT V2** Q8_0 | 43.5 (64.1) | 0.61 | 6.9 (10.2) | 2.44 | yes |
+| **LiteGPT V2** Q4_K_M | 58.4 (108.3) | 0.43 | 9.3 (17.3) | 1.73 | yes |
+| SmolLM2-135M Q8_0 | 58.7 (95.3) | 0.38 | 9.4 (15.2) | 1.54 | yes |
+| SmolLM2-135M Q4_K_M | 62.4 (130.9) | 0.48 | 9.9 (20.9) | 1.91 | yes |
+| Gemma 3 270M Q8_0 | 36.5 (47.3) | 0.40 | 5.8 (7.5) | 1.60 | yes |
+| Gemma 3 270M Q4_K_M | 38.2 (54.5) | 0.42 | 6.1 (8.7) | 1.68 | yes |
+
+The Pi 3's Cortex-A53 has no int8 dot-product instructions, so its real prefill is likely at the low end. These estimates will be replaced by measurements on a Pi 5 and a Pi 3.
+
+Records: `runs/*-export-gguf-*` (metadata checks), `runs/*-eval-gguf-check-*` (tokenizer, perplexity, greedy and chat checks), `runs/*-bench-cpu-gguf-*` (speed, RAM and the Pi estimate). Code: `litegpt/export/to_gguf.py`, `benchmarks/gguf_check.py`, `benchmarks/cpu_bench.py gguf-all`.
+<!-- gguf:end -->
+
 ## V2 against V1
 
 ![V2 against V1 on every benchmark](figures/v1_vs_v2.svg)

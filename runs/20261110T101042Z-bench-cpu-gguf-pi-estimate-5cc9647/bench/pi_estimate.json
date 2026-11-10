@@ -1,0 +1,519 @@
+{
+  "laptop_read_gbs_4_threads": 59.92914961495828,
+  "bandwidth_record": "20261108T193819Z-bench-cpu-bandwidth-5331efd",
+  "models": {
+    "v2/BF16": {
+      "record": "20261110T100745Z-bench-cpu-gguf-v2-BF16-5cc9647",
+      "label": "LiteGPT V2",
+      "quant": "BF16",
+      "peak_rss_gib": 0.5236396789550781,
+      "estimate": {
+        "Raspberry Pi 5": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 25.136251885409788,
+              "decode_ceiling_tok_s": 34.15798024278661,
+              "prefill_tok_s": 136.89675,
+              "prefill_tok_s_range": [
+                68.448375,
+                205.345125
+              ],
+              "ttft_s": 0.9350112402230149
+            },
+            "512": {
+              "decode_tok_s": 22.302617817663663,
+              "decode_ceiling_tok_s": 34.15798024278661,
+              "prefill_tok_s": 135.65375,
+              "prefill_tok_s_range": [
+                67.826875,
+                203.480625
+              ],
+              "ttft_s": 3.774315122140007
+            }
+          },
+          "fits_in_ram_gb": {
+            "4": true,
+            "8": true
+          },
+          "cpu": "4x Cortex-A76 at 2.4 GHz",
+          "source": "Arm learning path llm-decode-roofline: 13.8 GB/s sustained read",
+          "bandwidth_gbs": 13.8,
+          "fp32_core_ratio": 4.0
+        },
+        "Raspberry Pi 3 Model B": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 4.0072285614421395,
+              "decode_ceiling_tok_s": 5.4454751111688795,
+              "prefill_tok_s": 34.2241875,
+              "prefill_tok_s_range": [
+                17.11209375,
+                51.33628125
+              ],
+              "ttft_s": 3.7400449608920594
+            },
+            "512": {
+              "decode_tok_s": 3.5554897970188453,
+              "decode_ceiling_tok_s": 5.4454751111688795,
+              "prefill_tok_s": 33.9134375,
+              "prefill_tok_s_range": [
+                16.95671875,
+                50.87015625
+              ],
+              "ttft_s": 15.097260488560028
+            }
+          },
+          "fits_in_ram_gb": {
+            "1": true
+          },
+          "cpu": "4x Cortex-A53 at 1.2 GHz",
+          "source": "OpenBenchmarking RAMspeed 1604209-GA-RPI3RAMSP14: about 2.2 GB/s",
+          "bandwidth_gbs": 2.2,
+          "fp32_core_ratio": 16.0
+        }
+      }
+    },
+    "v2/Q8_0": {
+      "record": "20261110T100821Z-bench-cpu-gguf-v2-Q8_0-5cc9647",
+      "label": "LiteGPT V2",
+      "quant": "Q8_0",
+      "peak_rss_gib": 0.34808349609375,
+      "estimate": {
+        "Raspberry Pi 5": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 43.509878193719054,
+              "decode_ceiling_tok_s": 64.1080815428039,
+              "prefill_tok_s": 209.77,
+              "prefill_tok_s_range": [
+                104.885,
+                314.65500000000003
+              ],
+              "ttft_s": 0.6101921151737617
+            },
+            "512": {
+              "decode_tok_s": 36.007158684284,
+              "decode_ceiling_tok_s": 64.1080815428039,
+              "prefill_tok_s": 199.9715,
+              "prefill_tok_s_range": [
+                99.98575,
+                299.95725
+              ],
+              "ttft_s": 2.560364851991409
+            }
+          },
+          "fits_in_ram_gb": {
+            "4": true,
+            "8": true
+          },
+          "cpu": "4x Cortex-A76 at 2.4 GHz",
+          "source": "Arm learning path llm-decode-roofline: 13.8 GB/s sustained read",
+          "bandwidth_gbs": 13.8,
+          "fp32_core_ratio": 4.0
+        },
+        "Raspberry Pi 3 Model B": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 6.936357393201589,
+              "decode_ceiling_tok_s": 10.22012894160642,
+              "prefill_tok_s": 52.4425,
+              "prefill_tok_s_range": [
+                26.22125,
+                78.66375000000001
+              ],
+              "ttft_s": 2.440768460695047
+            },
+            "512": {
+              "decode_tok_s": 5.740271674306145,
+              "decode_ceiling_tok_s": 10.22012894160642,
+              "prefill_tok_s": 49.992875,
+              "prefill_tok_s_range": [
+                24.9964375,
+                74.9893125
+              ],
+              "ttft_s": 10.241459407965635
+            }
+          },
+          "fits_in_ram_gb": {
+            "1": true
+          },
+          "cpu": "4x Cortex-A53 at 1.2 GHz",
+          "source": "OpenBenchmarking RAMspeed 1604209-GA-RPI3RAMSP14: about 2.2 GB/s",
+          "bandwidth_gbs": 2.2,
+          "fp32_core_ratio": 16.0
+        }
+      }
+    },
+    "v2/Q4_K_M": {
+      "record": "20261110T100847Z-bench-cpu-gguf-v2-Q4_K_M-5cc9647",
+      "label": "LiteGPT V2",
+      "quant": "Q4_K_M",
+      "peak_rss_gib": 0.3464317321777344,
+      "estimate": {
+        "Raspberry Pi 5": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 58.41353702649961,
+              "decode_ceiling_tok_s": 108.25828053467164,
+              "prefill_tok_s": 295.8625,
+              "prefill_tok_s_range": [
+                147.93125,
+                443.79375000000005
+              ],
+              "ttft_s": 0.4326334023406143
+            },
+            "512": {
+              "decode_tok_s": 46.887967175470095,
+              "decode_ceiling_tok_s": 108.25828053467164,
+              "prefill_tok_s": 279.68,
+              "prefill_tok_s_range": [
+                139.84,
+                419.52
+              ],
+              "ttft_s": 1.8306636155606406
+            }
+          },
+          "fits_in_ram_gb": {
+            "4": true,
+            "8": true
+          },
+          "cpu": "4x Cortex-A76 at 2.4 GHz",
+          "source": "Arm learning path llm-decode-roofline: 13.8 GB/s sustained read",
+          "bandwidth_gbs": 13.8,
+          "fp32_core_ratio": 4.0
+        },
+        "Raspberry Pi 3 Model B": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 9.312303004224574,
+              "decode_ceiling_tok_s": 17.258566462049103,
+              "prefill_tok_s": 73.965625,
+              "prefill_tok_s_range": [
+                36.9828125,
+                110.94843750000001
+              ],
+              "ttft_s": 1.7305336093624573
+            },
+            "512": {
+              "decode_tok_s": 7.474893317828567,
+              "decode_ceiling_tok_s": 17.258566462049103,
+              "prefill_tok_s": 69.92,
+              "prefill_tok_s_range": [
+                34.96,
+                104.88
+              ],
+              "ttft_s": 7.3226544622425624
+            }
+          },
+          "fits_in_ram_gb": {
+            "1": true
+          },
+          "cpu": "4x Cortex-A53 at 1.2 GHz",
+          "source": "OpenBenchmarking RAMspeed 1604209-GA-RPI3RAMSP14: about 2.2 GB/s",
+          "bandwidth_gbs": 2.2,
+          "fp32_core_ratio": 16.0
+        }
+      }
+    },
+    "smollm2/Q8_0": {
+      "record": "20261110T100913Z-bench-cpu-gguf-smollm2-Q8_0-5cc9647",
+      "label": "SmolLM2-135M",
+      "quant": "Q8_0",
+      "peak_rss_gib": 0.2625923156738281,
+      "estimate": {
+        "Raspberry Pi 5": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 58.66015824663972,
+              "decode_ceiling_tok_s": 95.29683333871047,
+              "prefill_tok_s": 332.885,
+              "prefill_tok_s_range": [
+                166.4425,
+                499.3275
+              ],
+              "ttft_s": 0.3845171756011836
+            },
+            "512": {
+              "decode_tok_s": 46.43985803037892,
+              "decode_ceiling_tok_s": 95.29683333871047,
+              "prefill_tok_s": 312.495,
+              "prefill_tok_s_range": [
+                156.2475,
+                468.7425
+              ],
+              "ttft_s": 1.638426214819437
+            }
+          },
+          "fits_in_ram_gb": {
+            "4": true,
+            "8": true
+          },
+          "cpu": "4x Cortex-A76 at 2.4 GHz",
+          "source": "Arm learning path llm-decode-roofline: 13.8 GB/s sustained read",
+          "bandwidth_gbs": 13.8,
+          "fp32_core_ratio": 4.0
+        },
+        "Raspberry Pi 3 Model B": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 9.351619430623723,
+              "decode_ceiling_tok_s": 15.192248793127757,
+              "prefill_tok_s": 83.22125,
+              "prefill_tok_s_range": [
+                41.610625,
+                124.831875
+              ],
+              "ttft_s": 1.5380687024047344
+            },
+            "512": {
+              "decode_tok_s": 7.403455628031423,
+              "decode_ceiling_tok_s": 15.192248793127757,
+              "prefill_tok_s": 78.12375,
+              "prefill_tok_s_range": [
+                39.061875,
+                117.185625
+              ],
+              "ttft_s": 6.553704859277748
+            }
+          },
+          "fits_in_ram_gb": {
+            "1": true
+          },
+          "cpu": "4x Cortex-A53 at 1.2 GHz",
+          "source": "OpenBenchmarking RAMspeed 1604209-GA-RPI3RAMSP14: about 2.2 GB/s",
+          "bandwidth_gbs": 2.2,
+          "fp32_core_ratio": 16.0
+        }
+      }
+    },
+    "smollm2/Q4_K_M": {
+      "record": "20261110T100941Z-bench-cpu-gguf-smollm2-Q4_K_M-5cc9647",
+      "label": "SmolLM2-135M",
+      "quant": "Q4_K_M",
+      "peak_rss_gib": 0.23481369018554688,
+      "estimate": {
+        "Raspberry Pi 5": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 62.38941189759118,
+              "decode_ceiling_tok_s": 130.86304366956665,
+              "prefill_tok_s": 267.8275,
+              "prefill_tok_s_range": [
+                133.91375,
+                401.74125
+              ],
+              "ttft_s": 0.4779195564309117
+            },
+            "512": {
+              "decode_tok_s": 49.55773974905029,
+              "decode_ceiling_tok_s": 130.86304366956665,
+              "prefill_tok_s": 252.1325,
+              "prefill_tok_s_range": [
+                126.06625,
+                378.19875
+              ],
+              "ttft_s": 2.0306783139817357
+            }
+          },
+          "fits_in_ram_gb": {
+            "4": true,
+            "8": true
+          },
+          "cpu": "4x Cortex-A76 at 2.4 GHz",
+          "source": "Arm learning path llm-decode-roofline: 13.8 GB/s sustained read",
+          "bandwidth_gbs": 13.8,
+          "fp32_core_ratio": 4.0
+        },
+        "Raspberry Pi 3 Model B": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 9.946138128601493,
+              "decode_ceiling_tok_s": 20.86222435311932,
+              "prefill_tok_s": 66.956875,
+              "prefill_tok_s_range": [
+                33.4784375,
+                100.4353125
+              ],
+              "ttft_s": 1.9116782257236469
+            },
+            "512": {
+              "decode_tok_s": 7.9005092353558455,
+              "decode_ceiling_tok_s": 20.86222435311932,
+              "prefill_tok_s": 63.033125,
+              "prefill_tok_s_range": [
+                31.5165625,
+                94.5496875
+              ],
+              "ttft_s": 8.122713255926943
+            }
+          },
+          "fits_in_ram_gb": {
+            "1": true
+          },
+          "cpu": "4x Cortex-A53 at 1.2 GHz",
+          "source": "OpenBenchmarking RAMspeed 1604209-GA-RPI3RAMSP14: about 2.2 GB/s",
+          "bandwidth_gbs": 2.2,
+          "fp32_core_ratio": 16.0
+        }
+      }
+    },
+    "gemma/Q8_0": {
+      "record": "20261110T101011Z-bench-cpu-gguf-gemma-Q8_0-5cc9647",
+      "label": "Gemma 3 270M",
+      "quant": "Q8_0",
+      "peak_rss_gib": 0.3639373779296875,
+      "estimate": {
+        "Raspberry Pi 5": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 36.54599496358171,
+              "decode_ceiling_tok_s": 47.334198318930746,
+              "prefill_tok_s": 319.9575,
+              "prefill_tok_s_range": [
+                159.97875,
+                479.93625
+              ],
+              "ttft_s": 0.4000531320566013
+            },
+            "512": {
+              "decode_tok_s": 33.56397367430591,
+              "decode_ceiling_tok_s": 47.334198318930746,
+              "prefill_tok_s": 330.075,
+              "prefill_tok_s_range": [
+                165.0375,
+                495.11249999999995
+              ],
+              "ttft_s": 1.5511626145572976
+            }
+          },
+          "fits_in_ram_gb": {
+            "4": true,
+            "8": true
+          },
+          "cpu": "4x Cortex-A76 at 2.4 GHz",
+          "source": "Arm learning path llm-decode-roofline: 13.8 GB/s sustained read",
+          "bandwidth_gbs": 13.8,
+          "fp32_core_ratio": 4.0
+        },
+        "Raspberry Pi 3 Model B": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 5.826173110136215,
+              "decode_ceiling_tok_s": 7.546031616061423,
+              "prefill_tok_s": 79.989375,
+              "prefill_tok_s_range": [
+                39.9946875,
+                119.9840625
+              ],
+              "ttft_s": 1.6002125282264053
+            },
+            "512": {
+              "decode_tok_s": 5.350778411845871,
+              "decode_ceiling_tok_s": 7.546031616061423,
+              "prefill_tok_s": 82.51875,
+              "prefill_tok_s_range": [
+                41.259375,
+                123.77812499999999
+              ],
+              "ttft_s": 6.204650458229191
+            }
+          },
+          "fits_in_ram_gb": {
+            "1": true
+          },
+          "cpu": "4x Cortex-A53 at 1.2 GHz",
+          "source": "OpenBenchmarking RAMspeed 1604209-GA-RPI3RAMSP14: about 2.2 GB/s",
+          "bandwidth_gbs": 2.2,
+          "fp32_core_ratio": 16.0
+        }
+      }
+    },
+    "gemma/Q4_K_M": {
+      "record": "20261110T101042Z-bench-cpu-gguf-gemma-Q4_K_M-5cc9647",
+      "label": "Gemma 3 270M",
+      "quant": "Q4_K_M",
+      "peak_rss_gib": 0.3455619812011719,
+      "estimate": {
+        "Raspberry Pi 5": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 38.16342488913176,
+              "decode_ceiling_tok_s": 54.52104980297199,
+              "prefill_tok_s": 305.0775,
+              "prefill_tok_s_range": [
+                152.53875,
+                457.61625
+              ],
+              "ttft_s": 0.4195655202366612
+            },
+            "512": {
+              "decode_tok_s": 36.894166097897156,
+              "decode_ceiling_tok_s": 54.52104980297199,
+              "prefill_tok_s": 297.5475,
+              "prefill_tok_s_range": [
+                148.77375,
+                446.32125
+              ],
+              "ttft_s": 1.7207336643729152
+            }
+          },
+          "fits_in_ram_gb": {
+            "4": true,
+            "8": true
+          },
+          "cpu": "4x Cortex-A76 at 2.4 GHz",
+          "source": "Arm learning path llm-decode-roofline: 13.8 GB/s sustained read",
+          "bandwidth_gbs": 13.8,
+          "fp32_core_ratio": 4.0
+        },
+        "Raspberry Pi 3 Model B": {
+          "prompts": {
+            "128": {
+              "decode_tok_s": 6.084024257687673,
+              "decode_ceiling_tok_s": 8.691761562792635,
+              "prefill_tok_s": 76.269375,
+              "prefill_tok_s_range": [
+                38.1346875,
+                114.4040625
+              ],
+              "ttft_s": 1.6782620809466449
+            },
+            "512": {
+              "decode_tok_s": 5.881678653287953,
+              "decode_ceiling_tok_s": 8.691761562792635,
+              "prefill_tok_s": 74.386875,
+              "prefill_tok_s_range": [
+                37.1934375,
+                111.5803125
+              ],
+              "ttft_s": 6.882934657491661
+            }
+          },
+          "fits_in_ram_gb": {
+            "1": true
+          },
+          "cpu": "4x Cortex-A53 at 1.2 GHz",
+          "source": "OpenBenchmarking RAMspeed 1604209-GA-RPI3RAMSP14: about 2.2 GB/s",
+          "bandwidth_gbs": 2.2,
+          "fp32_core_ratio": 16.0
+        }
+      }
+    }
+  },
+  "assumptions": {
+    "usable_ram_gb": {
+      "Raspberry Pi 5": {
+        "4": 3.2,
+        "8": 7.2
+      },
+      "Raspberry Pi 3 Model B": {
+        "1": 0.75
+      }
+    },
+    "prefill_range": [
+      0.5,
+      1.5
+    ],
+    "platform": "64-bit OS, llama.cpp ARM build; decode also capped by laptop decode / per-core ratio"
+  }
+}

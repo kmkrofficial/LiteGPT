@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "files": {
+    "F32": {
+      "file": "LiteGPT-V2-Base-F32.gguf",
+      "bytes": 806658336,
+      "sha256": "5cf26e5b18d8f494a621766d7feca323996161c4bd004dbed9130f46822cecff",
+      "tensor_count": 310,
+      "problems": []
+    },
+    "BF16": {
+      "file": "LiteGPT-V2-Base-BF16.gguf",
+      "bytes": 404005152,
+      "sha256": "0b8bc8df092ea5c8442602cff8e722e8068e128c9453f0ddccc5fb95abde77b5",
+      "tensor_count": 310,
+      "problems": []
+    },
+    "Q8_0": {
+      "file": "LiteGPT-V2-Base-Q8_0.gguf",
+      "bytes": 215261472,
+      "sha256": "115bfde5d3b3143fefabf10ffe7b84d18af2ce64f930c5a65824a1e295103f0e",
+      "tensor_count": 310,
+      "problems": []
+    },
+    "Q4_K_M": {
+      "file": "LiteGPT-V2-Base-Q4_K_M.gguf",
+      "bytes": 127472928,
+      "sha256": "13bf593df84bbf923bddae66f390fc18c243bbe7aa6e0cdc0939152dcdce6621",
+      "tensor_count": 310,
+      "problems": []
+    }
+  },
+  "metadata_override": {
+    "general.name": "LiteGPT-V2-Base",
+    "general.basename": "LiteGPT-V2-Base",
+    "general.license": "apache-2.0",
+    "general.url": "https://huggingface.co/kmkrworks/LiteGPT-V2-Base-GGUF",
+    "general.repo_url": "https://github.com/kmkrofficial/LiteGPT"
+  }
+}

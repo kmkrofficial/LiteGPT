@@ -92,6 +92,14 @@ Generated from the run records by `python -m scripts.build_figures`. Don't edit 
 
 *float32, prompt 128. The Pi 5 figure is an estimate from laptop runs and published Pi bandwidth, not a measurement.* Source: `runs/*-bench-cpu-*/bench/`.
 
+![On llama.cpp, V2 needs a fraction of the RAM and decodes several times faster](gguf_ram_speed.svg)
+
+*Laptop CPU, prompt 128, 64 new tokens, median of 3. PyTorch fp32 through LiteGPT's engine against the GGUF files on llama.cpp.* Source: `runs/*-bench-cpu-gguf-v2-*, runs/*-bench-cpu-v2-litegpt-float32-*`.
+
+![On llama.cpp, V2 sits between SmolLM2-135M and Gemma 3 270M](gguf_rivals.svg)
+
+*All three converted with the same llama.cpp build. Laptop CPU, prompt 128. Pi 5 figures are estimates, not measurements.* Source: `runs/*-bench-cpu-gguf-*`.
+
 ## Chat models
 
 ![V2-Instruct beats V1-Instruct and trails the rest on instructions](chat_tasks.svg)

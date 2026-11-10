@@ -2,6 +2,11 @@
 
 Format: newest first. Spec changes are recorded with their ADR (docs/decisions/).
 
+## Unreleased
+
+- **GGUF files for llama.cpp and LM Studio** (2026-11-10): Base and Instruct as BF16, Q8_0 and Q4_K_M, converted with llama.cpp build b12084 (`litegpt/export/to_gguf.py`, one converter lookup entry in `benchmarks/gguf/llama_cpp_litegpt.patch`). Checked against PyTorch: identical token ids on 1,200 texts, F32 perplexity within 0.005%, identical greedy output on 23 prompts, and the same chat replies (`benchmarks/gguf_check.py`). Speed, RAM and Raspberry Pi estimates in `docs/results.md`.
+- **CPU and Raspberry Pi results** (2026-11-08): laptop CPU speed and RAM for V2, SmolLM2-135M, Gemma 3 270M and V1, with Pi 5 and Pi 3 estimates (`benchmarks/cpu_bench.py`).
+
 ## v2.0.0 (2026-11-06)
 
 ### 2026-11-05

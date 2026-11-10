@@ -69,6 +69,19 @@ An exported model loads with `AutoModelForCausalLM` and needs no remote code. In
 
 `litegpt.load` and the `litegpt` command also read an exported folder.
 
+## With llama.cpp or LM Studio
+
+The GGUF repositories run in [llama.cpp](https://github.com/ggml-org/llama.cpp) and the apps built on it, with no custom code. Q8_0 is the default choice: it matches BF16 within 0.06% perplexity at half the size. Q4_K_M is the smallest file. BF16 holds V2's exact weights.
+
+```bash
+llama-server -hf kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF:Q8_0 --jinja
+llama-completion -hf kmkrworks/LiteGPT-V2-Base-GGUF:Q8_0 -p "The capital of France is" -n 32
+```
+
+`llama-server` serves an OpenAI-compatible chat API and uses the chat template stored in the file; `--jinja` turns that template on. In LM Studio, search for `kmkrworks/LiteGPT` or run `lms get kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF`.
+
+llama.cpp does not apply Unicode NFC normalisation for BPE tokenizers, so normalise input that may hold decomposed accents first (`unicodedata.normalize("NFC", text)` in Python). Speed, RAM and quality for every file: [llama.cpp (GGUF)](results.md#llamacpp-gguf).
+
 ## On CPU
 
 Load in float32 on a CPU without native bf16 maths. On the laptop, bf16 made prefill about 5 times slower. Use 4 to 8 threads (`torch.set_num_threads`): decode is limited by memory bandwidth, and on a laptop with efficiency cores more threads made it slower. LiteGPT's own engine decoded 17% faster than Transformers on the same weights. The measured numbers and the Raspberry Pi estimates are in [results.md](results.md#cpu-and-raspberry-pi).

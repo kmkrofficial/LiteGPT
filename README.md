@@ -8,6 +8,7 @@ LiteGPT V2 is a 201M-parameter model with its own architecture implementation, i
 |---|---|
 | [LiteGPT-V2-Base](https://huggingface.co/kmkrworks/LiteGPT-V2-Base) | The pretrained model, 4,096-token context |
 | [LiteGPT-Llama-V2-Instruct](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct) | The chat version |
+| [LiteGPT-V2-Base-GGUF](https://huggingface.co/kmkrworks/LiteGPT-V2-Base-GGUF), [LiteGPT-Llama-V2-Instruct-GGUF](https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF) | Both models for llama.cpp and LM Studio: BF16, Q8_0 and Q4_K_M |
 
 ## Why this project
 
@@ -31,6 +32,7 @@ Most of V2 was designed and tested on a laptop with an **RTX 4090 Laptop GPU** (
 - **A big step up from V1:** clearly better on five benchmarks and clearly worse on none. On code text it is about three times better (bits per byte 1.612 → 0.515).
 - **Strong code modelling for its size:** the lowest code bits per byte of every model under 300M parameters we measured.
 - **Light to run:** 0.59 GiB of GPU memory at batch 8 with its own engine, the lowest of the 11 base models we measured, and 1.66 GiB of RAM on CPU.
+- **Runs in llama.cpp and LM Studio:** the Q8_0 file is 215 MB, decodes at 189 tok/s on 4 laptop CPU threads in 0.35 GiB of RAM, and matches the original model's tokens and outputs. See [llama.cpp (GGUF)](docs/results.md#llamacpp-gguf).
 - **Runs on a plain CPU:** 52.5 tok/s on 4 laptop threads in float32, as fast as SmolLM2-135M, and an estimated 12 tok/s on a Raspberry Pi 5. See [CPU and Raspberry Pi](docs/results.md#cpu-and-raspberry-pi).
 - **Good at structured output once fine-tuned:** 91.4% accuracy on Banking77 intents, and valid JSON on 99.99% of MASSIVE requests.
 - **Easy to use:** loads in Hugging Face Transformers with no remote code, and ships with an offline Python API and command line.
@@ -98,6 +100,14 @@ import litegpt
 m = litegpt.load("LiteGPT-V2-Base")
 print(litegpt.generate(m, "The capital of France is", max_new_tokens=32))
 ```
+
+With llama.cpp, from the GGUF repositories:
+
+```bash
+llama-server -hf kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF:Q8_0 --jinja
+```
+
+In LM Studio, search for `kmkrworks/LiteGPT`.
 
 Once downloaded, everything runs offline. More in [docs/inference.md](docs/inference.md).
 

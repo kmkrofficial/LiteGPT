@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "files": {
+    "F32": {
+      "file": "LiteGPT-Llama-V2-Instruct-F32.gguf",
+      "bytes": 806658656,
+      "sha256": "47ad471ac6721a96a3e4af2a4504692c5b9ef5421e700e2f0b873698667559b5",
+      "tensor_count": 310,
+      "problems": []
+    },
+    "BF16": {
+      "file": "LiteGPT-Llama-V2-Instruct-BF16.gguf",
+      "bytes": 404005472,
+      "sha256": "5e14330c6cbd4e7207dc2567b14cb03c9d3fef428ca84c27075a1746c65be4ca",
+      "tensor_count": 310,
+      "problems": []
+    },
+    "Q8_0": {
+      "file": "LiteGPT-Llama-V2-Instruct-Q8_0.gguf",
+      "bytes": 215261792,
+      "sha256": "d3f9ef49ad02c0008dcfe3af0b18e43b629b51b590b9a087669abac276d8e22f",
+      "tensor_count": 310,
+      "problems": []
+    },
+    "Q4_K_M": {
+      "file": "LiteGPT-Llama-V2-Instruct-Q4_K_M.gguf",
+      "bytes": 127473248,
+      "sha256": "8dee8b79346f7a3f2f4eef1433c204b481bc057d804a9d605130ae337444aa9a",
+      "tensor_count": 310,
+      "problems": []
+    }
+  },
+  "metadata_override": {
+    "general.name": "LiteGPT-Llama-V2-Instruct",
+    "general.basename": "LiteGPT-Llama-V2-Instruct",
+    "general.license": "apache-2.0",
+    "general.url": "https://huggingface.co/kmkrworks/LiteGPT-Llama-V2-Instruct-GGUF",
+    "general.repo_url": "https://github.com/kmkrofficial/LiteGPT"
+  }
+}

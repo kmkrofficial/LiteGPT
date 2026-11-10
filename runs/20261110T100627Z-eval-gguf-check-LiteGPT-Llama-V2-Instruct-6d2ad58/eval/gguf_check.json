@@ -1,0 +1,656 @@
+{
+  "settings": {
+    "n_ctx": 2048,
+    "chunks": 40,
+    "threads": 16,
+    "domains": [
+      "chat",
+      "code",
+      "math",
+      "synthetic",
+      "web"
+    ],
+    "quant_domains": [
+      "code",
+      "math",
+      "web"
+    ],
+    "limits": {
+      "g2_ppl": 0.001,
+      "g2_greedy": 0.9,
+      "bf16_ppl": 0.005,
+      "q8_ppl": 0.01,
+      "q4_ppl": 0.05,
+      "g4_greedy": 9
+    }
+  },
+  "G1": {
+    "passed": true,
+    "sets": {
+      "chat": {
+        "strings": 200,
+        "identical": 200,
+        "mismatches": []
+      },
+      "code": {
+        "strings": 200,
+        "identical": 200,
+        "mismatches": []
+      },
+      "math": {
+        "strings": 200,
+        "identical": 200,
+        "mismatches": []
+      },
+      "synthetic": {
+        "strings": 200,
+        "identical": 200,
+        "mismatches": []
+      },
+      "web": {
+        "strings": 200,
+        "identical": 200,
+        "mismatches": []
+      },
+      "doc_strings": {
+        "strings": 200,
+        "identical": 200,
+        "mismatches": []
+      },
+      "edge": {
+        "strings": 106,
+        "identical": 100,
+        "mismatches": [
+          {
+            "index": 41,
+            "text": "cafe\u0301",
+            "first_diff": 2,
+            "llama": [
+              9741,
+              173,
+              260
+            ],
+            "hf": [
+              2087,
+              2825
+            ]
+          },
+          {
+            "index": 43,
+            "text": "nai\u0308ve",
+            "first_diff": 1,
+            "llama": [
+              114,
+              2736,
+              173,
+              267,
+              353
+            ],
+            "hf": [
+              3459,
+              25388,
+              353
+            ]
+          },
+          {
+            "index": 45,
+            "text": "A\u030angstro\u0308m",
+            "first_diff": 1,
+            "llama": [
+              69,
+              173,
+              269,
+              947,
+              341,
+              332
+            ],
+            "hf": [
+              164,
+              264,
+              947,
+              1244,
+              7584,
+              113
+            ]
+          },
+          {
+            "index": 97,
+            "text": "e\u0301e\u0301e\u0301",
+            "first_diff": 1,
+            "llama": [
+              105,
+              173,
+              260,
+              105,
+              173,
+              260
+            ],
+            "hf": [
+              2825,
+              2825,
+              2825
+            ]
+          },
+          {
+            "index": 104,
+            "text": "\u2126 ohm vs \u03a9 omega",
+            "first_diff": 1,
+            "llama": [
+              9487,
+              136,
+              304,
+              16448,
+              6290,
+              28996
+            ],
+            "hf": [
+              25773,
+              304,
+              16448,
+              6290,
+              28996,
+              16056
+            ]
+          },
+          {
+            "index": 105,
+            "text": "\u212a kelvin",
+            "first_diff": 1,
+            "llama": [
+              9487,
+              140,
+              539,
+              340,
+              10206
+            ],
+            "hf": [
+              79,
+              539,
+              340,
+              10206
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "G2_greedy": {
+    "identical": 23,
+    "prompts": 23,
+    "rows": {
+      "random-16": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 16,
+        "evaluated": 16
+      },
+      "random-512": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 512,
+        "evaluated": 512
+      },
+      "random-3968": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 3968,
+        "evaluated": 3968
+      },
+      "chat-0": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "chat-1": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "chat-2": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "chat-3": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "code-0": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "code-1": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "code-2": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "code-3": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "math-0": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "math-1": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "math-2": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "math-3": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "synthetic-0": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "synthetic-1": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "synthetic-2": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "synthetic-3": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "web-0": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "web-1": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "web-2": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      },
+      "web-3": {
+        "identical": true,
+        "first_diff": null,
+        "prompt_tokens": 128,
+        "evaluated": 128
+      }
+    }
+  },
+  "G4": {
+    "template_identical": true,
+    "one_bos": true,
+    "stops": true,
+    "replies_identical": 10,
+    "rows": [
+      {
+        "template_identical": true,
+        "prompt_tokens": 19,
+        "expected_tokens": 19,
+        "stop_ok": true,
+        "finish_reason": "length",
+        "reply_identical": true,
+        "llama_reply": "Staying focused while studying can be a challenging task, but there are several strategies that can help. Here are three tips to consider:\n\nFirst, create a conducive study environment. This might mean turning off your phone, finding a quiet spot, and using a noise-cancelling headset to minimize dist",
+        "torch_reply": "Staying focused while studying can be a challenging task, but there are several strategies that can help. Here are three tips to consider:\n\nFirst, create a conducive study environment. This might mean turning off your phone, finding a quiet spot, and using a noise-cancelling headset to minimize dist"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 27,
+        "expected_tokens": 27,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "The capital of Japan is Tokyo. It is a major city located in the heart of the country, known for its vibrant culture, rich history, and modern architecture. Tokyo is a city that seamlessly blends traditional and modern elements, making it a fascinating destination for visitors from around the world.",
+        "torch_reply": "The capital of Japan is Tokyo. It is a major city located in the heart of the country, known for its vibrant culture, rich history, and modern architecture. Tokyo is a city that seamlessly blends traditional and modern elements, making it a fascinating destination for visitors from around the world."
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 21,
+        "expected_tokens": 21,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "```python\ndef square_number(n):\n    return n ** 2\n```\n\nThis function uses the exponentiation operator (`**`) to calculate the square of the input number. You can use it like this:\n\n```python\nprint(square_number(5))  # Output: 25\n```",
+        "torch_reply": "```python\ndef square_number(n):\n    return n ** 2\n```\n\nThis function uses the exponentiation operator (`**`) to calculate the square of the input number. You can use it like this:\n\n```python\nprint(square_number(5))  # Output: 25\n```"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 30,
+        "expected_tokens": 30,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "The meeting was rescheduled to Wednesday due to the booked room, which was a departure from Monday's scheduled meeting.",
+        "torch_reply": "The meeting was rescheduled to Wednesday due to the booked room, which was a departure from Monday's scheduled meeting."
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 41,
+        "expected_tokens": 41,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "Octopuses are one of the most fascinating creatures in the ocean. One of the most well-known facts about octopuses is that they have a unique, almost symbiotic relationship with a type of squid called the \"octopus.\" The octopus has a unique, almost three-dimensional shell that is covered in tiny, al",
+        "torch_reply": "Octopuses are one of the most fascinating creatures in the ocean. One of the most well-known facts about octopuses is that they have a unique, almost symbiotic relationship with a type of squid called the \"octopus.\" The octopus has a unique, almost three-dimensional shell that is covered in tiny, al"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 32,
+        "expected_tokens": 32,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "```json\n{\n  \"name\": \"John Doe\",\n  \"age\": 30,\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Anytown\",\n    \"state\": \"CA\",\n    \"zip\": \"12345\"\n  }\n}\n```",
+        "torch_reply": "```json\n{\n  \"name\": \"John Doe\",\n  \"age\": 30,\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Anytown\",\n    \"state\": \"CA\",\n    \"zip\": \"12345\"\n  }\n}\n```"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 18,
+        "expected_tokens": 18,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "The phrase \"good morning\" in French is a common expression that originated from the French phrase \"La morninge\" (meaning \"the morning\"). It's often used to express a state of being or a moment of calm before the day begins.\n\nTo translate \"good morning\" into French, you would say \"La morninge\" follow",
+        "torch_reply": "The phrase \"good morning\" in French is a common expression that originated from the French phrase \"La morninge\" (meaning \"the morning\"). It's often used to express a state of being or a moment of calm before the day begins.\n\nTo translate \"good morning\" into French, you would say \"La morninge\" follow"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 19,
+        "expected_tokens": 19,
+        "stop_ok": true,
+        "finish_reason": "length",
+        "reply_identical": true,
+        "llama_reply": "The planets in our solar system are located in the outer reaches of the solar system, between the Sun and the Moon. The planets in order from the Sun are:\n\nMoon (Muestra), Earth, Sun, Moon, Mars, Jupiter, Saturn, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Ur",
+        "torch_reply": "The planets in our solar system are located in the outer reaches of the solar system, between the Sun and the Moon. The planets in order from the Sun are:\n\nMoon (Muestra), Earth, Sun, Moon, Mars, Jupiter, Saturn, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Ur"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 20,
+        "expected_tokens": 20,
+        "stop_ok": true,
+        "finish_reason": "length",
+        "reply_identical": true,
+        "llama_reply": "A hash table is a data structure that stores key-value pairs in a way that allows for efficient lookup, insertion, and deletion of elements. Think of it like a phonebook where you can quickly look up a specific name or address by its name.\n\nImagine you have a book with a few key pages, like the auth",
+        "torch_reply": "A hash table is a data structure that stores key-value pairs in a way that allows for efficient lookup, insertion, and deletion of elements. Think of it like a phonebook where you can quickly look up a specific name or address by its name.\n\nImagine you have a book with a few key pages, like the auth"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 38,
+        "expected_tokens": 38,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "84 divided by 4 equals 21.",
+        "torch_reply": "84 divided by 4 equals 21."
+      }
+    ]
+  },
+  "G4_q8": {
+    "template_identical": true,
+    "one_bos": true,
+    "stops": false,
+    "replies_identical": 6,
+    "rows": [
+      {
+        "template_identical": true,
+        "prompt_tokens": 19,
+        "expected_tokens": 19,
+        "stop_ok": true,
+        "finish_reason": "length",
+        "reply_identical": false,
+        "llama_reply": "Staying focused while studying can be a challenging task, but there are several strategies that can help. Here are three tips to consider:\n\nFirst, create a conducive study environment. This might mean turning off your phone, finding a quiet spot, and using a noise-cancelling headset to minimize dist",
+        "torch_reply": "Staying focused while studying can be a challenging task, but there are several strategies that can help. Here are three tips to consider:\n\nFirst, create a conducive study environment. This might mean turning off your phone, finding a quiet spot, and using a noise-cancelling headset to minimize dist"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 27,
+        "expected_tokens": 27,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "The capital of Japan is Tokyo. It is a major city located in the heart of the country, known for its vibrant culture, rich history, and modern architecture. Tokyo is a city that seamlessly blends traditional and modern elements, making it a fascinating destination for visitors from around the world.",
+        "torch_reply": "The capital of Japan is Tokyo. It is a major city located in the heart of the country, known for its vibrant culture, rich history, and modern architecture. Tokyo is a city that seamlessly blends traditional and modern elements, making it a fascinating destination for visitors from around the world."
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 21,
+        "expected_tokens": 21,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "```python\ndef square_number(n):\n    return n ** 2\n```\n\nThis function uses the exponentiation operator (`**`) to calculate the square of the input number. You can use it like this:\n\n```python\nprint(square_number(5))  # Output: 25\n```",
+        "torch_reply": "```python\ndef square_number(n):\n    return n ** 2\n```\n\nThis function uses the exponentiation operator (`**`) to calculate the square of the input number. You can use it like this:\n\n```python\nprint(square_number(5))  # Output: 25\n```"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 30,
+        "expected_tokens": 30,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "The meeting was rescheduled to Wednesday due to the booked room, which was a departure from Monday's scheduled meeting.",
+        "torch_reply": "The meeting was rescheduled to Wednesday due to the booked room, which was a departure from Monday's scheduled meeting."
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 41,
+        "expected_tokens": 41,
+        "stop_ok": false,
+        "finish_reason": "length",
+        "reply_identical": false,
+        "llama_reply": "Octopuses are one of the most fascinating creatures in the ocean. One of the most well-known facts about octopuses is that they have a unique, almost symbiotic relationship with a type of squid called the \"octopus.\" The octopus has a unique, almost three-dimensional shell that is covered in tiny, al",
+        "torch_reply": "Octopuses are one of the most fascinating creatures in the ocean. One of the most well-known facts about octopuses is that they have a unique, almost symbiotic relationship with a type of squid called the \"octopus.\" The octopus has a unique, almost three-dimensional shell that is covered in tiny, al"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 32,
+        "expected_tokens": 32,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "```json\n{\n  \"name\": \"John Doe\",\n  \"age\": 30,\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Anytown\",\n    \"state\": \"CA\",\n    \"zip\": \"12345\"\n  }\n}\n```",
+        "torch_reply": "```json\n{\n  \"name\": \"John Doe\",\n  \"age\": 30,\n  \"address\": {\n    \"street\": \"123 Main St\",\n    \"city\": \"Anytown\",\n    \"state\": \"CA\",\n    \"zip\": \"12345\"\n  }\n}\n```"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 18,
+        "expected_tokens": 18,
+        "stop_ok": false,
+        "finish_reason": "length",
+        "reply_identical": false,
+        "llama_reply": "The phrase \"good morning\" in French is a common expression that originated from the French phrase \"La morninge\" (meaning \"the morning\"). It's often used to express a moment of calmness, relaxation, or a start of the day.\n\nTo translate \"good morning\" into French, you would say: \"La morninge\" is a goo",
+        "torch_reply": "The phrase \"good morning\" in French is a common expression that originated from the French phrase \"La morninge\" (meaning \"the morning\"). It's often used to express a state of being or a moment of calm before the day begins.\n\nTo translate \"good morning\" into French, you would say \"La morninge\" follow"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 19,
+        "expected_tokens": 19,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": false,
+        "llama_reply": "The planets in our solar system are arranged in a specific order, with the Sun at the center. The planets in order from the Sun's position are: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, and Neptune.",
+        "torch_reply": "The planets in our solar system are located in the outer reaches of the solar system, between the Sun and the Moon. The planets in order from the Sun are:\n\nMoon (Muestra), Earth, Sun, Moon, Mars, Jupiter, Saturn, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Uranus, Neptune, Ur"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 20,
+        "expected_tokens": 20,
+        "stop_ok": true,
+        "finish_reason": "length",
+        "reply_identical": true,
+        "llama_reply": "A hash table is a data structure that stores key-value pairs in a way that allows for efficient lookup, insertion, and deletion of elements. Think of it like a phonebook where you can quickly look up a specific name or address by its name.\n\nImagine you have a book with a few key pages, like the auth",
+        "torch_reply": "A hash table is a data structure that stores key-value pairs in a way that allows for efficient lookup, insertion, and deletion of elements. Think of it like a phonebook where you can quickly look up a specific name or address by its name.\n\nImagine you have a book with a few key pages, like the auth"
+      },
+      {
+        "template_identical": true,
+        "prompt_tokens": 38,
+        "expected_tokens": 38,
+        "stop_ok": true,
+        "finish_reason": "stop",
+        "reply_identical": true,
+        "llama_reply": "84 divided by 4 equals 21.",
+        "torch_reply": "84 divided by 4 equals 21."
+      }
+    ]
+  },
+  "perplexity": {
+    "chat": {
+      "torch": {
+        "ppl": 14.492054862444805,
+        "scored_tokens": 40920,
+        "chunks": 40
+      },
+      "F32": {
+        "ppl": 14.4924
+      },
+      "BF16": {
+        "ppl": 14.4934
+      }
+    },
+    "code": {
+      "torch": {
+        "ppl": 10.740007247049183,
+        "scored_tokens": 40920,
+        "chunks": 40
+      },
+      "F32": {
+        "ppl": 10.7405
+      },
+      "BF16": {
+        "ppl": 10.7395
+      },
+      "Q8_0": {
+        "ppl_q": 10.738007,
+        "ppl_base": 10.710089,
+        "kld_mean": 0.00121,
+        "same_top_pct": 98.431,
+        "ppl": 10.738007
+      },
+      "Q4_K_M": {
+        "ppl_q": 11.068451,
+        "ppl_base": 10.710089,
+        "kld_mean": 0.043363,
+        "same_top_pct": 91.339,
+        "ppl": 11.068451
+      }
+    },
+    "math": {
+      "torch": {
+        "ppl": 17.831120125232097,
+        "scored_tokens": 40920,
+        "chunks": 40
+      },
+      "F32": {
+        "ppl": 17.8317
+      },
+      "BF16": {
+        "ppl": 17.8312
+      },
+      "Q8_0": {
+        "ppl_q": 17.833885,
+        "ppl_base": 17.795761,
+        "kld_mean": 0.001076,
+        "same_top_pct": 97.515,
+        "ppl": 17.833885
+      },
+      "Q4_K_M": {
+        "ppl_q": 18.33792,
+        "ppl_base": 17.795761,
+        "kld_mean": 0.038051,
+        "same_top_pct": 85.474,
+        "ppl": 18.33792
+      }
+    },
+    "synthetic": {
+      "torch": {
+        "ppl": 13.096654726163655,
+        "scored_tokens": 40920,
+        "chunks": 40
+      },
+      "F32": {
+        "ppl": 13.0971
+      },
+      "BF16": {
+        "ppl": 13.0968
+      }
+    },
+    "web": {
+      "torch": {
+        "ppl": 45.44600317272286,
+        "scored_tokens": 40920,
+        "chunks": 40
+      },
+      "F32": {
+        "ppl": 45.4474
+      },
+      "BF16": {
+        "ppl": 45.4479
+      },
+      "Q8_0": {
+        "ppl_q": 45.426112,
+        "ppl_base": 45.375052,
+        "kld_mean": 0.001104,
+        "same_top_pct": 98.006,
+        "ppl": 45.426112
+      },
+      "Q4_K_M": {
+        "ppl_q": 46.642184,
+        "ppl_base": 45.375052,
+        "kld_mean": 0.040345,
+        "same_top_pct": 88.404,
+        "ppl": 46.642184
+      }
+    }
+  },
+  "verdict": {
+    "G1": true,
+    "G2": true,
+    "G2_ppl": true,
+    "G2_greedy": true,
+    "G3_BF16": true,
+    "G3_Q8_0": true,
+    "G3_Q4_K_M": true,
+    "G4": true
+  }
+}
