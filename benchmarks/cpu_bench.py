@@ -48,6 +48,16 @@ PI = {
 }
 PREFILL_RANGE = (0.5, 1.5)
 
+# EXP-M5-GGUF (G5): the same rows from llama.cpp's llama-bench. Prefill = ppP from an empty context; decode = tg64 after a P-token context.
+GGUF_DIR = "~/m5_gguf"
+GGUF_MODELS = {
+    "v2": {"label": "LiteGPT V2", "quants": ("BF16", "Q8_0", "Q4_K_M"), "file": "LiteGPT-V2-Base-{q}.gguf"},
+    "smollm2": {"label": "SmolLM2-135M", "quants": ("Q8_0", "Q4_K_M"), "file": "rivals/SmolLM2-135M-{q}.gguf",
+                "repo": MODELS["smollm2"]["repo"], "revision": MODELS["smollm2"]["revision"]},
+    "gemma": {"label": "Gemma 3 270M", "quants": ("Q8_0", "Q4_K_M"), "file": "rivals/gemma-3-270m-{q}.gguf",
+              "repo": MODELS["gemma"]["repo"], "revision": MODELS["gemma"]["revision"]},
+}
+
 
 def rss_gib() -> float:
     with open("/proc/self/statm") as f:
@@ -194,8 +204,93 @@ def cmd_bandwidth(a) -> int:
     return 0
 
 
-def estimate_pi(model: dict, bandwidth_4t_gbs: float, threads: int = 4) -> dict:
-    """Estimates for each Pi from one model's laptop record. Decode: scaled by bandwidth, capped by the roofline. Prefill: scaled by per-core peak FP32."""
+def spread(values: list[float]) -> tuple[float, float, float]:
+    return statistics.median(values), min(values), max(values)
+
+
+def gguf_rows(entries: list[dict]) -> list[dict]:
+    """llama-bench JSON entries to the row schema of `run`: prefill from ppP at depth 0, decode from tg at depth P, ttft = P / prefill."""
+    pp = {(e["n_threads"], e["n_prompt"]): e["samples_ts"] for e in entries if e["n_gen"] == 0 and e["n_depth"] == 0}
+    tg = {(e["n_threads"], e["n_depth"]): e["samples_ts"] for e in entries if e["n_prompt"] == 0 and e["n_gen"] > 0}
+    rows = []
+    for (t, p), samples in sorted(pp.items()):
+        if (t, p) not in tg:
+            continue
+        pre, dec = spread(samples), spread(tg[(t, p)])
+        rows.append({"threads": t, "prompt_tokens": p, "prefill_tok_s": pre[0], "prefill_tok_s_min": pre[1], "prefill_tok_s_max": pre[2],
+                     "decode_tok_s": dec[0], "decode_tok_s_min": dec[1], "decode_tok_s_max": dec[2],
+                     "ttft_s": p / pre[0], "ttft_s_min": p / pre[2], "ttft_s_max": p / pre[1]})
+    return rows
+
+
+def gguf_path(model: str, quant: str) -> Path:
+    return Path(GGUF_DIR).expanduser() / GGUF_MODELS[model]["file"].format(q=quant)
+
+
+def cmd_gguf(a) -> int:
+    """One GGUF file: peak RSS of one generation at -c 4096, then llama-bench. A fresh process per file (cmd_gguf_all)."""
+    from litegpt.export.to_gguf import sha256
+    from litegpt.records import create_run
+    bins, path = Path(a.llama_cpp).expanduser() / "b", gguf_path(a.model, a.quant)
+    gen = subprocess.run([str(bins / "llama-completion"), "-m", str(path), "-p", TEXT * 3, "-n", str(a.new_tokens), "-c", "4096", "-t", "4",
+                          "--temp", "0", "--ignore-eos", "-no-cnv", "--no-display-prompt", "--simple-io"], capture_output=True, text=True)
+    if gen.returncode != 0:
+        raise SystemExit(f"llama-completion failed: {gen.stderr[-1500:]}")
+    peak = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 2 ** 20
+    entries = []
+    for extra in (["-p", ",".join(map(str, a.prompts)), "-n", "0", "-d", "0"], ["-p", "0", "-n", str(a.new_tokens), "-d", ",".join(map(str, a.prompts))]):
+        out = subprocess.run([str(bins / "llama-bench"), "-m", str(path), "-t", ",".join(map(str, a.threads)), "-r", str(a.repeats), "-o", "json", *extra],
+                             capture_output=True, text=True, check=True).stdout
+        entries += json.loads(out)
+    rows = gguf_rows(entries)
+    for r in rows:
+        print(json.dumps({k: round(v, 3) if isinstance(v, float) else v for k, v in r.items()}), flush=True)
+    rec_out = {"model": a.model, "label": GGUF_MODELS[a.model]["label"], "quant": a.quant, "file": path.name, "sha256": sha256(path),
+               "weight_bytes": path.stat().st_size, "parameters": entries[0]["model_n_params"], "peak_rss_gib": peak, "rows": rows,
+               "cpu": entries[0]["cpu_info"], "build": f"b{entries[0]['build_number']} ({entries[0]['build_commit']})", "llama_bench": entries,
+               "note": "llama-bench: prefill = ppP from an empty context, decode = tg64 after a P-token context; peak RSS = llama-completion, -c 4096, 4 threads, 64 tokens"}
+    rec = create_run("bench", f"cpu-gguf-{a.model}-{a.quant}", config={"experiment": "EXP-M5-GGUF", "gate": "G5", "model": GGUF_MODELS[a.model],
+                                                                     "quant": a.quant, "threads": list(a.threads), "prompts": list(a.prompts),
+                                                                     "new_tokens": a.new_tokens, "repeats": a.repeats})
+    rec.write_json("bench/cpu.json", rec_out)
+    print("record:", rec.path.name, flush=True)
+    return 0
+
+
+def cmd_gguf_prepare(a) -> int:
+    """Convert the rivals from their pinned revisions with the same llama.cpp build: F32, then the listed quants."""
+    from huggingface_hub import snapshot_download
+
+    from litegpt.export.to_gguf import sha256
+    llama_cpp = Path(a.llama_cpp).expanduser()
+    for name, m in GGUF_MODELS.items():
+        if "repo" not in m:
+            continue
+        src = snapshot_download(m["repo"], revision=m["revision"])          # fetches only files missing from the cache, at the pinned revision
+        f32 = gguf_path(name, "F32")
+        f32.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run([str(llama_cpp / "venv" / "bin" / "python"), str(llama_cpp / "src" / "convert_hf_to_gguf.py"), src, "--outtype", "f32",
+                        "--outfile", str(f32)], check=True, cwd=llama_cpp / "src")
+        for q in m["quants"]:
+            subprocess.run([str(llama_cpp / "b" / "llama-quantize"), str(f32), str(gguf_path(name, q)), q], check=True, capture_output=True)
+            print(name, q, gguf_path(name, q).stat().st_size, sha256(gguf_path(name, q)), flush=True)
+    return 0
+
+
+def cmd_gguf_all(a) -> int:
+    py = [sys.executable, "-m", "benchmarks.cpu_bench"]
+    env = {**os.environ, "PYTHONPATH": str(ROOT)}
+    for model, m in GGUF_MODELS.items():
+        for q in m["quants"]:
+            r = subprocess.run([*py, "gguf", "--model", model, "--quant", q, "--llama-cpp", a.llama_cpp], cwd=ROOT, env=env)
+            print(f"{model} {q}: exit {r.returncode}", flush=True)
+    return subprocess.run([*py, "pi", "--gguf"], cwd=ROOT, env=env).returncode
+
+
+def estimate_pi(model: dict, bandwidth_4t_gbs: float, threads: int = 4, compute_cap: bool = False) -> dict:
+    """Estimates for each Pi from one model's laptop record. Decode: scaled by bandwidth, capped by the roofline. Prefill: scaled by per-core peak FP32.
+    compute_cap (GGUF records, EXP-M5-GGUF): decode is also capped by the laptop decode divided by the per-core ratio, since quantized decode can be
+    limited by compute rather than bandwidth."""
     out = {}
     for name, pi in PI.items():
         rows = {r["prompt_tokens"]: r for r in model["rows"] if r["threads"] == threads}
@@ -203,6 +298,8 @@ def estimate_pi(model: dict, bandwidth_4t_gbs: float, threads: int = 4) -> dict:
         per_prompt = {}
         for length, r in rows.items():
             decode = min(r["decode_tok_s"] * pi["bandwidth_gbs"] / bandwidth_4t_gbs, ceiling)
+            if compute_cap:
+                decode = min(decode, r["decode_tok_s"] / pi["fp32_core_ratio"])
             prefill = r["prefill_tok_s"] / pi["fp32_core_ratio"]
             per_prompt[length] = {"decode_tok_s": decode, "decode_ceiling_tok_s": ceiling, "prefill_tok_s": prefill,
                                   "prefill_tok_s_range": [prefill * PREFILL_RANGE[0], prefill * PREFILL_RANGE[1]],
@@ -228,6 +325,22 @@ def cmd_pi(a) -> int:
     result = {"laptop_read_gbs_4_threads": bw4, "bandwidth_record": bw_dir.name, "models": {}, "assumptions": {
         "usable_ram_gb": {k: v["usable_gb"] for k, v in PI.items()}, "prefill_range": PREFILL_RANGE,
         "platform": "64-bit OS, PyTorch aarch64 build; float32 recommended because neither Pi has native bf16 maths"}}
+    if getattr(a, "gguf", False):
+        for model, m in GGUF_MODELS.items():
+            for q in m["quants"]:
+                d = newest(f"*-bench-cpu-gguf-{model}-{q}-*")
+                if d is None:
+                    continue
+                rec = json.loads((d / "bench" / "cpu.json").read_text(encoding="utf-8"))
+                result["models"][f"{model}/{q}"] = {"record": d.name, "label": rec["label"], "quant": q, "peak_rss_gib": rec["peak_rss_gib"],
+                                                    "estimate": estimate_pi(rec, bw4, compute_cap=True)}
+        result["assumptions"]["platform"] = "64-bit OS, llama.cpp ARM build; decode also capped by laptop decode / per-core ratio"
+        rec = create_run("bench", "cpu-gguf-pi-estimate", config={"experiment": "EXP-M5-GGUF",
+                                                                  "pi": {k: {**v, "ram_gb": list(v["ram_gb"])} for k, v in PI.items()}})
+        rec.write_json("bench/pi_estimate.json", result)
+        print(json.dumps({k: {p: round(v["estimate"][p]["prompts"][128]["decode_tok_s"], 1) for p in PI} for k, v in result["models"].items()}, indent=1))
+        print("record:", rec.path.name, flush=True)
+        return 0
     for model in MODELS:
         for dtype in DTYPES:
             d = newest(f"*-bench-cpu-{model}-{dtype}-*")
@@ -266,11 +379,23 @@ def main(argv=None) -> int:
     r.add_argument("--repeats", type=int, default=REPEATS)
     b = sub.add_parser("bandwidth")
     b.add_argument("--threads", type=int, nargs="+", default=[1, 4, 8])
-    sub.add_parser("pi")
+    pi = sub.add_parser("pi")
+    pi.add_argument("--gguf", action="store_true", help="estimate from the GGUF records (EXP-M5-GGUF), with the compute cap")
     al = sub.add_parser("all")
     al.add_argument("--models", nargs="+", default=list(MODELS), choices=list(MODELS))
+    g = sub.add_parser("gguf")
+    g.add_argument("--model", required=True, choices=list(GGUF_MODELS))
+    g.add_argument("--quant", required=True)
+    g.add_argument("--llama-cpp", default="~/llama.cpp")
+    g.add_argument("--threads", type=int, nargs="+", default=list(THREADS))
+    g.add_argument("--prompts", type=int, nargs="+", default=list(PROMPTS))
+    g.add_argument("--new-tokens", type=int, default=NEW_TOKENS)
+    g.add_argument("--repeats", type=int, default=REPEATS)
+    for name in ("gguf-prepare", "gguf-all"):
+        sub.add_parser(name).add_argument("--llama-cpp", default="~/llama.cpp")
     a = ap.parse_args(argv)
-    return {"run": cmd_run, "bandwidth": cmd_bandwidth, "pi": cmd_pi, "all": cmd_all}[a.command](a)
+    return {"run": cmd_run, "bandwidth": cmd_bandwidth, "pi": cmd_pi, "all": cmd_all, "gguf": cmd_gguf, "gguf-prepare": cmd_gguf_prepare,
+            "gguf-all": cmd_gguf_all}[a.command](a)
 
 
 if __name__ == "__main__":

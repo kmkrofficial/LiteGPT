@@ -94,3 +94,28 @@ def test_edge_strings_cover_the_risky_cases():
     s = C.edge_strings()
     assert 90 <= len(s) <= 110
     assert "café" in s and "<|im_start|>user\nhi<|im_end|>\n" in s and "\r\n" in s and any("🚀" in x for x in s)
+
+
+def test_gguf_rows_pair_prefill_with_decode_after_the_same_context():
+    from benchmarks import cpu_bench as B
+    e = lambda t, p, g, d, ts: {"n_threads": t, "n_prompt": p, "n_gen": g, "n_depth": d, "samples_ts": ts}
+    entries = [e(4, 128, 0, 0, [1000.0, 1200.0, 1100.0]), e(4, 512, 0, 0, [900.0]), e(4, 0, 64, 128, [200.0, 180.0, 190.0]),
+               e(4, 0, 64, 512, [150.0]), e(8, 128, 0, 0, [1500.0])]                     # 8 threads has no decode entry: skipped
+    rows = B.gguf_rows(entries)
+    assert [(r["threads"], r["prompt_tokens"]) for r in rows] == [(4, 128), (4, 512)]
+    r = rows[0]
+    assert (r["prefill_tok_s"], r["prefill_tok_s_min"], r["prefill_tok_s_max"]) == (1100.0, 1000.0, 1200.0)
+    assert (r["decode_tok_s"], r["decode_tok_s_min"], r["decode_tok_s_max"]) == (190.0, 180.0, 200.0)
+    assert r["ttft_s"] == pytest.approx(128 / 1100) and r["ttft_s_min"] == pytest.approx(128 / 1200)
+
+
+def test_pi_compute_cap_applies_only_when_asked():
+    from benchmarks import cpu_bench as B
+    model = {"weight_bytes": 215_000_000, "peak_rss_gib": 0.3, "rows": [{"threads": 4, "prompt_tokens": 128, "prefill_tok_s": 4000.0, "decode_tok_s": 240.0}]}
+    pi5 = lambda bw, cap: B.estimate_pi(model, bandwidth_4t_gbs=bw, compute_cap=cap)["Raspberry Pi 5"]["prompts"][128]["decode_tok_s"]
+    # laptop at 60 GB/s: bandwidth-scaled 55.2 binds before compute (60), so the cap changes nothing
+    assert pi5(60.0, False) == pytest.approx(240.0 * 13.8 / 60.0) and pi5(60.0, True) == pytest.approx(240.0 * 13.8 / 60.0)
+    # laptop at 40 GB/s: bandwidth-scaled 82.8 is cut to the 64.2 roofline without the cap, and to 240 / 4 = 60 with it
+    assert pi5(40.0, False) == pytest.approx(13.8e9 / 215e6) and pi5(40.0, True) == pytest.approx(60.0)
+    pi3 = B.estimate_pi(model, bandwidth_4t_gbs=60.0, compute_cap=True)["Raspberry Pi 3 Model B"]["prompts"][128]["decode_tok_s"]
+    assert pi3 == pytest.approx(min(240.0 * 2.2 / 60.0, 2.2e9 / 215e6, 240.0 / 16.0))  # 8.8
